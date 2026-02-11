@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="salmonGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fb7185"/>
+      <stop offset="100%" stop-color="#f97316"/>
+    </linearGradient>
+    <linearGradient id="scanLine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#22d3ee" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Фон -->
+  <rect width="64" height="64" rx="14" fill="#0f172a"/>
+
+  <!-- QR-углы -->
+  <rect x="6" y="6" width="10" height="10" rx="2" fill="#22d3ee"/>
+  <rect x="48" y="6" width="10" height="10" rx="2" fill="#22d3ee"/>
+  <rect x="6" y="48" width="10" height="10" rx="2" fill="#22d3ee"/>
+
+  <!-- Волнообразная M + пиксели -->
+  <path d="M16 40 
+           Q22 28 28 34 
+           Q32 38 36 34 
+           Q42 28 48 40" 
+        stroke="url(#salmonGradient)" 
+        stroke-width="6" 
+        fill="none" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+
+  <!-- Пиксельные элементы QR внутри -->
+  <rect x="28" y="18" width="4" height="4" fill="#22d3ee"/>
+  <rect x="34" y="22" width="4" height="4" fill="#22d3ee"/>
+  <rect x="22" y="22" width="4" height="4" fill="#22d3ee"/>
+
+  <!-- Сканирующая линия -->
+  <rect x="10" y="30" width="44" height="2" fill="url(#scanLine)"/>
+</svg>
