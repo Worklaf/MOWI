@@ -212,10 +212,10 @@
 
     <div id="languageSwitcher">
         <span aria-hidden="true">🌐</span>
-        <select id="langSelect">
-            <option value="ru" selected>Русский</option>
-            <option value="pl">Polski</option>
-        </select>
+       <select id="langSelect">
+    <option value="ru">Русский</option>
+    <option value="pl" selected>Polski</option>
+</select>
     </div>
 
     <div id="startScreen">
@@ -324,7 +324,7 @@
         pl: 'pol'
     };
 
-    let currentLang = langSelect.value || 'ru';
+    let currentLang = langSelect.value || 'pl';
     let currentStatusKey = 'statusReady';
 
     function t(key) {
@@ -610,3 +610,4 @@
 
 </body>
 </html>
+
