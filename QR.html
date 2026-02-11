@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OCR: MAX QR</title>
+    <link rel="icon" type="image/svg+xml" href="mowi-favicon.svg">
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <style>
@@ -18,7 +19,56 @@
             position: relative;
         }
 
-        /* --- СТАРТОВЫЙ ЭКРАН (ЦЕНТР) --- */
+        #languageSwitcher {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(31,31,31,0.9);
+            padding: 10px 14px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 150;
+            font-size: 14px;
+        }
+
+        #languageSwitcher span {
+            font-size: 18px;
+        }
+
+        #languageSwitcher select {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            box-shadow: 0 4px 12px rgba(37,99,235,0.35);
+            transition: background 0.15s;
+        }
+
+        #languageSwitcher select:hover {
+            background: #1d4ed8;
+        }
+
+        #languageSwitcher select:focus {
+            outline: 2px solid rgba(59,130,246,0.8);
+            outline-offset: 2px;
+        }
+
+        @media (max-width: 600px) {
+            #languageSwitcher {
+                top: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
+
         #startScreen {
             position: absolute;
             top: 50%;
@@ -56,14 +106,14 @@
         .btn-blue { background: #2563eb; }
         .btn-blue:hover { background: #1d4ed8; }
         
-        /* --- КНОПКИ УПРАВЛЕНИЯ ПОСЛЕ ЗАХВАТА --- */
         #workControls {
             position: absolute;
             top: 20px;
             right: 20px;
-            display: none; /* Скрыто в начале */
+            display: none;
             z-index: 50;
             gap: 10px;
+            align-items: center;
         }
         
         .btn-small {
@@ -77,14 +127,13 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
 
-        /* --- РАБОЧАЯ ОБЛАСТЬ --- */
         .canvas-container {
             width: 100%;
             height: 100%;
-            overflow: auto; /* Скролл если картинка большая */
+            overflow: auto;
             background: #000;
             display: flex;
-            justify-content: center; /* Центрируем картинку */
+            justify-content: center;
             align-items: center;
         }
         
@@ -93,7 +142,6 @@
             cursor: crosshair;
         }
         
-        /* Статус бар внизу (опционально) */
         #statusBar {
             position: fixed;
             bottom: 20px;
@@ -106,7 +154,6 @@
             display: none;
         }
 
-        /* --- ОВЕРЛЕЙ (QR) --- */
         #qrOverlay {
             display: none;
             position: fixed;
@@ -140,34 +187,38 @@
 </head>
 <body>
 
-    <!-- СТАРТОВЫЙ ЭКРАН (ЦЕНТР) -->
+    <div id="languageSwitcher">
+        <span aria-hidden="true">🌐</span>
+        <select id="langSelect">
+            <option value="ru" selected>Русский</option>
+            <option value="pl">Polski</option>
+        </select>
+    </div>
+
     <div id="startScreen">
-        <h1>MAX QR READER</h1>
-        <p>Выберите источник изображения</p>
+        <h1 id="startTitle">MAX QR READER</h1>
+        <p id="startSubtitle">Выберите источник изображения</p>
         
-        <button class="btn-big btn-blue" onclick="startCapture()">
+        <button id="captureBtn" class="btn-big btn-blue" onclick="startCapture()">
             📸 ЗАХВАТИТЬ ОКНО
         </button>
         
-        <button class="btn-big btn-blue" style="background:#4b5563" onclick="document.getElementById('fileIn').click()">
+        <button id="fileBtn" class="btn-big btn-blue" style="background:#4b5563" onclick="document.getElementById('fileIn').click()">
             📂 ОТКРЫТЬ ФАЙЛ
         </button>
         
         <input type="file" id="fileIn" hidden onchange="handleFile(event)">
     </div>
 
-    <!-- КНОПКИ ВОЗВРАТА (ПОЯВЛЯЮТСЯ ПОСЛЕ) -->
     <div id="workControls">
         <span id="statusText" style="margin-right:15px; font-weight:bold; text-shadow: 1px 1px 2px black;">Выделите область</span>
-        <button class="btn-small" onclick="location.reload()">🔄 СБРОС</button>
+        <button id="resetBtn" class="btn-small" onclick="location.reload()">🔄 СБРОС</button>
     </div>
 
-    <!-- РАБОЧАЯ ОБЛАСТЬ -->
     <div class="canvas-container">
         <canvas id="mainCanvas"></canvas>
     </div>
 
-    <!-- ВСПЛЫВАЮЩЕЕ ОКНО (QR) -->
     <div id="qrOverlay" onclick="closeOverlay()">
         <div class="qr-box">
             <canvas id="bigQrCanvas"></canvas>
@@ -184,24 +235,97 @@
     const previewCanvas = document.getElementById('hiddenPreview');
     const pCtx = previewCanvas.getContext('2d');
     
-    // Элементы UI
     const startScreen = document.getElementById('startScreen');
     const workControls = document.getElementById('workControls');
     const statusText = document.getElementById('statusText');
+
+    const langSelect = document.getElementById('langSelect');
+    const startTitleEl = document.getElementById('startTitle');
+    const startSubtitleEl = document.getElementById('startSubtitle');
+    const captureBtn = document.getElementById('captureBtn');
+    const fileBtn = document.getElementById('fileBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const overlayHintEl = document.getElementById('hint');
+    const htmlElement = document.documentElement;
     
     let isDrawing = false;
     let startX, startY;
     let imgDataSnapshot;
     const HARDCODED_THRESHOLD = 210; 
 
-    // --- ФУНКЦИИ ИНТЕРФЕЙСА ---
-    
+    const translations = {
+        ru: {
+            startTitle: 'MAX QR READER',
+            startSubtitle: 'Выберите источник изображения',
+            captureWindowBtn: '📸 ЗАХВАТИТЬ ОКНО',
+            openFileBtn: '📂 ОТКРЫТЬ ФАЙЛ',
+            resetBtn: '🔄 СБРОС',
+            statusReady: 'Выделите область',
+            statusProcessing: '⚡ Обработка...',
+            statusDone: 'Готово!',
+            statusFail: 'Не найдено. Попробуйте ещё раз.',
+            overlayHint: 'Нажмите куда угодно, чтобы закрыть',
+            overlayReady: 'Готов к следующему выделению'
+        },
+        pl: {
+            startTitle: 'MAX QR READER',
+            startSubtitle: 'Wybierz źródło obrazu',
+            captureWindowBtn: '📸 PRZECHWYĆ OKNO',
+            openFileBtn: '📂 OTWÓRZ PLIK',
+            resetBtn: '🔄 RESET',
+            statusReady: 'Zaznacz obszar',
+            statusProcessing: '⚡ Przetwarzanie...',
+            statusDone: 'Gotowe!',
+            statusFail: 'Nic nie znaleziono. Spróbuj ponownie.',
+            overlayHint: 'Kliknij dowolne miejsce, aby zamknąć',
+            overlayReady: 'Gotowy na kolejne zaznaczenie'
+        }
+    };
+
+    const ocrLangMap = {
+        ru: 'rus',
+        pl: 'pol'
+    };
+
+    let currentLang = langSelect.value || 'ru';
+    let currentStatusKey = 'statusReady';
+
+    function t(key) {
+        return (translations[currentLang] && translations[currentLang][key]) ? translations[currentLang][key] : key;
+    }
+
+    function refreshStatus() {
+        statusText.innerText = t(currentStatusKey);
+    }
+
+    function applyTranslations() {
+        startTitleEl.innerText = t('startTitle');
+        startSubtitleEl.innerText = t('startSubtitle');
+        captureBtn.innerText = t('captureWindowBtn');
+        fileBtn.innerText = t('openFileBtn');
+        resetBtn.innerText = t('resetBtn');
+        overlayHintEl.innerText = t('overlayHint');
+        refreshStatus();
+    }
+
+    function setStatus(key) {
+        currentStatusKey = key;
+        refreshStatus();
+    }
+
+    langSelect.addEventListener('change', () => {
+        currentLang = langSelect.value;
+        htmlElement.lang = currentLang;
+        applyTranslations();
+    });
+
+    htmlElement.lang = currentLang;
+    applyTranslations();
+
     function enterWorkMode() {
-        // Скрываем стартовое меню
         startScreen.style.display = 'none';
-        // Показываем кнопку сброса и статус
         workControls.style.display = 'flex';
-        statusText.innerText = "Выделите цифры мышкой";
+        setStatus('statusReady');
     }
 
     function showOverlay(text) {
@@ -216,7 +340,7 @@
 
     function closeOverlay() {
         document.getElementById('qrOverlay').style.display = 'none';
-        statusText.innerText = "Готов к следующему выделению";
+        setStatus('overlayReady');
     }
 
     document.addEventListener('keydown', (e) => {
@@ -227,7 +351,6 @@
         }
     });
 
-    // --- ЗАХВАТ ---
     async function startCapture() {
         try {
             const opts = { video: { cursor: "always" }, audio: false };
@@ -238,7 +361,6 @@
             }
             const stream = await navigator.mediaDevices.getDisplayMedia(opts);
             
-            // Фолбек фокуса
             setTimeout(() => { window.focus(); }, 500);
 
             const video = document.createElement('video');
@@ -246,17 +368,16 @@
             await video.play();
             await new Promise(r => setTimeout(r, 200));
 
-            // Установка размеров и отрисовка
             mainCanvas.width = video.videoWidth;
             mainCanvas.height = video.videoHeight;
             ctx.drawImage(video, 0, 0);
             
             stream.getTracks().forEach(t => t.stop());
-            
-            // ПЕРЕХОДИМ В РЕЖИМ РАБОТЫ (СКРЫВАЕМ МЕНЮ)
             enterWorkMode();
             
-        } catch(e) { console.error(e); }
+        } catch(e) { 
+            console.error(e); 
+        }
     }
 
     function handleFile(e) {
@@ -266,16 +387,13 @@
             mainCanvas.width = img.width;
             mainCanvas.height = img.height;
             ctx.drawImage(img, 0, 0);
-            // ПЕРЕХОДИМ В РЕЖИМ РАБОТЫ
             enterWorkMode();
         };
         img.src = URL.createObjectURL(e.target.files[0]);
     }
 
-    // --- РИСОВАНИЕ ---
     mainCanvas.addEventListener('mousedown', e => {
         const rect = mainCanvas.getBoundingClientRect();
-        // Учитываем масштаб отображения (если картинка ужата css)
         const scaleX = mainCanvas.width / rect.width; 
         const scaleY = mainCanvas.height / rect.height;
         
@@ -320,9 +438,8 @@
         }
     });
 
-    // --- ОБРАБОТКА ---
     async function processAndRecognize(region) {
-        statusText.innerText = "⚡ Обработка...";
+        setStatus('statusProcessing');
         
         const SCALE = 3; 
         previewCanvas.width = region.w * SCALE;
@@ -341,22 +458,24 @@
         pCtx.putImageData(imageData, 0, 0);
 
         try {
+            const ocrLang = ocrLangMap[currentLang] || 'rus';
             const result = await Tesseract.recognize(
-                previewCanvas, 'eng', 
+                previewCanvas,
+                ocrLang,
                 { tessedit_char_whitelist: '0123456789' }
             );
             
             const cleanText = result.data.text.replace(/\D/g, '').trim();
             
             if(cleanText.length > 0) {
-                statusText.innerText = "Готово!";
+                setStatus('statusDone');
                 showOverlay(cleanText);
             } else {
-                statusText.innerText = "Не найдено. Попробуйте еще раз.";
+                setStatus('statusFail');
             }
 
         } catch (err) {
-            statusText.innerText = "Ошибка распознавания";
+            setStatus('statusFail');
             console.error(err);
         }
     }
