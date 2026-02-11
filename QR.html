@@ -127,6 +127,17 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
 
+        .btn-ghost {
+            padding: 8px 14px;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.35);
+            border-radius: 6px;
+            background: rgba(15,15,15,0.65);
+            color: #f8fafc;
+            font-weight: 600;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+        }
+
         .canvas-container {
             width: 100%;
             height: 100%;
@@ -183,6 +194,18 @@
         #hint { margin-top: 20px; color: #888; font-size: 18px; }
         
         #hiddenPreview { display: none; }
+
+        #coordsDisplay {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            background: rgba(15, 23, 42, 0.8);
+            padding: 8px 12px;
+            border-radius: 8px;
+            color: #cbd5f5;
+            border: 1px solid rgba(96,165,250,0.35);
+            box-shadow: 0 6px 18px rgba(37,99,235,0.25);
+        }
     </style>
 </head>
 <body>
@@ -211,7 +234,9 @@
     </div>
 
     <div id="workControls">
-        <span id="statusText" style="margin-right:15px; font-weight:bold; text-shadow: 1px 1px 2px black;">Выделите область</span>
+        <span id="statusText" style="font-weight:bold; text-shadow:1px 1px 2px black;">Выделите область</span>
+        <span id="coordsDisplay">x: — | y: — | w: — | h: —</span>
+        <button id="clearCoordsBtn" class="btn-ghost">🗑️ СБРОС КООРДИНАТ</button>
         <button id="resetBtn" class="btn-small" onclick="location.reload()">🔄 СБРОС</button>
     </div>
 
@@ -246,12 +271,16 @@
     const fileBtn = document.getElementById('fileBtn');
     const resetBtn = document.getElementById('resetBtn');
     const overlayHintEl = document.getElementById('hint');
+    const coordsDisplay = document.getElementById('coordsDisplay');
+    const clearCoordsBtn = document.getElementById('clearCoordsBtn');
     const htmlElement = document.documentElement;
     
     let isDrawing = false;
     let startX, startY;
     let imgDataSnapshot;
+    let storedRegion = null;
     const HARDCODED_THRESHOLD = 210; 
+    const STORAGE_KEY = 'maxqr_savedRegion';
 
     const translations = {
         ru: {
@@ -265,7 +294,11 @@
             statusDone: 'Готово!',
             statusFail: 'Не найдено. Попробуйте ещё раз.',
             overlayHint: 'Нажмите куда угодно, чтобы закрыть',
-            overlayReady: 'Готов к следующему выделению'
+            overlayReady: 'Готов к следующему выделению',
+            statusAutoInit: 'Автообработка сохранённой зоны…',
+            statusAutoError: 'Сохранённая зона вне кадра. Выделите заново.',
+            statusCoordsCleared: 'Координаты сброшены.',
+            clearCoordsBtn: '🗑️ СБРОС КООРДИНАТ'
         },
         pl: {
             startTitle: 'MAX QR READER',
@@ -278,7 +311,11 @@
             statusDone: 'Gotowe!',
             statusFail: 'Nic nie znaleziono. Spróbuj ponownie.',
             overlayHint: 'Kliknij dowolne miejsce, aby zamknąć',
-            overlayReady: 'Gotowy na kolejne zaznaczenie'
+            overlayReady: 'Gotowy na kolejne zaznaczenie',
+            statusAutoInit: 'Automatyczne przetwarzanie zapisanego obszaru…',
+            statusAutoError: 'Zapisany obszar poza kadrem. Zaznacz ponownie.',
+            statusCoordsCleared: 'Współrzędne wyzerowane.',
+            clearCoordsBtn: '🗑️ RESET WSPÓŁRZĘDNYCH'
         }
     };
 
@@ -305,7 +342,9 @@
         fileBtn.innerText = t('openFileBtn');
         resetBtn.innerText = t('resetBtn');
         overlayHintEl.innerText = t('overlayHint');
+        clearCoordsBtn.innerText = t('clearCoordsBtn');
         refreshStatus();
+        updateCoordsDisplay(storedRegion);
     }
 
     function setStatus(key) {
@@ -321,11 +360,98 @@
 
     htmlElement.lang = currentLang;
     applyTranslations();
+    loadStoredRegion();
+
+    function loadStoredRegion() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) {
+                storedRegion = null;
+                return;
+            }
+            const parsed = JSON.parse(raw);
+            if (isFinite(parsed.x) && isFinite(parsed.y) && isFinite(parsed.w) && isFinite(parsed.h)) {
+                storedRegion = parsed;
+            } else {
+                storedRegion = null;
+            }
+        } catch (err) {
+            console.warn('Не удалось прочитать координаты:', err);
+            storedRegion = null;
+        }
+        updateCoordsDisplay(storedRegion);
+    }
+
+    function storeRegion(region) {
+        storedRegion = {
+            x: Math.round(region.x),
+            y: Math.round(region.y),
+            w: Math.round(region.w),
+            h: Math.round(region.h)
+        };
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(storedRegion));
+        } catch (err) {
+            console.warn('Не удалось сохранить координаты:', err);
+        }
+        updateCoordsDisplay(storedRegion);
+    }
+
+    function clearStoredRegion() {
+        storedRegion = null;
+        localStorage.removeItem(STORAGE_KEY);
+        updateCoordsDisplay(null);
+        setStatus('statusCoordsCleared');
+    }
+
+    function updateCoordsDisplay(region) {
+        if (!region) {
+            coordsDisplay.textContent = 'x: — | y: — | w: — | h: —';
+            return;
+        }
+        coordsDisplay.textContent = `x: ${region.x} | y: ${region.y} | w: ${region.w} | h: ${region.h}`;
+    }
+
+    clearCoordsBtn.addEventListener('click', () => {
+        clearStoredRegion();
+    });
 
     function enterWorkMode() {
         startScreen.style.display = 'none';
         workControls.style.display = 'flex';
-        setStatus('statusReady');
+        if (!storedRegion) {
+            setStatus('statusReady');
+        }
+        requestAnimationFrame(() => {
+            if (storedRegion) {
+                tryAutoProcessStoredRegion();
+            }
+        });
+    }
+
+    function tryAutoProcessStoredRegion() {
+        const sanitized = sanitizeRegion(storedRegion);
+        if (!sanitized) {
+            setStatus('statusAutoError');
+            return;
+        }
+        setStatus('statusAutoInit');
+        processAndRecognize(sanitized);
+    }
+
+    function sanitizeRegion(region) {
+        if (!region) return null;
+        const canvasWidth = mainCanvas.width;
+        const canvasHeight = mainCanvas.height;
+        if (!canvasWidth || !canvasHeight) return null;
+
+        const x = Math.max(0, Math.min(canvasWidth - 1, region.x));
+        const y = Math.max(0, Math.min(canvasHeight - 1, region.y));
+        const w = Math.max(0, Math.min(region.w, canvasWidth - x));
+        const h = Math.max(0, Math.min(region.h, canvasHeight - y));
+
+        if (w < 6 || h < 6) return null;
+        return { x, y, w, h };
     }
 
     function showOverlay(text) {
@@ -393,6 +519,7 @@
     }
 
     mainCanvas.addEventListener('mousedown', e => {
+        if (!mainCanvas.width || !mainCanvas.height) return;
         const rect = mainCanvas.getBoundingClientRect();
         const scaleX = mainCanvas.width / rect.width; 
         const scaleY = mainCanvas.height / rect.height;
@@ -418,7 +545,7 @@
         ctx.strokeRect(startX, startY, currentX - startX, currentY - startY);
     });
 
-    mainCanvas.addEventListener('mouseup', async e => {
+    mainCanvas.addEventListener('mouseup', e => {
         if(!isDrawing) return;
         isDrawing = false;
         
@@ -434,13 +561,13 @@
         
         if (w > 5 && h > 5) {
             const region = { x: Math.min(startX, endX), y: Math.min(startY, endY), w, h };
+            storeRegion(region);
+            setStatus('statusProcessing');
             processAndRecognize(region);
         }
     });
 
     async function processAndRecognize(region) {
-        setStatus('statusProcessing');
-        
         const SCALE = 3; 
         previewCanvas.width = region.w * SCALE;
         previewCanvas.height = region.h * SCALE;
