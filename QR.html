@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OCR: MAX QR</title>
     <link rel="icon" type="image/svg+xml" href="mowi-favicon.svg">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css">
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <style>
@@ -34,8 +35,9 @@
             font-size: 14px;
         }
 
-        #languageSwitcher span {
-            font-size: 18px;
+        #languageSwitcher .flag-icon {
+            font-size: 22px;
+            line-height: 1;
         }
 
         #languageSwitcher select {
@@ -105,6 +107,8 @@
         .btn-big:active { transform: scale(0.98); }
         .btn-blue { background: #2563eb; }
         .btn-blue:hover { background: #1d4ed8; }
+        .btn-green { background: #16a34a; }
+        .btn-green:hover { background: #15803d; }
         
         #workControls {
             position: absolute;
@@ -211,33 +215,39 @@
 <body>
 
     <div id="languageSwitcher">
-        <span aria-hidden="true">🌐</span>
-       <select id="langSelect">
-    <option value="ru">Русский</option>
-    <option value="pl" selected>Polski</option>
+        <span id="currentFlag" class="fi fi-pl"></span>
+        <select id="langSelect">
+    <option value="pl" data-flag="fi fi-pl">Polski</option>
+    <option value="uk" data-flag="fi fi-ua">Українська</option>
+    <option value="en" data-flag="fi fi-gb">English</option>
 </select>
     </div>
 
     <div id="startScreen">
         <h1 id="startTitle">MAX QR READER</h1>
-        <p id="startSubtitle">Выберите источник изображения</p>
+        <p id="startSubtitle">Wybierz źródło obrazu</p>
         
         <button id="captureBtn" class="btn-big btn-blue" onclick="startCapture()">
-            📸 ЗАХВАТИТЬ ОКНО
+            📸 PRZECHWYĆ OKNO
         </button>
         
         <button id="fileBtn" class="btn-big btn-blue" style="background:#4b5563" onclick="document.getElementById('fileIn').click()">
-            📂 ОТКРЫТЬ ФАЙЛ
+            📂 OTWÓRZ PLIK
+        </button>
+        
+        <!-- Новая кнопка для перехода на QR Cards -->
+        <button id="cardsBtn" class="btn-big btn-green" onclick="window.location.href='https://worklaf.github.io/MOWI/QR_Cards.html'">
+            🃏 KARTY QR
         </button>
         
         <input type="file" id="fileIn" hidden onchange="handleFile(event)">
     </div>
 
     <div id="workControls">
-        <span id="statusText" style="font-weight:bold; text-shadow:1px 1px 2px black;">Выделите область</span>
+        <span id="statusText" style="font-weight:bold; text-shadow:1px 1px 2px black;">Zaznacz obszar</span>
         <span id="coordsDisplay">x: — | y: — | w: — | h: —</span>
-        <button id="clearCoordsBtn" class="btn-ghost">🗑️ СБРОС КООРДИНАТ</button>
-        <button id="resetBtn" class="btn-small" onclick="location.reload()">🔄 СБРОС</button>
+        <button id="clearCoordsBtn" class="btn-ghost">🗑️ RESET WSPÓŁRZĘDNYCH</button>
+        <button id="resetBtn" class="btn-small" onclick="location.reload()">🔄 RESET</button>
     </div>
 
     <div class="canvas-container">
@@ -249,7 +259,7 @@
             <canvas id="bigQrCanvas"></canvas>
             <div id="overlayText">000000</div>
         </div>
-        <div id="hint">Нажми куда угодно, чтобы закрыть</div>
+        <div id="hint">Kliknij dowolne miejsce, aby zamknąć</div>
     </div>
     
     <canvas id="hiddenPreview"></canvas>
@@ -265,15 +275,23 @@
     const statusText = document.getElementById('statusText');
 
     const langSelect = document.getElementById('langSelect');
+    const currentFlag = document.getElementById('currentFlag');
     const startTitleEl = document.getElementById('startTitle');
     const startSubtitleEl = document.getElementById('startSubtitle');
     const captureBtn = document.getElementById('captureBtn');
     const fileBtn = document.getElementById('fileBtn');
+    const cardsBtn = document.getElementById('cardsBtn');
     const resetBtn = document.getElementById('resetBtn');
     const overlayHintEl = document.getElementById('hint');
     const coordsDisplay = document.getElementById('coordsDisplay');
     const clearCoordsBtn = document.getElementById('clearCoordsBtn');
     const htmlElement = document.documentElement;
+
+    const flagMap = {
+        pl: 'flag-icon-pl',
+        uk: 'flag-icon-ua',
+        en: 'flag-icon-gb'
+    };
     
     let isDrawing = false;
     let startX, startY;
@@ -283,28 +301,12 @@
     const STORAGE_KEY = 'maxqr_savedRegion';
 
     const translations = {
-        ru: {
-            startTitle: 'MAX QR READER',
-            startSubtitle: 'Выберите источник изображения',
-            captureWindowBtn: '📸 ЗАХВАТИТЬ ОКНО',
-            openFileBtn: '📂 ОТКРЫТЬ ФАЙЛ',
-            resetBtn: '🔄 СБРОС',
-            statusReady: 'Выделите область',
-            statusProcessing: '⚡ Обработка...',
-            statusDone: 'Готово!',
-            statusFail: 'Не найдено. Попробуйте ещё раз.',
-            overlayHint: 'Нажмите куда угодно, чтобы закрыть',
-            overlayReady: 'Готов к следующему выделению',
-            statusAutoInit: 'Автообработка сохранённой зоны…',
-            statusAutoError: 'Сохранённая зона вне кадра. Выделите заново.',
-            statusCoordsCleared: 'Координаты сброшены.',
-            clearCoordsBtn: '🗑️ СБРОС КООРДИНАТ'
-        },
         pl: {
             startTitle: 'MAX QR READER',
             startSubtitle: 'Wybierz źródło obrazu',
             captureWindowBtn: '📸 PRZECHWYĆ OKNO',
             openFileBtn: '📂 OTWÓRZ PLIK',
+            cardsBtn: '🃏 KARTY QR',
             resetBtn: '🔄 RESET',
             statusReady: 'Zaznacz obszar',
             statusProcessing: '⚡ Przetwarzanie...',
@@ -316,12 +318,49 @@
             statusAutoError: 'Zapisany obszar poza kadrem. Zaznacz ponownie.',
             statusCoordsCleared: 'Współrzędne wyzerowane.',
             clearCoordsBtn: '🗑️ RESET WSPÓŁRZĘDNYCH'
+        },
+        uk: {
+            startTitle: 'MAX QR READER',
+            startSubtitle: 'Виберіть джерело зображення',
+            captureWindowBtn: '📸 ЗАХОПИТИ ВІКНО',
+            openFileBtn: '📂 ВІДКРИТИ ФАЙЛ',
+            cardsBtn: '🃏 QR КАРТКИ',
+            resetBtn: '🔄 СКИНУТИ',
+            statusReady: 'Виділіть область',
+            statusProcessing: '⚡ Обробка...',
+            statusDone: 'Готово!',
+            statusFail: 'Нічого не знайдено. Спробуйте ще раз.',
+            overlayHint: 'Клікніть будь-де, щоб закрити',
+            overlayReady: 'Готовий до нового виділення',
+            statusAutoInit: 'Автообробка збереженої зони…',
+            statusAutoError: 'Збережена зона поза кадром. Виділіть знову.',
+            statusCoordsCleared: 'Координати скинуті.',
+            clearCoordsBtn: '🗑️ СКИНУТИ КООРДИНАТИ'
+        },
+        en: {
+            startTitle: 'MAX QR READER',
+            startSubtitle: 'Select image source',
+            captureWindowBtn: '📸 CAPTURE WINDOW',
+            openFileBtn: '📂 OPEN FILE',
+            cardsBtn: '🃏 QR CARDS',
+            resetBtn: '🔄 RESET',
+            statusReady: 'Select area',
+            statusProcessing: '⚡ Processing...',
+            statusDone: 'Done!',
+            statusFail: 'Nothing found. Try again.',
+            overlayHint: 'Click anywhere to close',
+            overlayReady: 'Ready for next selection',
+            statusAutoInit: 'Auto-processing saved area...',
+            statusAutoError: 'Saved area out of frame. Select again.',
+            statusCoordsCleared: 'Coordinates cleared.',
+            clearCoordsBtn: '🗑️ CLEAR COORDINATES'
         }
     };
 
     const ocrLangMap = {
-        ru: 'rus',
-        pl: 'pol'
+        pl: 'pol',
+        uk: 'ukr',
+        en: 'eng'
     };
 
     let currentLang = langSelect.value || 'pl';
@@ -340,6 +379,7 @@
         startSubtitleEl.innerText = t('startSubtitle');
         captureBtn.innerText = t('captureWindowBtn');
         fileBtn.innerText = t('openFileBtn');
+        cardsBtn.innerText = t('cardsBtn');
         resetBtn.innerText = t('resetBtn');
         overlayHintEl.innerText = t('overlayHint');
         clearCoordsBtn.innerText = t('clearCoordsBtn');
@@ -353,10 +393,20 @@
     }
 
     langSelect.addEventListener('change', () => {
-        currentLang = langSelect.value;
-        htmlElement.lang = currentLang;
-        applyTranslations();
-    });
+    currentLang = langSelect.value;
+    htmlElement.lang = currentLang;
+    const selectedOption = langSelect.options[langSelect.selectedIndex];
+    const newFlagClass = selectedOption.getAttribute('data-flag');
+    currentFlag.className = newFlagClass;
+    applyTranslations();
+});
+
+(function initFlag() {
+    const selectedOption = langSelect.options[langSelect.selectedIndex];
+    if (selectedOption && selectedOption.dataset.flag) {
+        currentFlag.className = selectedOption.dataset.flag;
+    }
+})();
 
     htmlElement.lang = currentLang;
     applyTranslations();
@@ -585,7 +635,7 @@
         pCtx.putImageData(imageData, 0, 0);
 
         try {
-            const ocrLang = ocrLangMap[currentLang] || 'rus';
+            const ocrLang = ocrLangMap[currentLang] || 'pol';
             const result = await Tesseract.recognize(
                 previewCanvas,
                 ocrLang,
@@ -610,4 +660,3 @@
 
 </body>
 </html>
-
