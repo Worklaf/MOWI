@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OCR: MAX QR</title>
-    <link rel="icon" type="image/svg+xml" href="mowi-favicon.svg" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css" />
+    <link rel="icon" type="image/svg+xml" href="mowi-favicon.svg">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css">
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <style>
         body {
-            font-family: "Segoe UI", sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             background: #121212;
             color: #eee;
             margin: 0;
@@ -24,10 +24,10 @@
             position: absolute;
             top: 20px;
             left: 20px;
-            background: rgba(31, 31, 31, 0.9);
+            background: rgba(31,31,31,0.9);
             padding: 10px 14px;
             border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
             display: flex;
             align-items: center;
             gap: 8px;
@@ -35,14 +35,14 @@
             font-size: 14px;
         }
 
-        #languageSwitcher .fi {
+        #languageSwitcher .flag-icon {
             font-size: 22px;
             line-height: 1;
         }
 
         #languageSwitcher select {
             background: #2563eb;
-            color: #fff;
+            color: white;
             border: none;
             border-radius: 8px;
             padding: 6px 10px;
@@ -50,7 +50,7 @@
             font-weight: 600;
             cursor: pointer;
             outline: none;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+            box-shadow: 0 4px 12px rgba(37,99,235,0.35);
             transition: background 0.15s;
         }
 
@@ -59,7 +59,7 @@
         }
 
         #languageSwitcher select:focus {
-            outline: 2px solid rgba(59, 130, 246, 0.8);
+            outline: 2px solid rgba(59,130,246,0.8);
             outline-offset: 2px;
         }
 
@@ -79,7 +79,7 @@
             background: #1f1f1f;
             padding: 40px;
             border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
             text-align: center;
             display: flex;
             flex-direction: column;
@@ -87,16 +87,8 @@
             z-index: 100;
         }
 
-        h1 {
-            margin: 0 0 10px;
-            font-size: 24px;
-            color: #fff;
-        }
-
-        p {
-            margin: 0 0 20px;
-            color: #888;
-        }
+        h1 { margin: 0 0 10px 0; font-size: 24px; color: #fff; }
+        p { margin: 0 0 20px 0; color: #888; }
 
         .btn-big {
             padding: 15px 30px;
@@ -105,34 +97,19 @@
             border: none;
             border-radius: 8px;
             font-weight: bold;
-            color: #fff;
+            color: white;
             transition: transform 0.1s;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
         }
-
-        .btn-big:active {
-            transform: scale(0.98);
-        }
-
-        .btn-blue {
-            background: #2563eb;
-        }
-
-        .btn-blue:hover {
-            background: #1d4ed8;
-        }
-
-        .btn-green {
-            background: #16a34a;
-        }
-
-        .btn-green:hover {
-            background: #15803d;
-        }
-
+        .btn-big:active { transform: scale(0.98); }
+        .btn-blue { background: #2563eb; }
+        .btn-blue:hover { background: #1d4ed8; }
+        .btn-green { background: #16a34a; }
+        .btn-green:hover { background: #15803d; }
+        
         #workControls {
             position: absolute;
             top: 20px;
@@ -142,27 +119,27 @@
             gap: 10px;
             align-items: center;
         }
-
+        
         .btn-small {
             padding: 8px 15px;
             cursor: pointer;
             border: none;
             border-radius: 4px;
             background: #dc2626;
-            color: #fff;
+            color: white;
             font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
 
         .btn-ghost {
             padding: 8px 14px;
             cursor: pointer;
-            border: 1px solid rgba(255, 255, 255, 0.35);
+            border: 1px solid rgba(255,255,255,0.35);
             border-radius: 6px;
-            background: rgba(15, 15, 15, 0.65);
+            background: rgba(15,15,15,0.65);
             color: #f8fafc;
             font-weight: 600;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.45);
         }
 
         .canvas-container {
@@ -174,19 +151,28 @@
             justify-content: center;
             align-items: center;
         }
-
-        #mainCanvas {
-            box-shadow: 0 0 50px #000;
+        
+        #mainCanvas { 
+            box-shadow: 0 0 50px #000; 
             cursor: crosshair;
+        }
+        
+        #statusBar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            padding: 10px 20px;
+            border-radius: 20px;
+            pointer-events: none;
+            display: none;
         }
 
         #qrOverlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.95);
             z-index: 9999;
             justify-content: center;
@@ -194,48 +180,40 @@
             flex-direction: column;
             cursor: pointer;
         }
-
         .qr-box {
-            background: #fff;
+            background: white;
             padding: 20px;
             border-radius: 15px;
             text-align: center;
             box-shadow: 0 0 50px rgba(255, 255, 255, 0.2);
         }
-
         #overlayText {
             margin-top: 15px;
             font-size: 60px;
-            font-family: "Courier New", monospace;
+            font-family: 'Courier New', monospace;
             font-weight: bold;
             color: #000;
             letter-spacing: 2px;
         }
-
-        #hint {
-            margin-top: 20px;
-            color: #888;
-            font-size: 18px;
-        }
-
-        #hiddenPreview {
-            display: none;
-        }
+        #hint { margin-top: 20px; color: #888; font-size: 18px; }
+        
+        #hiddenPreview { display: none; }
 
         #coordsDisplay {
-            font-family: "JetBrains Mono", "Courier New", monospace;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
             font-size: 13px;
             letter-spacing: 0.5px;
             background: rgba(15, 23, 42, 0.8);
             padding: 8px 12px;
             border-radius: 8px;
             color: #cbd5f5;
-            border: 1px solid rgba(96, 165, 250, 0.35);
-            box-shadow: 0 6px 18px rgba(37, 99, 235, 0.25);
+            border: 1px solid rgba(96,165,250,0.35);
+            box-shadow: 0 6px 18px rgba(37,99,235,0.25);
         }
     </style>
 </head>
 <body>
+
     <div id="languageSwitcher">
         <span id="currentFlag" class="fi fi-pl"></span>
         <select id="langSelect">
@@ -248,18 +226,25 @@
     <div id="startScreen">
         <h1 id="startTitle">MAX QR READER</h1>
         <p id="startSubtitle">Wybierz źródło obrazu</p>
-
-        <button id="captureBtn" class="btn-big btn-blue" onclick="startCapture()">📸 PRZECHWYĆ OKNO</button>
-
-        <button id="fileBtn" class="btn-big btn-blue" style="background:#4b5563" onclick="document.getElementById('fileIn').click()">📂 OTWÓRZ PLIK</button>
-
-        <button id="cardsBtn" class="btn-big btn-green" onclick="window.location.href='https://worklaf.github.io/MOWI/QR_Cards.html'">🃏 KARTY QR</button>
-
-        <input type="file" id="fileIn" hidden onchange="handleFile(event)" />
+        
+        <button id="captureBtn" class="btn-big btn-blue" onclick="startCapture()">
+            📸 PRZECHWYĆ OKNO
+        </button>
+        
+        <button id="fileBtn" class="btn-big btn-blue" style="background:#4b5563" onclick="document.getElementById('fileIn').click()">
+            📂 OTWÓRZ PLIK
+        </button>
+        
+        <!-- Новая кнопка для перехода на QR Cards -->
+        <button id="cardsBtn" class="btn-big btn-green" onclick="window.location.href='https://worklaf.github.io/MOWI/QR_Cards.html'">
+            🃏 KARTY QR
+        </button>
+        
+        <input type="file" id="fileIn" hidden onchange="handleFile(event)">
     </div>
 
     <div id="workControls">
-        <span id="statusText" style="font-weight: bold; text-shadow: 1px 1px 2px black;">Zaznacz obszar</span>
+        <span id="statusText" style="font-weight:bold; text-shadow:1px 1px 2px black;">Zaznacz obszar</span>
         <span id="coordsDisplay">x: — | y: — | w: — | h: —</span>
         <button id="clearCoordsBtn" class="btn-ghost">🗑️ RESET WSPÓŁRZĘDNYCH</button>
         <button id="resetBtn" class="btn-small" onclick="location.reload()">🔄 RESET</button>
@@ -276,452 +261,426 @@
         </div>
         <div id="hint">Kliknij dowolne miejsce, aby zamknąć</div>
     </div>
-
+    
     <canvas id="hiddenPreview"></canvas>
 
-    <script>
-        const mainCanvas = document.getElementById("mainCanvas");
-        const ctx = mainCanvas.getContext("2d");
-        const previewCanvas = document.getElementById("hiddenPreview");
-        const pCtx = previewCanvas.getContext("2d");
+<script>
+    const mainCanvas = document.getElementById('mainCanvas');
+    const ctx = mainCanvas.getContext('2d');
+    const previewCanvas = document.getElementById('hiddenPreview');
+    const pCtx = previewCanvas.getContext('2d');
+    
+    const startScreen = document.getElementById('startScreen');
+    const workControls = document.getElementById('workControls');
+    const statusText = document.getElementById('statusText');
 
-        const startScreen = document.getElementById("startScreen");
-        const workControls = document.getElementById("workControls");
-        const statusText = document.getElementById("statusText");
+    const langSelect = document.getElementById('langSelect');
+    const currentFlag = document.getElementById('currentFlag');
+    const startTitleEl = document.getElementById('startTitle');
+    const startSubtitleEl = document.getElementById('startSubtitle');
+    const captureBtn = document.getElementById('captureBtn');
+    const fileBtn = document.getElementById('fileBtn');
+    const cardsBtn = document.getElementById('cardsBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const overlayHintEl = document.getElementById('hint');
+    const coordsDisplay = document.getElementById('coordsDisplay');
+    const clearCoordsBtn = document.getElementById('clearCoordsBtn');
+    const htmlElement = document.documentElement;
 
-        const langSelect = document.getElementById("langSelect");
-        const currentFlag = document.getElementById("currentFlag");
-        const startTitleEl = document.getElementById("startTitle");
-        const startSubtitleEl = document.getElementById("startSubtitle");
-        const captureBtn = document.getElementById("captureBtn");
-        const fileBtn = document.getElementById("fileBtn");
-        const cardsBtn = document.getElementById("cardsBtn");
-        const resetBtn = document.getElementById("resetBtn");
-        const overlayHintEl = document.getElementById("hint");
-        const coordsDisplay = document.getElementById("coordsDisplay");
-        const clearCoordsBtn = document.getElementById("clearCoordsBtn");
-        const htmlElement = document.documentElement;
+    let isDrawing = false;
+    let startX, startY;
+    let imgDataSnapshot;
+    let storedRegion = null;
+    const HARDCODED_THRESHOLD = 210; 
+    const STORAGE_KEY = 'maxqr_savedRegion';
 
-        const HARDCODED_THRESHOLD = 210;
-        const STORAGE_KEY = "maxqr_savedRegion";
-
-        const SECRET_FILE_PATH = "NFL.xlsm";
-        const SECRET_CLICKS = 5;
-        const SECRET_TIMEOUT = 1000;
-
-        const translations = {
-            pl: {
-                startTitle: "MAX QR READER",
-                startSubtitle: "Wybierz źródło obrazu",
-                captureWindowBtn: "📸 PRZECHWYĆ OKNO",
-                openFileBtn: "📂 OTWÓRZ PLIK",
-                cardsBtn: "🃏 KARTY QR",
-                resetBtn: "🔄 RESET",
-                statusReady: "Zaznacz obszar",
-                statusProcessing: "⚡ Przetwarzanie...",
-                statusDone: "Gotowe!",
-                statusFail: "Nic nie znaleziono. Spróbuj ponownie.",
-                overlayHint: "Kliknij dowolne miejsce, aby zamknąć",
-                overlayReady: "Gotowy na kolejne zaznaczenie",
-                statusAutoInit: "Automatyczne przetwarzanie zapisanego obszaru…",
-                statusAutoError: "Zapisany obszar poza kadrem. Zaznacz ponownie.",
-                statusCoordsCleared: "Współrzędne wyzerowane.",
-                clearCoordsBtn: "🗑️ RESET WSPÓŁRZĘDNYCH"
-            },
-            uk: {
-                startTitle: "MAX QR READER",
-                startSubtitle: "Виберіть джерело зображення",
-                captureWindowBtn: "📸 ЗАХОПИТИ ВІКНО",
-                openFileBtn: "📂 ВІДКРИТИ ФАЙЛ",
-                cardsBtn: "🃏 QR КАРТКИ",
-                resetBtn: "🔄 СКИНУТИ",
-                statusReady: "Виділіть область",
-                statusProcessing: "⚡ Обробка...",
-                statusDone: "Готово!",
-                statusFail: "Нічого не знайдено. Спробуйте ще раз.",
-                overlayHint: "Клікніть будь-де, щоб закрити",
-                overlayReady: "Готовий до нового виділення",
-                statusAutoInit: "Автообробка збереженої зони…",
-                statusAutoError: "Збережена зона поза кадром. Виділіть знову.",
-                statusCoordsCleared: "Координати скинуті.",
-                clearCoordsBtn: "🗑️ СКИНУТИ КООРДИНАТИ"
-            },
-            en: {
-                startTitle: "MAX QR READER",
-                startSubtitle: "Select image source",
-                captureWindowBtn: "📸 CAPTURE WINDOW",
-                openFileBtn: "📂 OPEN FILE",
-                cardsBtn: "🃏 QR CARDS",
-                resetBtn: "🔄 RESET",
-                statusReady: "Select area",
-                statusProcessing: "⚡ Processing...",
-                statusDone: "Done!",
-                statusFail: "Nothing found. Try again.",
-                overlayHint: "Click anywhere to close",
-                overlayReady: "Ready for next selection",
-                statusAutoInit: "Auto-processing saved area...",
-                statusAutoError: "Saved area out of frame. Select again.",
-                statusCoordsCleared: "Coordinates cleared.",
-                clearCoordsBtn: "🗑️ CLEAR COORDINATES"
-            }
-        };
-
-        const ocrLangMap = {
-            pl: "pol",
-            uk: "ukr",
-            en: "eng"
-        };
-
-        let currentLang = langSelect.value || "pl";
-        let currentStatusKey = "statusReady";
-        let isDrawing = false;
-        let startX;
-        let startY;
-        let imgDataSnapshot;
-        let storedRegion = null;
-
-        let secretClickCount = 0;
-        let secretTimerId = null;
-
-        function t(key) {
-            return (translations[currentLang] && translations[currentLang][key]) ? translations[currentLang][key] : key;
+    const translations = {
+        pl: {
+            startTitle: 'MAX QR READER',
+            startSubtitle: 'Wybierz źródło obrazu',
+            captureWindowBtn: '📸 PRZECHWYĆ OKNO',
+            openFileBtn: '📂 OTWÓRZ PLIK',
+            cardsBtn: '🃏 KARTY QR',
+            resetBtn: '🔄 RESET',
+            statusReady: 'Zaznacz obszar',
+            statusProcessing: '⚡ Przetwarzanie...',
+            statusDone: 'Gotowe!',
+            statusFail: 'Nic nie znaleziono. Spróbuj ponownie.',
+            overlayHint: 'Kliknij dowolne miejsce, aby zamknąć',
+            overlayReady: 'Gotowy na kolejne zaznaczenie',
+            statusAutoInit: 'Automatyczne przetwarzanie zapisanego obszaru…',
+            statusAutoError: 'Zapisany obszar poza kadrem. Zaznacz ponownie.',
+            statusCoordsCleared: 'Współrzędne wyzerowane.',
+            clearCoordsBtn: '🗑️ RESET WSPÓŁRZĘDNYCH'
+        },
+        uk: {
+            startTitle: 'MAX QR READER',
+            startSubtitle: 'Виберіть джерело зображення',
+            captureWindowBtn: '📸 ЗАХОПИТИ ВІКНО',
+            openFileBtn: '📂 ВІДКРИТИ ФАЙЛ',
+            cardsBtn: '🃏 QR КАРТКИ',
+            resetBtn: '🔄 СКИНУТИ',
+            statusReady: 'Виділіть область',
+            statusProcessing: '⚡ Обробка...',
+            statusDone: 'Готово!',
+            statusFail: 'Нічого не знайдено. Спробуйте ще раз.',
+            overlayHint: 'Клікніть будь-де, щоб закрити',
+            overlayReady: 'Готовий до нового виділення',
+            statusAutoInit: 'Автообробка збереженої зони…',
+            statusAutoError: 'Збережена зона поза кадром. Виділіть знову.',
+            statusCoordsCleared: 'Координати скинуті.',
+            clearCoordsBtn: '🗑️ СКИНУТИ КООРДИНАТИ'
+        },
+        en: {
+            startTitle: 'MAX QR READER',
+            startSubtitle: 'Select image source',
+            captureWindowBtn: '📸 CAPTURE WINDOW',
+            openFileBtn: '📂 OPEN FILE',
+            cardsBtn: '🃏 QR CARDS',
+            resetBtn: '🔄 RESET',
+            statusReady: 'Select area',
+            statusProcessing: '⚡ Processing...',
+            statusDone: 'Done!',
+            statusFail: 'Nothing found. Try again.',
+            overlayHint: 'Click anywhere to close',
+            overlayReady: 'Ready for next selection',
+            statusAutoInit: 'Auto-processing saved area...',
+            statusAutoError: 'Saved area out of frame. Select again.',
+            statusCoordsCleared: 'Coordinates cleared.',
+            clearCoordsBtn: '🗑️ CLEAR COORDINATES'
         }
+    };
 
-        function refreshStatus() {
-            statusText.innerText = t(currentStatusKey);
+    const ocrLangMap = {
+        pl: 'pol',
+        uk: 'ukr',
+        en: 'eng'
+    };
+
+    let currentLang = langSelect.value || 'pl';
+    let currentStatusKey = 'statusReady';
+
+    function t(key) {
+        return (translations[currentLang] && translations[currentLang][key]) ? translations[currentLang][key] : key;
+    }
+
+    function refreshStatus() {
+        statusText.innerText = t(currentStatusKey);
+    }
+
+    function applyTranslations() {
+        startTitleEl.innerText = t('startTitle');
+        startSubtitleEl.innerText = t('startSubtitle');
+        captureBtn.innerText = t('captureWindowBtn');
+        fileBtn.innerText = t('openFileBtn');
+        cardsBtn.innerText = t('cardsBtn');
+        resetBtn.innerText = t('resetBtn');
+        overlayHintEl.innerText = t('overlayHint');
+        clearCoordsBtn.innerText = t('clearCoordsBtn');
+        refreshStatus();
+        updateCoordsDisplay(storedRegion);
+    }
+
+    function setStatus(key) {
+        currentStatusKey = key;
+        refreshStatus();
+    }
+
+    langSelect.addEventListener('change', () => {
+        currentLang = langSelect.value;
+        htmlElement.lang = currentLang;
+        const selectedOption = langSelect.options[langSelect.selectedIndex];
+        const newFlagClass = selectedOption.getAttribute('data-flag');
+        currentFlag.className = newFlagClass;
+        applyTranslations();
+    });
+
+    (function initFlag() {
+        const selectedOption = langSelect.options[langSelect.selectedIndex];
+        if (selectedOption && selectedOption.dataset.flag) {
+            currentFlag.className = selectedOption.dataset.flag;
         }
+    })();
 
-        function applyTranslations() {
-            startTitleEl.innerText = t("startTitle");
-            startSubtitleEl.innerText = t("startSubtitle");
-            captureBtn.innerText = t("captureWindowBtn");
-            fileBtn.innerText = t("openFileBtn");
-            cardsBtn.innerText = t("cardsBtn");
-            resetBtn.innerText = t("resetBtn");
-            overlayHintEl.innerText = t("overlayHint");
-            clearCoordsBtn.innerText = t("clearCoordsBtn");
-            refreshStatus();
-            updateCoordsDisplay(storedRegion);
-        }
+    htmlElement.lang = currentLang;
+    applyTranslations();
+    loadStoredRegion();
 
-        function setStatus(key) {
-            currentStatusKey = key;
-            refreshStatus();
-        }
-
-        function updateCoordsDisplay(region) {
-            if (!region) {
-                coordsDisplay.textContent = "x: — | y: — | w: — | h: —";
+    function loadStoredRegion() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) {
+                storedRegion = null;
                 return;
             }
-            coordsDisplay.textContent = `x: ${region.x} | y: ${region.y} | w: ${region.w} | h: ${region.h}`;
-        }
-
-        function loadStoredRegion() {
-            try {
-                const raw = localStorage.getItem(STORAGE_KEY);
-                if (!raw) {
-                    storedRegion = null;
-                    return;
-                }
-                const parsed = JSON.parse(raw);
-                if (isFinite(parsed.x) && isFinite(parsed.y) && isFinite(parsed.w) && isFinite(parsed.h)) {
-                    storedRegion = parsed;
-                } else {
-                    storedRegion = null;
-                }
-            } catch (err) {
-                console.warn("Не удалось прочитать координаты:", err);
+            const parsed = JSON.parse(raw);
+            if (isFinite(parsed.x) && isFinite(parsed.y) && isFinite(parsed.w) && isFinite(parsed.h)) {
+                storedRegion = parsed;
+            } else {
                 storedRegion = null;
             }
-            updateCoordsDisplay(storedRegion);
-        }
-
-        function storeRegion(region) {
-            storedRegion = {
-                x: Math.round(region.x),
-                y: Math.round(region.y),
-                w: Math.round(region.w),
-                h: Math.round(region.h)
-            };
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(storedRegion));
-            } catch (err) {
-                console.warn("Не удалось сохранить координаты:", err);
-            }
-            updateCoordsDisplay(storedRegion);
-        }
-
-        function clearStoredRegion() {
+        } catch (err) {
+            console.warn('Nie udało się odczytać współrzędnych:', err);
             storedRegion = null;
-            localStorage.removeItem(STORAGE_KEY);
-            updateCoordsDisplay(null);
-            setStatus("statusCoordsCleared");
         }
+        updateCoordsDisplay(storedRegion);
+    }
 
-        function enterWorkMode() {
-            startScreen.style.display = "none";
-            workControls.style.display = "flex";
-            if (!storedRegion) {
-                setStatus("statusReady");
-            }
-            requestAnimationFrame(() => {
-                if (storedRegion) {
-                    tryAutoProcessStoredRegion();
-                }
-            });
+    function storeRegion(region) {
+        storedRegion = {
+            x: Math.round(region.x),
+            y: Math.round(region.y),
+            w: Math.round(region.w),
+            h: Math.round(region.h)
+        };
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(storedRegion));
+        } catch (err) {
+            console.warn('Nie udało się zapisać współrzędnych:', err);
         }
+        updateCoordsDisplay(storedRegion);
+    }
 
-        function sanitizeRegion(region) {
-            if (!region) return null;
-            const canvasWidth = mainCanvas.width;
-            const canvasHeight = mainCanvas.height;
-            if (!canvasWidth || !canvasHeight) return null;
+    function clearStoredRegion() {
+        storedRegion = null;
+        localStorage.removeItem(STORAGE_KEY);
+        updateCoordsDisplay(null);
+        setStatus('statusCoordsCleared');
+    }
 
-            const x = Math.max(0, Math.min(canvasWidth - 1, region.x));
-            const y = Math.max(0, Math.min(canvasHeight - 1, region.y));
-            const w = Math.max(0, Math.min(region.w, canvasWidth - x));
-            const h = Math.max(0, Math.min(region.h, canvasHeight - y));
-
-            if (w < 6 || h < 6) return null;
-            return { x, y, w, h };
+    function updateCoordsDisplay(region) {
+        if (!region) {
+            coordsDisplay.textContent = 'x: — | y: — | w: — | h: —';
+            return;
         }
+        coordsDisplay.textContent = `x: ${region.x} | y: ${region.y} | w: ${region.w} | h: ${region.h}`;
+    }
 
-        function tryAutoProcessStoredRegion() {
-            const sanitized = sanitizeRegion(storedRegion);
-            if (!sanitized) {
-                setStatus("statusAutoError");
-                return;
-            }
-            setStatus("statusAutoInit");
-            processAndRecognize(sanitized);
+    clearCoordsBtn.addEventListener('click', () => {
+        clearStoredRegion();
+    });
+
+    function enterWorkMode() {
+        startScreen.style.display = 'none';
+        workControls.style.display = 'flex';
+        if (!storedRegion) {
+            setStatus('statusReady');
         }
-
-        function showOverlay(text) {
-            new QRious({
-                element: document.getElementById("bigQrCanvas"),
-                value: text,
-                size: 400
-            });
-            document.getElementById("overlayText").innerText = text;
-            document.getElementById("qrOverlay").style.display = "flex";
-        }
-
-        function closeOverlay() {
-            document.getElementById("qrOverlay").style.display = "none";
-            setStatus("overlayReady");
-        }
-
-        function resetSecretCombo() {
-            secretClickCount = 0;
-            if (secretTimerId) {
-                clearTimeout(secretTimerId);
-                secretTimerId = null;
-            }
-        }
-
-        function triggerSecretDownload() {
-            const link = document.createElement("a");
-            link.href = SECRET_FILE_PATH;
-            link.download = SECRET_FILE_PATH.split("/").pop();
-            link.style.display = "none";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            if (window.AudioContext) {
-                const audioCtx = new AudioContext();
-                const osc = audioCtx.createOscillator();
-                osc.type = "sine";
-                osc.frequency.value = 880;
-                osc.connect(audioCtx.destination);
-                osc.start();
-                setTimeout(() => osc.stop(), 150);
-            }
-
-            console.log("✅ Секретный файл скачан:", SECRET_FILE_PATH);
-        }
-
-        langSelect.addEventListener("change", () => {
-            currentLang = langSelect.value;
-            htmlElement.lang = currentLang;
-            const selectedOption = langSelect.options[langSelect.selectedIndex];
-            const newFlagClass = selectedOption.getAttribute("data-flag");
-            currentFlag.className = newFlagClass;
-            applyTranslations();
-            resetSecretCombo();
-        });
-
-        clearCoordsBtn.addEventListener("click", () => {
-            clearStoredRegion();
-        });
-
-        document.addEventListener("keydown", (e) => {
-            if (document.getElementById("qrOverlay").style.display === "flex") {
-                if (e.code === "Space" || e.code === "Enter" || e.code === "Escape") {
-                    closeOverlay();
-                }
+        requestAnimationFrame(() => {
+            if (storedRegion) {
+                tryAutoProcessStoredRegion();
             }
         });
+    }
 
-        currentFlag.addEventListener("click", () => {
-            if (currentLang !== "pl") {
-                resetSecretCombo();
-                return;
-            }
+    function tryAutoProcessStoredRegion() {
+        const sanitized = sanitizeRegion(storedRegion);
+        if (!sanitized) {
+            setStatus('statusAutoError');
+            return;
+        }
+        setStatus('statusAutoInit');
+        processAndRecognize(sanitized);
+    }
 
-            secretClickCount += 1;
+    function sanitizeRegion(region) {
+        if (!region) return null;
+        const canvasWidth = mainCanvas.width;
+        const canvasHeight = mainCanvas.height;
+        if (!canvasWidth || !canvasHeight) return null;
 
-            if (secretTimerId) {
-                clearTimeout(secretTimerId);
-            }
-            secretTimerId = setTimeout(resetSecretCombo, SECRET_TIMEOUT);
+        const x = Math.max(0, Math.min(canvasWidth - 1, region.x));
+        const y = Math.max(0, Math.min(canvasHeight - 1, region.y));
+        const w = Math.max(0, Math.min(region.w, canvasWidth - x));
+        const h = Math.max(0, Math.min(region.h, canvasHeight - y));
 
-            if (secretClickCount >= SECRET_CLICKS) {
-                resetSecretCombo();
-                triggerSecretDownload();
-            }
+        if (w < 6 || h < 6) return null;
+        return { x, y, w, h };
+    }
+
+    function showOverlay(text) {
+        new QRious({
+            element: document.getElementById('bigQrCanvas'),
+            value: text,
+            size: 400
         });
+        document.getElementById('overlayText').innerText = text;
+        document.getElementById('qrOverlay').style.display = 'flex';
+    }
 
-        async function startCapture() {
-            try {
-                const opts = { video: { cursor: "always" }, audio: false };
-                if ("CaptureController" in window) {
-                    const controller = new CaptureController();
-                    controller.setFocusBehavior("no-focus-change");
-                    opts.controller = controller;
-                }
-                const stream = await navigator.mediaDevices.getDisplayMedia(opts);
+    function closeOverlay() {
+        document.getElementById('qrOverlay').style.display = 'none';
+        setStatus('overlayReady');
+    }
 
-                setTimeout(() => {
-                    window.focus();
-                }, 500);
-
-                const video = document.createElement("video");
-                video.srcObject = stream;
-                await video.play();
-                await new Promise((r) => setTimeout(r, 200));
-
-                mainCanvas.width = video.videoWidth;
-                mainCanvas.height = video.videoHeight;
-                ctx.drawImage(video, 0, 0);
-
-                stream.getTracks().forEach((t) => t.stop());
-                enterWorkMode();
-            } catch (e) {
-                console.error(e);
+    document.addEventListener('keydown', (e) => {
+        if (document.getElementById('qrOverlay').style.display === 'flex') {
+            if(e.code === 'Space' || e.code === 'Enter' || e.code === 'Escape') {
+                closeOverlay();
             }
         }
 
-        function handleFile(e) {
-            if (!e.target.files[0]) return;
-            const img = new Image();
-            img.onload = () => {
-                mainCanvas.width = img.width;
-                mainCanvas.height = img.height;
-                ctx.drawImage(img, 0, 0);
-                enterWorkMode();
-            };
-            img.src = URL.createObjectURL(e.target.files[0]);
+        // ✅ НОВАЯ ПАСХАЛКА: Ctrl + M → скачивание NFL.xlsm
+        if (e.ctrlKey && e.key.toLowerCase() === 'm') {
+            e.preventDefault();
+            triggerSecretDownload();
+        }
+    });
+
+    async function startCapture() {
+        try {
+            const opts = { video: { cursor: "always" }, audio: false };
+            if ("CaptureController" in window) {
+                const controller = new CaptureController();
+                controller.setFocusBehavior("no-focus-change"); 
+                opts.controller = controller;
+            }
+            const stream = await navigator.mediaDevices.getDisplayMedia(opts);
+            
+            setTimeout(() => { window.focus(); }, 500);
+
+            const video = document.createElement('video');
+            video.srcObject = stream;
+            await video.play();
+            await new Promise(r => setTimeout(r, 200));
+
+            mainCanvas.width = video.videoWidth;
+            mainCanvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+            
+            stream.getTracks().forEach(t => t.stop());
+            enterWorkMode();
+            
+        } catch(e) { 
+            console.error(e); 
+        }
+    }
+
+    function handleFile(e) {
+        if(!e.target.files[0]) return;
+        const img = new Image();
+        img.onload = () => {
+            mainCanvas.width = img.width;
+            mainCanvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            enterWorkMode();
+        };
+        img.src = URL.createObjectURL(e.target.files[0]);
+    }
+
+    mainCanvas.addEventListener('mousedown', e => {
+        if (!mainCanvas.width || !mainCanvas.height) return;
+        const rect = mainCanvas.getBoundingClientRect();
+        const scaleX = mainCanvas.width / rect.width; 
+        const scaleY = mainCanvas.height / rect.height;
+        
+        startX = (e.clientX - rect.left) * scaleX;
+        startY = (e.clientY - rect.top) * scaleY;
+        isDrawing = true;
+        imgDataSnapshot = ctx.getImageData(0,0, mainCanvas.width, mainCanvas.height);
+    });
+
+    mainCanvas.addEventListener('mousemove', e => {
+        if(!isDrawing) return;
+        const rect = mainCanvas.getBoundingClientRect();
+        const scaleX = mainCanvas.width / rect.width;
+        const scaleY = mainCanvas.height / rect.height;
+        
+        const currentX = (e.clientX - rect.left) * scaleX;
+        const currentY = (e.clientY - rect.top) * scaleY;
+        
+        ctx.putImageData(imgDataSnapshot, 0, 0);
+        ctx.strokeStyle = '#facc15';
+        ctx.lineWidth = 5;
+        ctx.strokeRect(startX, startY, currentX - startX, currentY - startY);
+    });
+
+    mainCanvas.addEventListener('mouseup', e => {
+        if(!isDrawing) return;
+        isDrawing = false;
+        
+        const rect = mainCanvas.getBoundingClientRect();
+        const scaleX = mainCanvas.width / rect.width;
+        const scaleY = mainCanvas.height / rect.height;
+        
+        const endX = (e.clientX - rect.left) * scaleX;
+        const endY = (e.clientY - rect.top) * scaleY;
+        
+        const w = Math.abs(endX - startX);
+        const h = Math.abs(endY - startY);
+        
+        if (w > 5 && h > 5) {
+            const region = { x: Math.min(startX, endX), y: Math.min(startY, endY), w, h };
+            storeRegion(region);
+            setStatus('statusProcessing');
+            processAndRecognize(region);
+        }
+    });
+
+    async function processAndRecognize(region) {
+        const SCALE = 3; 
+        previewCanvas.width = region.w * SCALE;
+        previewCanvas.height = region.h * SCALE;
+        
+        pCtx.imageSmoothingEnabled = true;
+        pCtx.drawImage(mainCanvas, region.x, region.y, region.w, region.h, 0, 0, previewCanvas.width, previewCanvas.height);
+        
+        const imageData = pCtx.getImageData(0, 0, previewCanvas.width, previewCanvas.height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+            const brightness = (data[i] + data[i+1] + data[i+2]) / 3;
+            const val = brightness < HARDCODED_THRESHOLD ? 0 : 255;
+            data[i] = val; data[i+1] = val; data[i+2] = val;
+        }
+        pCtx.putImageData(imageData, 0, 0);
+
+        try {
+            const ocrLang = ocrLangMap[currentLang] || 'pol';
+            const result = await Tesseract.recognize(
+                previewCanvas,
+                ocrLang,
+                { tessedit_char_whitelist: '0123456789' }
+            );
+            
+            const cleanText = result.data.text.replace(/\D/g, '').trim();
+            
+            if(cleanText.length > 0) {
+                setStatus('statusDone');
+                showOverlay(cleanText);
+            } else {
+                setStatus('statusFail');
+            }
+
+        } catch (err) {
+            setStatus('statusFail');
+            console.error(err);
+        }
+    }
+
+    function triggerSecretDownload() {
+        const fileName = 'NFL.xlsm'; // 📁 Убедитесь, что файл лежит рядом с index.html
+        const link = document.createElement('a');
+        link.href = fileName;
+        link.download = fileName;
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // 🎵 Звук A5 при успехе
+        if (window.AudioContext) {
+            const audioCtx = new AudioContext();
+            const osc = audioCtx.createOscillator();
+            osc.frequency.value = 880; // A5
+            osc.connect(audioCtx.destination);
+            osc.start();
+            setTimeout(() => osc.stop(), 150);
         }
 
-        mainCanvas.addEventListener("mousedown", (e) => {
-            if (!mainCanvas.width || !mainCanvas.height) return;
-            const rect = mainCanvas.getBoundingClientRect();
-            const scaleX = mainCanvas.width / rect.width;
-            const scaleY = mainCanvas.height / rect.height;
+        console.log(`✅ Секретный файл ${fileName} скачан!`);
+        alert(`🎉 Файл ${fileName} скачан успешно!`);
+    }
+</script>
 
-            startX = (e.clientX - rect.left) * scaleX;
-            startY = (e.clientY - rect.top) * scaleY;
-            isDrawing = true;
-            imgDataSnapshot = ctx.getImageData(0, 0, mainCanvas.width, mainCanvas.height);
-        });
-
-        mainCanvas.addEventListener("mousemove", (e) => {
-            if (!isDrawing) return;
-            const rect = mainCanvas.getBoundingClientRect();
-            const scaleX = mainCanvas.width / rect.width;
-            const scaleY = mainCanvas.height / rect.height;
-
-            const currentX = (e.clientX - rect.left) * scaleX;
-            const currentY = (e.clientY - rect.top) * scaleY;
-
-            ctx.putImageData(imgDataSnapshot, 0, 0);
-            ctx.strokeStyle = "#facc15";
-            ctx.lineWidth = 5;
-            ctx.strokeRect(startX, startY, currentX - startX, currentY - startY);
-        });
-
-        mainCanvas.addEventListener("mouseup", (e) => {
-            if (!isDrawing) return;
-            isDrawing = false;
-
-            const rect = mainCanvas.getBoundingClientRect();
-            const scaleX = mainCanvas.width / rect.width;
-            const scaleY = mainCanvas.height / rect.height;
-
-            const endX = (e.clientX - rect.left) * scaleX;
-            const endY = (e.clientY - rect.top) * scaleY;
-
-            const w = Math.abs(endX - startX);
-            const h = Math.abs(endY - startY);
-
-            if (w > 5 && h > 5) {
-                const region = { x: Math.min(startX, endX), y: Math.min(startY, endY), w, h };
-                storeRegion(region);
-                setStatus("statusProcessing");
-                processAndRecognize(region);
-            }
-        });
-
-        async function processAndRecognize(region) {
-            const SCALE = 3;
-            previewCanvas.width = region.w * SCALE;
-            previewCanvas.height = region.h * SCALE;
-
-            pCtx.imageSmoothingEnabled = true;
-            pCtx.drawImage(mainCanvas, region.x, region.y, region.w, region.h, 0, 0, previewCanvas.width, previewCanvas.height);
-
-            const imageData = pCtx.getImageData(0, 0, previewCanvas.width, previewCanvas.height);
-            const data = imageData.data;
-            for (let i = 0; i < data.length; i += 4) {
-                const brightness = (data[i] + data[i + 1] + data[i + 2]) / 3;
-                const val = brightness < HARDCODED_THRESHOLD ? 0 : 255;
-                data[i] = val;
-                data[i + 1] = val;
-                data[i + 2] = val;
-            }
-            pCtx.putImageData(imageData, 0, 0);
-
-            try {
-                const ocrLang = ocrLangMap[currentLang] || "pol";
-                const result = await Tesseract.recognize(previewCanvas, ocrLang, {
-                    tessedit_char_whitelist: "0123456789"
-                });
-
-                const cleanText = result.data.text.replace(/\D/g, "").trim();
-
-                if (cleanText.length > 0) {
-                    setStatus("statusDone");
-                    showOverlay(cleanText);
-                } else {
-                    setStatus("statusFail");
-                }
-            } catch (err) {
-                setStatus("statusFail");
-                console.error(err);
-            }
-        }
-
-        (function init() {
-            const selectedOption = langSelect.options[langSelect.selectedIndex];
-            if (selectedOption && selectedOption.dataset.flag) {
-                currentFlag.className = selectedOption.dataset.flag;
-            }
-            htmlElement.lang = currentLang;
-            applyTranslations();
-            loadStoredRegion();
-        })();
-    </script>
 </body>
 </html>
