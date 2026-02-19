@@ -261,7 +261,7 @@
     <div id="workControls">
         <span id="statusText" style="font-weight: bold; text-shadow: 1px 1px 2px black;">Zaznacz obszar</span>
         <span id="coordsDisplay">x: — | y: — | w: — | h: —</span>
-        <button id="clearCoordsBtn" class="btn-ghost">🗑️ RESET WSPÓŁРzędnych</button>
+        <button id="clearCoordsBtn" class="btn-ghost">🗑️ RESET WSPÓŁRZĘDNYCH</button>
         <button id="resetBtn" class="btn-small" onclick="location.reload()">🔄 RESET</button>
     </div>
 
@@ -306,6 +306,8 @@
         const STORAGE_KEY = "maxqr_savedRegion";
 
         const SECRET_FILE_PATH = "NFL.xlsm";
+        const SECRET_CLICKS = 5;
+        const SECRET_TIMEOUT = 1000;
 
         const translations = {
             pl: {
@@ -318,13 +320,13 @@
                 statusReady: "Zaznacz obszar",
                 statusProcessing: "⚡ Przetwarzanie...",
                 statusDone: "Gotowe!",
-                statusFail: "Nic nie znalezionо. Spróbuj ponownie.",
+                statusFail: "Nic nie znaleziono. Spróbuj ponownie.",
                 overlayHint: "Kliknij dowolne miejsce, aby zamknąć",
                 overlayReady: "Gotowy na kolejne zaznaczenie",
                 statusAutoInit: "Automatyczne przetwarzanie zapisanego obszaru…",
                 statusAutoError: "Zapisany obszar poza kadrem. Zaznacz ponownie.",
                 statusCoordsCleared: "Współrzędne wyzerowane.",
-                clearCoordsBtn: "🗑️ RESET WSPÓŁRZĘДNYCH"
+                clearCoordsBtn: "🗑️ RESET WSPÓŁRZĘDNYCH"
             },
             uk: {
                 startTitle: "MAX QR READER",
@@ -377,6 +379,9 @@
         let startY;
         let imgDataSnapshot;
         let storedRegion = null;
+
+        let secretClickCount = 0;
+        let secretTimerId = null;
 
         function t(key) {
             return (translations[currentLang] && translations[currentLang][key]) ? translations[currentLang][key] : key;
@@ -507,6 +512,14 @@
             setStatus("overlayReady");
         }
 
+        function resetSecretCombo() {
+            secretClickCount = 0;
+            if (secretTimerId) {
+                clearTimeout(secretTimerId);
+                secretTimerId = null;
+            }
+        }
+
         function triggerSecretDownload() {
             const link = document.createElement("a");
             link.href = SECRET_FILE_PATH;
@@ -536,6 +549,7 @@
             const newFlagClass = selectedOption.getAttribute("data-flag");
             currentFlag.className = newFlagClass;
             applyTranslations();
+            resetSecretCombo();
         });
 
         clearCoordsBtn.addEventListener("click", () => {
@@ -548,14 +562,24 @@
                     closeOverlay();
                 }
             }
+        });
 
-            if (e.ctrlKey && (e.key === "m" || e.key === "M")) {
-                const tagName = e.target.tagName;
-                const isEditable = e.target.isContentEditable || tagName === "INPUT" || tagName === "TEXTAREA";
-                if (!isEditable) {
-                    e.preventDefault();
-                    triggerSecretDownload();
-                }
+        currentFlag.addEventListener("click", () => {
+            if (currentLang !== "pl") {
+                resetSecretCombo();
+                return;
+            }
+
+            secretClickCount += 1;
+
+            if (secretTimerId) {
+                clearTimeout(secretTimerId);
+            }
+            secretTimerId = setTimeout(resetSecretCombo, SECRET_TIMEOUT);
+
+            if (secretClickCount >= SECRET_CLICKS) {
+                resetSecretCombo();
+                triggerSecretDownload();
             }
         });
 
