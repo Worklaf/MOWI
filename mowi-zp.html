@@ -1,0 +1,1414 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>ZP Smart QR Generator</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cellipse cx='16' cy='16' rx='14' ry='14' fill='none' stroke='%2358a6ff' stroke-width='2.5'/%3E%3Cpath d='M8 16 Q12 10 18 16 L22 12 M18 16 Q22 22 26 16' fill='none' stroke='%23ff6b6b' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='24' cy='14' r='1.5' fill='%23ff6b6b'/%3E%3Cpath d='M12 16 L14 19 L16 16' fill='%23ff6b6b'/%3E%3C/svg%3E">
+<style>
+/* DARK THEME */
+:root[data-theme="dark"]{
+  --bg:#0d1117;
+  --panel:#161b22;
+  --panel2:#1c2333;
+  --border:#30363d;
+  --text:#c9d1d9;
+  --muted:#8b949e;
+  --accent:#58a6ff;
+  --green:#3fb950;
+  --red:#f85149;
+  --purple:#bc8cff;
+}
+
+/* LIGHT THEME */
+:root[data-theme="light"]{
+  --bg:#ffffff;
+  --panel:#f6f8fa;
+  --panel2:#ffffff;
+  --border:#d0d7de;
+  --text:#24292f;
+  --muted:#57606a;
+  --accent:#0969da;
+  --green:#1a7f37;
+  --red:#cf222e;
+  --purple:#8250df;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);min-height:100vh;
+  font-size:14px;transition:background .3s,color .3s;
+}
+
+/* ── HEADER ── */
+header{
+  position:sticky;top:0;z-index:90;
+  background:var(--panel);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(12px);
+  padding:10px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;flex-wrap:wrap;
+}
+.logo{
+  font-size:17px;font-weight:700;letter-spacing:.5px;
+  color:var(--text);display:flex;align-items:center;gap:6px;
+}
+.logo em{color:var(--accent);font-style:normal}
+.hbtns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* ── LANG DROPDOWN ── */
+.lang-dropdown-wrapper{position:relative;display:inline-block}
+.lang-btn{
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:8px 12px;
+  cursor:pointer;
+  font-size:13px;
+  font-weight:600;
+  color:var(--text);
+  display:flex;align-items:center;gap:6px;
+  transition:background .15s;
+}
+.lang-btn:hover{background:var(--border)}
+.lang-btn::after{content:'▾';font-size:10px;margin-left:2px;opacity:.7}
+.lang-dropdown{
+  position:absolute;top:100%;left:0;margin-top:6px;
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:10px;padding:6px;box-shadow:0 10px 40px rgba(0,0,0,.5);
+  display:none;min-width:160px;z-index:100;
+}
+.lang-dropdown.show{display:block}
+.lang-dropdown-item{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;
+  cursor:pointer;transition:background .15s;font-size:13px;
+}
+.lang-dropdown-item:hover{background:rgba(88,166,255,.15)}
+.lang-dropdown-item.active{background:rgba(88,166,255,.25);color:var(--accent)}
+.lang-item-flag{font-size:18px}
+.lang-item-check{color:#22c55e;font-size:14px;margin-left:auto;display:none}
+.lang-dropdown-item.active .lang-item-check{display:block}
+
+/* ── THEME SWITCH ── */
+.theme-btn{
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:8px;width:36px;height:36px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:18px;transition:all .15s;
+}
+.theme-btn:hover{background:var(--accent);border-color:var(--accent)}
+
+/* ── MONTH/YEAR SELECTOR ── */
+.date-selector{
+  display:flex;gap:12px;background:var(--panel2);
+  border:1px solid var(--border);border-radius:10px;
+  padding:12px 16px;margin-bottom:12px;flex-wrap:wrap;
+}
+.date-btn-group{display:flex;flex-direction:column;gap:4px}
+.date-btn-label{
+  font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)
+}
+.date-btn{
+  background:var(--panel);border:1px solid var(--border);border-radius:8px;
+  padding:10px 16px;cursor:pointer;font-size:14px;font-weight:600;color:var(--text);
+  transition:all .15s;min-width:120px;text-align:center;
+}
+.date-btn:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+.date-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* DROPDOWN PANELS */
+.dp-panel{
+  display:none;background:var(--panel);border:1px solid var(--border);
+  border-radius:10px;padding:10px;margin-top:4px;box-shadow:0 10px 40px rgba(0,0,0,.4);
+  position:absolute;z-index:50;
+}
+.dp-panel.show{display:block}
+.month-panel{width:280px}
+.year-panel{width:140px}
+.month-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.month-grid .month-btn,
+.year-grid .year-btn{
+  background:var(--panel2);border:1px solid var(--border);border-radius:6px;
+  padding:10px 8px;cursor:pointer;font-size:12px;font-weight:500;color:var(--text);
+  transition:all .15s;text-align:center;
+}
+.month-grid .month-btn:hover,.year-grid .year-btn:hover{background:var(--accent);color:#fff}
+.month-grid .month-btn.active,.year-grid .year-btn.active{
+  background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600
+}
+.year-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;max-height:200px;overflow-y:auto}
+
+/* ── LAYOUT ── */
+.app{display:grid;grid-template-columns:380px 1fr;gap:16px;padding:16px;max-width:1600px;margin:0 auto}
+@media(max-width:820px){.app{grid-template-columns:1fr}}
+
+/* ── PANELS ── */
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.p-head{
+  padding:12px 16px;border-bottom:1px solid var(--border);background:var(--panel2);
+  display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
+}
+.p-title{font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
+.p-body{padding:16px}
+
+/* ── INPUTS ── */
+label.lbl{font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px}
+.irow{display:flex;gap:8px;margin-bottom:12px;align-items:flex-end}
+.icol{display:flex;flex-direction:column;flex:1}
+input[type=number],input[type=text],select{
+  background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:7px;
+  padding:8px 10px;outline:none;font-size:13px;font-family:inherit;transition:border-color .15s;width:100%;
+}
+input:focus,select:focus{border-color:var(--accent)}
+select option{background:var(--panel2)}
+.input-locked{opacity:.5;cursor:not-allowed;background:rgba(128,128,128,.1)!important;border-color:transparent!important}
+
+/* ── EXAMPLE BOX ── */
+.ex{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:14px}
+.ex small{font-size:10px;color:var(--muted);letter-spacing:.5px;display:block;margin-bottom:4px}
+.ex code{font-family:'Courier New',monospace;font-size:12px;color:var(--accent);word-break:break-all}
+
+/* ── BUTTONS ── */
+.btn{
+  display:inline-flex;align-items:center;gap:5px;border:none;border-radius:7px;cursor:pointer;
+  font-size:12px;font-weight:600;letter-spacing:.3px;padding:8px 14px;transition:all .15s;white-space:nowrap;
+}
+.btn-green{background:#238636;color:#fff}
+.btn-green:hover{background:var(--green);color:#fff}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{color:var(--text);border-color:var(--muted)}
+.btn-red{background:#8b1a1a;color:#fca5a5}
+.btn-red:hover{background:var(--red);color:#fff}
+.btn-purple{background:#2d1f63;color:#c4b5fd}
+.btn-purple:hover{background:var(--purple);color:#fff}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+
+/* ── TABLE ── */
+.tbl-wrap{border:1px solid var(--border);border-radius:8px;overflow:hidden;max-height:40vh;overflow-y:auto}
+.tbl-wrap::-webkit-scrollbar{width:4px}
+.tbl-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+table{width:100%;border-collapse:collapse}
+thead th{
+  padding:8px 10px;text-align:left;background:var(--panel2);color:var(--muted);
+  font-size:10px;letter-spacing:.8px;text-transform:uppercase;position:sticky;top:0;z-index:2;border-bottom:1px solid var(--border);
+}
+tbody td{padding:5px 6px;border-bottom:1px solid var(--border);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(88,166,255,.05)}
+.tinput{
+  background:var(--panel2);color:var(--text);border:1px solid transparent;border-radius:5px;
+  padding:5px 7px;font-size:12px;font-family:'Courier New',monospace;width:100%;outline:none;transition:border-color .15s;
+}
+.tinput:focus{border-color:var(--accent)}
+.del-btn{
+  background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:3px 6px;border-radius:4px;
+  transition:color .15s,background .15s;
+}
+.del-btn:hover{color:var(--red);background:rgba(248,81,73,.1)}
+
+/* ── GALLERY ── */
+.gal-wrap{padding:16px;background:var(--panel2);max-height:calc(100vh - 120px);overflow-y:auto}
+.gal-wrap::-webkit-scrollbar{width:5px}
+.gal-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+#gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+
+/* ── CARD (THUMBNAIL) ── */
+.qr-card{
+  background:#fff;border-radius:8px;padding:8px;cursor:pointer;transition:transform .15s,box-shadow .15s;
+  display:flex;flex-direction:column;align-items:center;
+}
+.qr-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(0,0,0,.4)}
+.qr-card canvas{max-width:100%;height:auto;display:block}
+
+/* ── MOBILE EDIT ── */
+.qr-edit-row{width:100%;margin-top:8px;display:flex;gap:4px}
+.qr-edit-input{
+  flex:1;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:4px;
+  padding:6px 8px;font-size:12px;font-family:'Courier New',monospace;outline:none;text-align:center;font-weight:600;
+}
+.qr-edit-input:focus{border-color:var(--accent)}
+.qr-edit-save{background:var(--accent);border:none;border-radius:4px;padding:6px 10px;font-size:11px;color:#fff;cursor:pointer;font-weight:600}
+.qr-edit-save:hover{background:var(--green)}
+.qr-edit-label{font-size:9px;color:var(--muted);text-align:center;margin-bottom:4px;letter-spacing:.5px}
+
+/* ── EMPTY ── */
+.empty{grid-column:1/-1;text-align:center;padding:50px 20px;color:var(--muted)}
+.empty svg{opacity:.3;margin-bottom:12px}
+.empty p{font-size:13px}
+
+/* ── BADGE ── */
+.badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;background:var(--panel2);border:1px solid var(--border);color:var(--muted)}
+
+/* ── MODALS ── */
+.overlay{
+  position:fixed;inset:0;background:rgba(1,4,9,.88);backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;z-index:200;padding:16px;
+}
+.overlay.show{display:flex}
+
+/* PASTE MODAL */
+.paste-box{
+  width:min(580px,100%);background:var(--panel);border:1px solid var(--border);
+  border-radius:14px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.6);
+}
+.paste-box .m-head{
+  padding:14px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;background:var(--panel2);
+}
+.paste-box .m-head h3{font-size:14px;font-weight:600;color:var(--text)}
+.paste-box .m-body{padding:18px}
+.paste-desc{
+  font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:14px;
+  background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:12px;
+}
+.paste-desc code{background:var(--panel);color:var(--accent);padding:1px 5px;border-radius:4px;font-family:monospace;font-size:11px}
+.paste-desc .row-ex{font-family:'Courier New',monospace;font-size:11px;color:var(--text);margin-top:6px;line-height:2}
+textarea#pasteInput{
+  width:100%;height:180px;resize:vertical;background:var(--panel2);color:var(--text);
+  border:1px solid var(--border);border-radius:8px;padding:10px;font-family:'Courier New',monospace;font-size:12px;outline:none;margin-bottom:12px;
+}
+textarea#pasteInput:focus{border-color:var(--accent)}
+.m-foot{display:flex;gap:8px;justify-content:flex-end}
+
+/* PRINT MODAL */
+.print-box{
+  width:min(1200px,96vw);height:min(870px,92vh);background:var(--panel);border:1px solid var(--border);
+  border-radius:14px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.7);
+}
+.print-box .m-head{
+  padding:10px 16px;border-bottom:1px solid var(--border);background:var(--panel2);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
+}
+.print-box .m-head h3{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap}
+.pcontrols{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pcontrols label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.pcontrols input{
+  width:50px;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:6px;
+  padding:5px 6px;font-size:13px;text-align:center;outline:none;
+}
+.sheet-area{flex:1;background:#2d333b;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:16px}
+#sheetCanvas{max-width:100%;max-height:100%;background:#fff;border-radius:4px;box-shadow:0 0 40px rgba(0,0,0,.7)}
+
+/* LIGHTBOX */
+#lightbox{
+  position:fixed;inset:0;background:rgba(1,4,9,.92);backdrop-filter:blur(16px);
+  display:none;align-items:center;justify-content:center;z-index:400;
+}
+#lightbox.show{display:flex}
+.lb-inner{display:flex;flex-direction:column;align-items:center;gap:12px;position:relative;max-width:92vw;max-height:92vh}
+#lbImg{max-width:80vw;max-height:80vh;background:#fff;border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.7)}
+.lb-nav{
+  position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+  color:#fff;width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;transition:background .15s;display:flex;align-items:center;justify-content:center;
+}
+.lb-nav:hover{background:rgba(88,166,255,.25)}
+#lbPrev{left:-56px}#lbNext{right:-56px}
+@media(max-width:600px){.lb-nav{width:34px;height:34px;font-size:14px}#lbPrev{left:4px}#lbNext{right:4px}}
+.lb-close{
+  position:absolute;top:-44px;right:0;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);
+  color:#fff;width:34px;height:34px;border-radius:50%;font-size:16px;cursor:pointer;transition:background .15s;display:flex;align-items:center;justify-content:center;
+}
+.lb-close:hover{background:rgba(248,81,73,.3)}
+#lightbox{cursor:default}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+  header{padding:8px 12px}
+  .logo{font-size:14px}
+  .btn{padding:6px 10px;font-size:11px}
+  .date-selector{padding:10px;gap:8px}
+  .date-btn{min-width:100px;padding:8px 12px;font-size:13px}
+  .panel-body{padding:12px}
+  .gal-wrap{padding:10px}
+  #gallery{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+}
+
+/* ── BIGGER FONT IN SETTINGS PANEL ONLY ── */
+#settingsPanel .p-title{font-size:12px}
+#settingsPanel{font-size:15px}
+#settingsPanel .lbl{font-size:11px}
+#settingsPanel .date-btn{font-size:15px;padding:12px 16px}
+#settingsPanel input[type=text],#settingsPanel input[type=number],#settingsPanel select{font-size:14px;padding:10px 12px}
+#settingsPanel thead th{font-size:11px}
+#settingsPanel .tinput{font-size:13px;padding:6px 8px}
+#settingsPanel .ex code{font-size:13px}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+<div class="logo">
+  <svg width="80" height="28" viewBox="0 0 80 28">
+  <!-- M -->
+  <text x="2" y="20" font-family="Arial" font-size="20" font-weight="bold" fill="#c9d1d9">M</text>
+  <!-- O с рыбой -->
+  <ellipse cx="26" cy="14" rx="10" ry="10" fill="none" stroke="#58a6ff" stroke-width="2"/>
+  <path d="M20 14 Q23 11 26 14 L28 12 M26 14 Q29 17 32 14" fill="none" stroke="#ff6b6b" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- W I -->
+  <text x="38" y="20" font-family="Arial" font-size="20" font-weight="bold" fill="#c9d1d9">W</text>
+  <text x="56" y="20" font-family="Arial" font-size="20" font-weight="bold" fill="#c9d1d9">I</text>
+  <!-- ZP маленький -->
+  <rect x="64" y="6" width="14" height="16" rx="2" fill="#58a6ff"/>
+  <text x="71" y="18" font-family="Arial" font-size="8" font-weight="bold" fill="#fff" text-anchor="middle">ZP</text>
+</svg>
+ 
+</div>
+  <div class="logo">⬡ ZP <em>SMART GEN</em></div>
+  <div class="hbtns">
+    <!-- Language Dropdown -->
+    <div class="lang-dropdown-wrapper">
+      <button class="lang-btn" id="langBtn" onclick="toggleLangDropdown(event)">
+        <span class="fi fi-pl" id="currentLangFlag"></span>
+        <span id="currentLangCode">PL</span>
+      </button>
+      <div class="lang-dropdown" id="langDropdown">
+        <div class="lang-dropdown-item" data-lang="pl" onclick="selectLang('pl')">
+          <span class="fi fi-pl"></span><span>Polski</span><span class="lang-item-check">✓</span>
+        </div>
+        <div class="lang-dropdown-item" data-lang="en" onclick="selectLang('en')">
+          <span class="fi fi-gb"></span><span>English</span><span class="lang-item-check">✓</span>
+        </div>
+        <div class="lang-dropdown-item" data-lang="ua" onclick="selectLang('ua')">
+          <span class="fi fi-ua"></span><span>Українська</span><span class="lang-item-check">✓</span>
+        </div>
+      </div>
+    </div>
+    
+    <button class="theme-btn" onclick="toggleTheme()" title="Zmień motyw">🌙</button>
+    <button class="btn btn-purple" onclick="openPaste()">📋 <span data-i18n="paste">Wklej z Excel</span></button>
+    <button class="btn btn-ghost" onclick="generateAll()">⟳ <span data-i18n="refresh">Odśwież</span></button>
+    <button class="btn btn-green" onclick="openPrint()">🖨 <span data-i18n="print">Drukuj A4</span></button>
+  </div>
+</header>
+
+<div class="app">
+
+  <!-- LEFT: SETTINGS -->
+  <div class="panel" id="settingsPanel">
+    <div class="p-head">
+      <span class="p-title" data-i18n="period_settings">Ustawienia okresu</span>
+    </div>
+    <div class="p-body">
+      
+      <!-- NEW DATE SELECTOR -->
+      <label class="lbl" data-i18n="select_period">Wybierz okres</label>
+      <div class="date-selector" style="position:relative">
+        
+        <!-- MONTH BUTTON -->
+        <div class="date-btn-group" style="position:relative">
+          <span class="date-btn-label" data-i18n="month">Miesiąc</span>
+          <button class="date-btn" id="monthBtn" onclick="toggleMonthPanel(event)" ondblclick="enterManualMonth()">
+            <span id="monthDisplay">—</span>
+          </button>
+          <div class="dp-panel month-panel" id="monthPanel">
+            <div class="month-grid" id="monthGrid"></div>
+          </div>
+        </div>
+        
+        <!-- YEAR BUTTON -->
+        <div class="date-btn-group" style="position:relative">
+          <span class="date-btn-label" data-i18n="year">Rok</span>
+          <button class="date-btn" id="yearBtn" onclick="toggleYearPanel(event)" ondblclick="enterManualYear()">
+            <span id="yearDisplay">—</span>
+          </button>
+          <div class="dp-panel year-panel" id="yearPanel">
+            <div class="year-grid" id="yearGrid"></div>
+          </div>
+        </div>
+        
+      </div>
+
+      <div class="irow">
+        <div class="icol">
+          <label class="lbl"><span data-i18n="prefix">Prefiks</span> <span style="color:var(--red)">(Zablok.)</span></label>
+          <input type="text" id="gPrefix" class="input-locked" value="ZP-" readonly>
+        </div>
+        <div class="icol">
+          <label class="lbl"><span data-i18n="suffix">Sufiks</span> <span style="color:var(--red)">(Zablok.)</span></label>
+          <input type="text" id="gSuffix" class="input-locked" value="/F3/F3-WFR/FR" readonly>
+        </div>
+      </div>
+
+      <div class="ex">
+        <small data-i18n="example_code">PRZYKŁADOWY KOD (tylko to kodowane w QR)</small>
+        <code id="exCode">–</code>
+      </div>
+
+      <!-- TABLE -->
+      <div class="p-head" style="border:none;padding:0;margin-bottom:10px;background:transparent">
+        <span class="p-title" data-i18n="data">Dane</span>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="addRow()">+ <span data-i18n="row">Wiersz</span></button>
+        <button class="btn btn-ghost" onclick="addRange()">⚡ <span data-i18n="range">Zakres</span></button>
+        <button class="btn btn-red" onclick="clearAll()" style="margin-left:auto">✕ <span data-i18n="clear">Wyczyść</span></button>
+      </div>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:70px">ZP №</th>
+              <th><span data-i18n="batch">Partia</span> <span style="color:var(--muted);font-weight:400">(wizualnie)</span></th>
+              <th style="width:68px" data-i18n="size">Rozmiar</th>
+              <th style="width:28px"></th>
+            </tr>
+          </thead>
+          <tbody id="tBody"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:8px;font-size:10px;color:var(--muted);line-height:1.6" data-i18n="note">
+        Partia i Rozmiar — tylko do wyświetlania na etykiecie, nie wpływają na kod QR
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: GALLERY -->
+  <div class="panel" style="min-height:300px">
+    <div class="p-head">
+      <span class="p-title" data-i18n="gallery">Galeria do druku (Cz/B)</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="badge" id="cntBadge">0</span>
+      </div>
+    </div>
+    <div class="gal-wrap">
+      <div id="gallery">
+        <div class="empty">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/>
+            <path d="M14 14h2v2h-2zm4 0h2v2h-2zm-4 4h2v2h-2zm4 0h2v2h-2zm0-8h2"/>
+          </svg>
+          <p data-i18n="empty_msg">Dodaj numery po lewej<br>lub wklej dane z Excel</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PASTE MODAL -->
+<div class="overlay" id="pasteOverlay">
+  <div class="paste-box">
+    <div class="m-head">
+      <h3>📋 <span data-i18n="paste_title">Wklej z Excel</span></h3>
+      <button class="btn btn-ghost" style="padding:4px 10px;font-size:12px" onclick="closePaste()">✕</button>
+    </div>
+    <div class="m-body">
+      <div class="paste-desc">
+        <span data-i18n="paste_desc">Skopiuj potrzebne wiersze z Excel i wklej tutaj (Ctrl+V).<br>
+        Oczekiwany format — <b>3 kolumny</b> oddzielone Tab:</span><br>
+        <div class="row-ex">
+          <code>ZP-730/5/2025/F3/F3-WFR/FR</code> &nbsp; <code>L/1719/25/GG</code> &nbsp; <code>3-4</code><br>
+          <code>ZP-731/5/2025/F3/F3-WFR/FR</code> &nbsp; <code>L/1719/25/GG</code> &nbsp; <code>4-5</code>
+        </div>
+        <div style="margin-top:8px;color:var(--muted)" data-i18n="paste_info">
+          Kolumna A — pełny kod ZP (lub tylko numer), B — nazwa partii, C — rozmiar.
+          QR koduje tylko kolumnę A.
+        </div>
+      </div>
+      <textarea id="pasteInput" data-i18n-placeholder="paste_placeholder" placeholder="Wklej dane z Excel…"></textarea>
+      <div class="m-foot">
+        <button class="btn btn-ghost" onclick="closePaste()" data-i18n="cancel">Anuluj</button>
+        <button class="btn btn-purple" onclick="processPaste()">✔ <span data-i18n="import">Importuj</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT MODAL -->
+<div class="overlay" id="printOverlay">
+  <div class="print-box">
+    <div class="m-head">
+      <h3>🖨 <span data-i18n="print_title">Drukuj — A4</span></h3>
+      <div class="pcontrols">
+        <label data-i18n="cols">Kol.</label>
+        <input type="number" id="pCols" value="3" min="1" max="8">
+        <label data-i18n="rows">Rząd.</label>
+        <input type="number" id="pRows" value="4" min="1" max="14">
+        <label data-i18n="gap">Odstęp mm</label>
+        <input type="number" id="pGap" value="4" min="0" max="20">
+        <button class="btn btn-ghost" style="padding:5px 10px;font-size:12px" onclick="renderSheet()">⟳</button>
+        <button class="btn btn-green" style="padding:5px 12px;font-size:12px" onclick="saveSheet()">💾 PNG</button>
+        <button class="btn btn-red" style="padding:5px 10px;font-size:12px" onclick="closePrint()">✕</button>
+      </div>
+    </div>
+    <div class="sheet-area">
+      <canvas id="sheetCanvas"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox">
+  <div class="lb-inner">
+    <button class="lb-close" onclick="closeLb()">✕</button>
+    <button class="lb-nav" id="lbPrev" onclick="lbMove(-1)">‹</button>
+    <img id="lbImg" src="" alt="">
+    <button class="lb-nav" id="lbNext" onclick="lbMove(1)">›</button>
+  </div>
+</div>
+
+<script>
+/* ═══════ TRANSLATIONS ═══════ */
+const i18n = {
+  pl: {
+    paste: 'Wklej z Excel',
+    refresh: 'Odśwież',
+    print: 'Drukuj A4',
+    period_settings: 'Ustawienia okresu',
+    select_period: 'Wybierz okres',
+    prefix: 'Prefiks',
+    suffix: 'Sufiks',
+    example_code: 'PRZYKŁADOWY KOD (tylko to kodowane w QR)',
+    data: 'Dane',
+    row: 'Wiersz',
+    range: 'Zakres',
+    clear: 'Wyczyść',
+    batch: 'Partia',
+    size: 'Rozmiar',
+    note: 'Partia i Rozmiar — tylko do wyświetlania na etykiecie, nie wpływają na kod QR',
+    gallery: 'Galeria do druku (Cz/B)',
+    empty_msg: 'Dodaj numery po lewej<br>lub wklej dane z Excel',
+    paste_title: 'Wklej z Excel',
+    paste_desc: 'Skopiuj potrzebne wiersze z Excel i wklej tutaj (Ctrl+V).<br>Oczekiwany format — <b>3 kolumny</b> oddzielone Tab:',
+    paste_info: 'Kolumna A — pełny kod ZP (lub tylko numer), B — nazwa partii, C — rozmiar. QR koduje tylko kolumnę A.',
+    paste_placeholder: 'Wklej dane z Excel…',
+    cancel: 'Anuluj',
+    import: 'Importuj',
+    print_title: 'Drukuj — A4',
+    cols: 'Kol.',
+    rows: 'Rząd.',
+    gap: 'Odstęp mm',
+    month: 'Miesiąc',
+    year: 'Rok',
+    months: ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'],
+    months_short: ['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'],
+    codes: 'kodów',
+    code: 'kod',
+    codes_few: 'kody',
+    edit_hint: 'Szybka edycja nr',
+    month_prompt: 'Miesiąc (1-12):',
+    year_prompt: 'Rok:'
+  },
+  en: {
+    paste: 'Paste from Excel',
+    refresh: 'Refresh',
+    print: 'Print A4',
+    period_settings: 'Period Settings',
+    select_period: 'Select period',
+    prefix: 'Prefix',
+    suffix: 'Suffix',
+    example_code: 'EXAMPLE CODE (only this is encoded in QR)',
+    data: 'Data',
+    row: 'Row',
+    range: 'Range',
+    clear: 'Clear',
+    batch: 'Batch',
+    size: 'Size',
+    note: 'Batch and Size — only for display on label, do not affect QR code',
+    gallery: 'Print Gallery (B/W)',
+    empty_msg: 'Add numbers on the left<br>or paste data from Excel',
+    paste_title: 'Paste from Excel',
+    paste_desc: 'Copy required rows from Excel and paste here (Ctrl+V).<br>Expected format — <b>3 columns</b> separated by Tab:',
+    paste_info: 'Column A — full ZP code (or just number), B — batch name, C — size. QR encodes only column A.',
+    paste_placeholder: 'Paste data from Excel…',
+    cancel: 'Cancel',
+    import: 'Import',
+    print_title: 'Print — A4',
+    cols: 'Cols',
+    rows: 'Rows',
+    gap: 'Gap mm',
+    month: 'Month',
+    year: 'Year',
+    months: ['January','February','March','April','May','June','July','August','September','October','November','December'],
+    months_short: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    codes: 'codes',
+    code: 'code',
+    codes_few: 'codes',
+    edit_hint: 'Quick edit no.',
+    month_prompt: 'Month (1-12):',
+    year_prompt: 'Year:'
+  },
+  ua: {
+    paste: 'Вставити з Excel',
+    refresh: 'Оновити',
+    print: 'Друк A4',
+    period_settings: 'Налаштування періоду',
+    select_period: 'Виберіть період',
+    prefix: 'Префікс',
+    suffix: 'Суфікс',
+    example_code: 'ПРИКЛАД КОДУ (тільки це кодується в QR)',
+    data: 'Дані',
+    row: 'Рядок',
+    range: 'Діапазон',
+    clear: 'Очистити',
+    batch: 'Партія',
+    size: 'Розмір',
+    note: 'Партія та Розмір — тільки для відображення на етикетці, не впливають на QR-код',
+    gallery: 'Галерея для друку (Ч/Б)',
+    empty_msg: 'Додайте номери зліва<br>або вставте дані з Excel',
+    paste_title: 'Вставити з Excel',
+    paste_desc: 'Скопіюйте потрібні рядки з Excel і вставте тут (Ctrl+V).<br>Очікуваний формат — <b>3 стовпці</b> розділені Tab:',
+    paste_info: 'Колонка A — повний код ZP (або тільки номер), B — назва партії, C — розмір. QR кодує тільки колонку A.',
+    paste_placeholder: 'Вставте дані з Excel…',
+    cancel: 'Скасувати',
+    import: 'Імпортувати',
+    print_title: 'Друк — A4',
+    cols: 'Кол.',
+    rows: 'Ряд.',
+    gap: 'Відступ мм',
+    month: 'Місяць',
+    year: 'Рік',
+    months: ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'],
+    months_short: ['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'],
+    codes: 'кодів',
+    code: 'код',
+    codes_few: 'коди',
+    edit_hint: 'Швидке редагування №',
+    month_prompt: 'Місяць (1-12):',
+    year_prompt: 'Рік:'
+  }
+};
+
+/* ═══════ STATE ═══════ */
+let currentLang = localStorage.getItem('zpLang') || 'pl';
+let currentMonth = parseInt(localStorage.getItem('zpMonth')) || (new Date().getUTCMonth() + 1);
+let currentYear = parseInt(localStorage.getItem('zpYear')) || new Date().getUTCFullYear();
+let cards = [];
+let lbIdx = 0;
+let debTimer = null;
+
+// Check if saved data is older than 24 hours
+function isDataExpired() {
+  const savedTime = localStorage.getItem('zpDataTimestamp');
+  if (!savedTime) return true;
+  const day = 24 * 60 * 60 * 1000;
+  return (Date.now() - parseInt(savedTime)) > day;
+}
+
+/* ═══════ THEME ═══════ */
+function initTheme() {
+  const saved = localStorage.getItem('zpTheme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+  updateThemeIcon();
+}
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('zpTheme', next);
+  updateThemeIcon();
+}
+function updateThemeIcon() {
+  const theme = document.documentElement.getAttribute('data-theme');
+  document.querySelector('.theme-btn').textContent = theme === 'dark' ? '🌙' : '☀️';
+}
+
+/* ═══════ LANGUAGE ═══════ */
+function toggleLangDropdown(e) {
+  e.stopPropagation();
+  document.getElementById('langDropdown').classList.toggle('show');
+}
+function selectLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('zpLang', lang);
+  document.documentElement.lang = lang;
+  const flagMap = { pl: 'fi-pl', en: 'fi-gb', ua: 'fi-ua' };
+  const codeMap = { pl: 'PL', en: 'EN', ua: 'UA' };
+  document.getElementById('currentLangFlag').className = 'fi ' + flagMap[lang];
+  document.getElementById('currentLangCode').textContent = codeMap[lang];
+  document.querySelectorAll('.lang-dropdown-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.lang === lang);
+  });
+  document.getElementById('langDropdown').classList.remove('show');
+  updateTranslations();
+  renderMonthGrid();
+  renderYearGrid();
+  updateExample();
+  updateCounter();
+}
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.lang-dropdown-wrapper')) {
+    document.getElementById('langDropdown').classList.remove('show');
+  }
+  if (!e.target.closest('.date-btn-group')) {
+    document.getElementById('monthPanel').classList.remove('show');
+    document.getElementById('yearPanel').classList.remove('show');
+  }
+});
+function updateTranslations() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if(i18n[currentLang][key]) el.innerHTML = i18n[currentLang][key];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if(i18n[currentLang][key]) el.placeholder = i18n[currentLang][key];
+  });
+  updateExample();
+}
+
+/* ═══════ MONTH/YEAR SELECTOR ═══════ */
+function toggleMonthPanel(e) {
+  if(e) e.stopPropagation();
+  const panel = document.getElementById('monthPanel');
+  panel.classList.toggle('show');
+  if(panel.classList.contains('show')) document.getElementById('yearPanel').classList.remove('show');
+}
+function toggleYearPanel(e) {
+  if(e) e.stopPropagation();
+  const panel = document.getElementById('yearPanel');
+  panel.classList.toggle('show');
+  if(panel.classList.contains('show')) document.getElementById('monthPanel').classList.remove('show');
+}
+function renderMonthGrid() {
+  const grid = document.getElementById('monthGrid');
+  const months = i18n[currentLang].months;
+  grid.innerHTML = '';
+  months.forEach((name, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'month-btn';
+    btn.textContent = name;
+    btn.onclick = () => selectMonth(idx + 1);
+    if(idx + 1 === currentMonth) btn.classList.add('active');
+    grid.appendChild(btn);
+  });
+  document.getElementById('monthDisplay').textContent = months[currentMonth - 1];
+}
+function selectMonth(m) {
+  currentMonth = m;
+  localStorage.setItem('zpMonth', m);
+  document.getElementById('monthPanel').classList.remove('show');
+  renderMonthGrid();
+  updateExample();
+  debounce();
+}
+function renderYearGrid() {
+  const grid = document.getElementById('yearGrid');
+  const currentYearUTC = new Date().getUTCFullYear();
+  grid.innerHTML = '';
+  for(let y = 2022; y <= currentYearUTC + 5; y++) {
+    const btn = document.createElement('button');
+    btn.className = 'year-btn';
+    btn.textContent = y;
+    btn.onclick = () => selectYear(y);
+    if(y === currentYear) btn.classList.add('active');
+    grid.appendChild(btn);
+  }
+  document.getElementById('yearDisplay').textContent = currentYear;
+}
+function selectYear(y) {
+  currentYear = y;
+  localStorage.setItem('zpYear', y);
+  document.getElementById('yearPanel').classList.remove('show');
+  renderYearGrid();
+  updateExample();
+  debounce();
+}
+/* MANUAL MONTH/YEAR INPUT (dblclick on buttons) */
+function enterManualMonth() {
+  const promptText = i18n[currentLang].month_prompt || 'Month (1-12):';
+  const val = prompt(promptText, currentMonth);
+  if (val === null) return;
+  const m = parseInt(val.trim());
+  if (!isNaN(m) && m >= 1 && m <= 12) {
+    currentMonth = m;
+    localStorage.setItem('zpMonth', m);
+    renderMonthGrid();
+    updateExample();
+    debounce();
+  } else {
+    alert(currentLang === 'pl' ? 'Nieprawidłowy miesiąc (1-12)' : 
+          currentLang === 'ua' ? 'Неправильний місяць (1-12)' : 
+          'Invalid month (1-12)');
+  }
+}
+function enterManualYear() {
+  const promptText = i18n[currentLang].year_prompt || 'Year:';
+  const val = prompt(promptText, currentYear);
+  if (val === null) return;
+  const y = parseInt(val.trim());
+  const currentYearUTC = new Date().getUTCFullYear();
+  if (!isNaN(y) && y >= 2022 && y <= currentYearUTC + 5) {
+    currentYear = y;
+    localStorage.setItem('zpYear', y);
+    renderYearGrid();
+    updateExample();
+    debounce();
+  } else {
+    alert(currentLang === 'pl' ? 'Nieprawidłowy rok (2000-' + (currentYearUTC + 5) + ')' : 
+          currentLang === 'ua' ? 'Неправильний рік (2000-' + (currentYearUTC + 5) + ')' : 
+          'Invalid year (2000-' + (currentYearUTC + 5) + ')');
+  }
+}
+
+/* ═══════ CODE BUILDER ═══════ */
+function buildCode(zpNum) {
+  const pr = document.getElementById('gPrefix').value;
+  const su = document.getElementById('gSuffix').value;
+  return `${pr}${zpNum}/${currentMonth}/${currentYear}${su}`;
+}
+function updateExample() {
+  document.getElementById('exCode').textContent = buildCode('730');
+}
+
+/* ═══════ DEBOUNCE ═══════ */
+function debounce() {
+  clearTimeout(debTimer);
+  debTimer = setTimeout(generateAll, 450);
+}
+
+/* ═══════ TABLE ═══════ */
+function addRow(zp='', batch='', sz='') {
+  const tr = document.createElement('tr');
+
+  const zpCell = document.createElement('td');
+  const zpInp  = document.createElement('input');
+  zpInp.className = 'tinput';
+  zpInp.placeholder = '730';
+  zpInp.style.fontFamily = 'monospace';
+  zpInp.value = zp;
+  zpInp.oninput = debounce;
+  zpCell.appendChild(zpInp);
+
+  const batchCell = document.createElement('td');
+  const batchInp  = document.createElement('input');
+  batchInp.className = 'tinput';
+  batchInp.placeholder = '—';
+  batchInp.value = batch;
+  batchInp.oninput = debounce;
+  batchCell.appendChild(batchInp);
+
+  const szCell = document.createElement('td');
+  const szInp  = document.createElement('input');
+  szInp.className = 'tinput';
+  szInp.placeholder = '—';
+  szInp.value = sz;
+  szInp.style.textAlign = 'center';
+  szInp.oninput = debounce;
+  szCell.appendChild(szInp);
+
+  const delCell = document.createElement('td');
+  const delBtn  = document.createElement('button');
+  delBtn.className = 'del-btn';
+  delBtn.innerHTML = '✕';
+  delBtn.onclick = () => { tr.remove(); debounce(); };
+  delCell.appendChild(delBtn);
+
+  tr.append(zpCell, batchCell, szCell, delCell);
+  document.getElementById('tBody').appendChild(tr);
+}
+
+function addRange() {
+  const s = prompt(currentLang === 'pl' ? 'Numer początkowy:' : 
+                   currentLang === 'ua' ? 'Початковий номер:' : 
+                   'Start number:', '730');
+  if(s === null) return;
+  const e = prompt(currentLang === 'pl' ? 'Numer końcowy:' : 
+                   currentLang === 'ua' ? 'Кінцевий номер:' : 
+                   'End number:', '739');
+  if(e === null) return;
+  const from = parseInt(s), to = parseInt(e);
+  if(isNaN(from) || isNaN(to) || from > to) {
+    alert(currentLang === 'pl' ? 'Nieprawidłowy zakres' : 
+          currentLang === 'ua' ? 'Неправильний діапазон' : 
+          'Invalid range');
+    return;
+  }
+  if(to - from > 999) {
+    alert(currentLang === 'pl' ? 'Maksymalnie 1000 wierszy' : 
+          currentLang === 'ua' ? 'Максимум 1000 рядків' : 
+          'Maximum 1000 rows');
+    return;
+  }
+  for(let i = from; i <= to; i++) addRow(String(i));
+  debounce();
+}
+
+function clearAll() {
+  if(!confirm(currentLang === 'pl' ? 'Usunąć wszystkie wiersze?' : 
+              currentLang === 'ua' ? 'Видалити всі рядки?' : 
+              'Delete all rows?')) return;
+  document.getElementById('tBody').innerHTML = '';
+  cards = [];
+  renderGallery();
+}
+
+/* ═══════ PASTE FROM EXCEL ═══════ */
+function openPaste() {
+  document.getElementById('pasteInput').value = '';
+  document.getElementById('pasteOverlay').classList.add('show');
+}
+function closePaste() {
+  document.getElementById('pasteOverlay').classList.remove('show');
+}
+function processPaste() {
+  const raw = document.getElementById('pasteInput').value.trim();
+  if(!raw) {
+    alert(currentLang === 'pl' ? 'Wklej dane z Excel' : 
+          currentLang === 'ua' ? 'Вставте дані з Excel' : 
+          'Paste data from Excel');
+    return;
+  }
+  const lines = raw.split(/\r?\n/).filter(l => l.trim());
+  let added = 0;
+  lines.forEach(line => {
+    const cols = line.split('\t').map(c => c.trim());
+    if(!cols[0]) return;
+    const num = extractNumberFromCode(cols[0]);
+    const batch = cols[1] || '';
+    const sz = cols[2] || '';
+    addRow(num, batch, sz);
+    added++;
+  });
+  closePaste();
+  // Убрали подтверждающий алерт о количестве добавленных записей
+}
+function extractNumberFromCode(fullCode) {
+  const match = fullCode.match(/(?:ZP-)?(\d+)(?:\/|$)/i);
+  return match ? match[1] : fullCode;
+}
+
+/* ═══════ B&W PRINT-FRIENDLY QR CANVAS ═══════ */
+function createCard(zpCode, batch, sz) {
+  const W = 440;
+  const QS = 280;
+  const hasExtra = batch || sz;
+  const footH = hasExtra ? 70 : 0;
+  const H = 16 + QS + 40 + footH + 16;
+
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = '#000000';
+  ctx.strokeRect(2, 2, W-4, H-4);
+
+  const qr = new QRious({
+    value: zpCode,
+    size: QS,
+    level: 'H',
+    background: '#ffffff',
+    foreground: '#000000'
+  });
+  const qrX = (W - QS) / 2;
+  const qrY = 16;
+  ctx.drawImage(qr.canvas, qrX, qrY);
+
+  const codeY = qrY + QS + 10;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  let fs = 22;
+  ctx.font = `bold ${fs}px "Courier New",monospace`;
+  while(ctx.measureText(zpCode).width > W - 32 && fs > 12) {
+    fs--;
+    ctx.font = `bold ${fs}px "Courier New",monospace`;
+  }
+  ctx.fillStyle = '#000000';
+  ctx.fillText(zpCode, W/2, codeY);
+
+  if(hasExtra) {
+    const fy = codeY + fs + 14;
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(20, fy); ctx.lineTo(W-20, fy); ctx.stroke();
+
+    ctx.textBaseline = 'middle';
+    const midY = fy + footH/2;
+
+    if(batch) {
+      ctx.textAlign = 'left';
+      ctx.font = 'bold 24px "Segoe UI",sans-serif';
+      ctx.fillStyle = '#000000';
+      let bStr = batch;
+      while(bStr.length > 2 && ctx.measureText(bStr).width > W * 0.55) {
+        bStr = bStr.slice(0,-1) + '…';
+      }
+      ctx.fillText(bStr, 20, midY);
+    }
+
+    if(sz) {
+      ctx.textAlign = 'right';
+      ctx.font = 'bold 32px "Courier New",monospace';
+      ctx.fillStyle = '#000000';
+      ctx.fillText(sz, W - 20, midY);
+    }
+  }
+
+  return cv;
+}
+
+/* ═══════ GENERATE ═══════ */
+function generateAll() {
+  updateExample();
+  cards = [];
+
+  document.querySelectorAll('#tBody tr').forEach((tr, rowIndex) => {
+    const inputs = tr.querySelectorAll('input');
+    if(inputs.length < 3) return;
+
+    const num = inputs[0].value.trim();
+    const batch = inputs[1].value.trim();
+    const sz = inputs[2].value.trim();
+
+    if(!num) return;
+
+    const zpCode = buildCode(num);
+    const cv = createCard(zpCode, batch, sz);
+
+    cards.push({ zpCode, rawNum: num, canvas: cv, batch, size: sz, rowIndex });
+  });
+
+  renderGallery();
+  if(document.getElementById('printOverlay').classList.contains('show')) renderSheet();
+  scheduleSave();
+}
+
+/* ═══════ GALLERY ═══════ */
+function renderGallery() {
+  const g = document.getElementById('gallery');
+  updateCounter();
+
+  if(!cards.length) {
+    g.innerHTML = `<div class="empty">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/>
+        <path d="M14 14h2v2h-2zm4 0h2v2h-2zm-4 4h2v2h-2zm4 0h2v2h-2zm0-8h2"/>
+      </svg>
+      <p>${i18n[currentLang].empty_msg}</p>
+    </div>`;
+    return;
+  }
+
+  g.innerHTML = '';
+  cards.forEach((item, i) => {
+    const card = document.createElement('div');
+    card.className = 'qr-card';
+    card.onclick = () => openLb(i);
+    card.title = `${item.zpCode}\n${item.batch ? 'Batch: ' + item.batch : ''}\n${item.size ? 'Size: ' + item.size : ''}`.trim();
+
+    // Thumbnail
+    const thumb = document.createElement('canvas');
+    const maxW = 240;
+    const scale = Math.min(maxW / item.canvas.width, 1);
+    thumb.width  = Math.round(item.canvas.width  * scale);
+    thumb.height = Math.round(item.canvas.height * scale);
+    const tCtx = thumb.getContext('2d');
+    tCtx.imageSmoothingEnabled = true;
+    tCtx.imageSmoothingQuality = 'high';
+    tCtx.drawImage(item.canvas, 0, 0, thumb.width, thumb.height);
+    card.appendChild(thumb);
+
+    // Quick edit label
+    const editLabel = document.createElement('div');
+    editLabel.className = 'qr-edit-label';
+    editLabel.textContent = i18n[currentLang].edit_hint;
+    card.appendChild(editLabel);
+
+    // Quick edit row
+    const editRow = document.createElement('div');
+    editRow.className = 'qr-edit-row';
+
+    const editInput = document.createElement('input');
+    editInput.type = 'text';
+    editInput.className = 'qr-edit-input';
+    // ПУСТОЕ ПОЛЕ, текущий номер как placeholder
+    editInput.value = '';
+    editInput.placeholder = item.rawNum;
+    editInput.title = i18n[currentLang].edit_hint;
+    editInput.onclick = (e) => e.stopPropagation();
+    editInput.addEventListener('focus', () => { /* уже пусто, стирать ничего не надо */ });
+
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'qr-edit-save';
+    saveBtn.textContent = '✓';
+    saveBtn.onclick = (e) => {
+      e.stopPropagation();
+      applyEdit(item, editInput.value.trim(), i);
+    };
+
+    editInput.onkeydown = (e) => {
+      if(e.key === 'Enter') {
+        e.stopPropagation();
+        applyEdit(item, editInput.value.trim(), i);
+      }
+    };
+
+    editRow.appendChild(editInput);
+    editRow.appendChild(saveBtn);
+    card.appendChild(editRow);
+
+    g.appendChild(card);
+  });
+}
+
+function applyEdit(item, newNum, cardIndex) {
+  if(!newNum || newNum === item.rawNum) return;
+
+  item.rawNum = newNum;
+  item.zpCode = buildCode(newNum);
+  item.canvas = createCard(item.zpCode, item.batch, item.size);
+
+  const tr = document.querySelectorAll('#tBody tr')[item.rowIndex];
+  if(tr) {
+    const inputs = tr.querySelectorAll('input');
+    if(inputs.length >= 1) inputs[0].value = newNum;
+  }
+
+  const card = document.getElementById('gallery').children[cardIndex];
+  if(card) {
+    const oldThumb = card.querySelector('canvas');
+    const maxW = 240;
+    const scale = Math.min(maxW / item.canvas.width, 1);
+    const newThumb = document.createElement('canvas');
+    newThumb.width  = Math.round(item.canvas.width  * scale);
+    newThumb.height = Math.round(item.canvas.height * scale);
+    const ntCtx = newThumb.getContext('2d');
+    ntCtx.imageSmoothingEnabled = true;
+    ntCtx.imageSmoothingQuality = 'high';
+    ntCtx.drawImage(item.canvas, 0, 0, newThumb.width, newThumb.height);
+    oldThumb.replaceWith(newThumb);
+
+    const editInput = card.querySelector('.qr-edit-input');
+    if(editInput) {
+      editInput.value = '';
+      editInput.placeholder = newNum; // показать новый номер как подсказку
+    }
+  }
+
+  if(document.getElementById('printOverlay').classList.contains('show')) renderSheet();
+  scheduleSave();
+}
+
+function updateCounter() {
+  const n = cards.length;
+  const lang = i18n[currentLang];
+  let text = n + ' ';
+  if(currentLang === 'pl' || currentLang === 'ua') {
+    if(n === 1) text += lang.code;
+    else if(n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) text += lang.codes_few;
+    else text += lang.codes;
+  } else {
+    text += n === 1 ? lang.code : lang.codes;
+  }
+  document.getElementById('cntBadge').textContent = text;
+}
+
+/* ═══════ LIGHTBOX ═══════ */
+const lb = document.getElementById('lightbox');
+function openLb(idx) { lbIdx = idx; showLb(); lb.classList.add('show'); document.body.style.overflow = 'hidden'; }
+function closeLb() { lb.classList.remove('show'); document.body.style.overflow = ''; }
+function lbMove(d) { const newIdx = lbIdx + d; if(newIdx >= 0 && newIdx < cards.length){ lbIdx = newIdx; showLb(); } }
+function showLb() {
+  const item = cards[lbIdx];
+  const img = document.getElementById('lbImg');
+  img.src = item.canvas.toDataURL('image/png', 1.0);
+  document.getElementById('lbPrev').style.visibility = lbIdx > 0 ? 'visible' : 'hidden';
+  document.getElementById('lbNext').style.visibility = lbIdx < cards.length - 1 ? 'visible' : 'hidden';
+}
+lb.addEventListener('click', e => { if(e.target === lb) closeLb(); });
+
+/* ═══════ PRINT A4 ═══════ */
+const printOv = document.getElementById('printOverlay');
+const sheetCv = document.getElementById('sheetCanvas');
+const sheetCtx = sheetCv.getContext('2d');
+
+function openPrint() { 
+  if(!cards.length) {
+    alert(currentLang === 'pl' ? 'Najpierw dodaj kody!' : 
+          currentLang === 'ua' ? 'Спочатку додайте коди!' : 
+          'Add codes first!');
+    return;
+  }
+  printOv.classList.add('show'); 
+  document.body.style.overflow = 'hidden'; 
+  renderSheet(); 
+}
+function closePrint() { printOv.classList.remove('show'); document.body.style.overflow = ''; }
+printOv.addEventListener('click', e => { if(e.target === printOv) closePrint(); });
+
+function renderSheet() {
+  const DPI = 150;
+  const MM = DPI / 25.4;
+  const W = Math.round(210 * MM);
+  const H = Math.round(297 * MM);
+
+  const cols = Math.max(1, parseInt(document.getElementById('pCols').value) || 3);
+  const rows = Math.max(1, parseInt(document.getElementById('pRows').value) || 4);
+  const gap = Math.round((parseInt(document.getElementById('pGap').value) || 4) * MM);
+  const pad = Math.round(8 * MM);
+
+  sheetCv.width = W; sheetCv.height = H;
+  sheetCtx.fillStyle = '#ffffff'; sheetCtx.fillRect(0, 0, W, H);
+
+  const cellW = Math.floor((W - pad * 2 - gap * (cols - 1)) / cols);
+  const cellH = Math.floor((H - pad * 2 - gap * (rows - 1)) / rows);
+
+  cards.forEach((item, i) => {
+    if(i >= cols * rows) return;
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    const x = pad + col * (cellW + gap);
+    const y = pad + row * (cellH + gap);
+
+    const scale = Math.min(cellW / item.canvas.width, cellH / item.canvas.height) * 0.97;
+    const dw = Math.round(item.canvas.width * scale);
+    const dh = Math.round(item.canvas.height * scale);
+
+    const dx = x + Math.round((cellW - dw) / 2);
+    const dy = y + Math.round((cellH - dh) / 2);
+
+    sheetCtx.drawImage(item.canvas, dx, dy, dw, dh);
+  });
+}
+function saveSheet() {
+  renderSheet();
+  const a = document.createElement('a');
+  const date = new Date().toISOString().slice(0, 10);
+  a.download = `ZP_Print_A4_${date}.png`;
+  a.href = sheetCv.toDataURL('image/png', 1.0);
+  a.click();
+}
+
+/* ═══════ KEYBOARD SHORTCUTS ═══════ */
+document.addEventListener('keydown', e => {
+  if(lb.classList.contains('show')) {
+    if(e.key === 'ArrowLeft') lbMove(-1);
+    if(e.key === 'ArrowRight') lbMove(1);
+    if(e.key === 'Escape') closeLb();
+    return;
+  }
+  if(e.key === 'Escape') {
+    if(document.getElementById('pasteOverlay').classList.contains('show')) closePaste();
+    if(printOv.classList.contains('show')) closePrint();
+  }
+  if(e.ctrlKey || e.metaKey) {
+    if(e.key === 'v' && !document.getElementById('pasteOverlay').classList.contains('show')) {
+      e.preventDefault();
+      openPaste();
+    }
+    if(e.key === 'p') { e.preventDefault(); openPrint(); }
+    if(e.key === 'r') { e.preventDefault(); generateAll(); }
+  }
+});
+['pCols','pRows','pGap'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    if(printOv.classList.contains('show')) renderSheet();
+  });
+});
+
+/* ═══════ INITIALIZATION ═══════ */
+document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+  const flagMap = { pl: 'fi-pl', en: 'fi-gb', ua: 'fi-ua' };
+  const codeMap = { pl: 'PL', en: 'EN', ua: 'UA' };
+  document.getElementById('currentLangFlag').className = 'fi ' + flagMap[currentLang];
+  document.getElementById('currentLangCode').textContent = codeMap[currentLang];
+  document.querySelectorAll('.lang-dropdown-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.lang === currentLang);
+  });
+  updateTranslations();
+
+  const now = new Date();
+  currentMonth = now.getUTCMonth() + 1;
+  currentYear = now.getUTCFullYear();
+  localStorage.setItem('zpMonth', currentMonth);
+  localStorage.setItem('zpYear', currentYear);
+  renderMonthGrid();
+  renderYearGrid();
+  updateExample();
+
+  if(isDataExpired()) {
+    localStorage.removeItem('zpTableData');
+    localStorage.removeItem('zpDataTimestamp');
+  }
+  const savedData = localStorage.getItem('zpTableData');
+  if(savedData) {
+    try {
+      const data = JSON.parse(savedData);
+      document.getElementById('tBody').innerHTML = '';
+      data.forEach(item => addRow(item.zpValue, item.batch, item.size));
+      generateAll();
+    } catch(e) {
+      console.error('Failed to load saved data:', e);
+      for(let i = 0; i < 6; i++) addRow();
+    }
+  } else {
+    for(let i = 0; i < 6; i++) addRow();
+  }
+  updateCounter();
+
+  setTimeout(() => {
+    const firstInput = document.querySelector('#tBody input');
+    if(firstInput) firstInput.focus();
+  }, 100);
+
+  const savedCols = localStorage.getItem('zpPrintCols');
+  const savedRows = localStorage.getItem('zpPrintRows');
+  const savedGap = localStorage.getItem('zpPrintGap');
+  if(savedCols) document.getElementById('pCols').value = savedCols;
+  if(savedRows) document.getElementById('pRows').value = savedRows;
+  if(savedGap) document.getElementById('pGap').value = savedGap;
+});
+
+/* ═══════ SAVE PRINT SETTINGS ═══════ */
+['pCols', 'pRows', 'pGap'].forEach(id => {
+  document.getElementById(id).addEventListener('change', function() {
+    localStorage.setItem('zp' + id.charAt(1).toUpperCase() + id.slice(2), this.value);
+  });
+});
+
+/* ═══════ AUTO-SAVE DATA (max 24h) ═══════ */
+function saveTableData() {
+  const data = [];
+  document.querySelectorAll('#tBody tr').forEach(tr => {
+    const inputs = tr.querySelectorAll('input');
+    if(inputs.length >= 3) {
+      const zpValue = inputs[0].value.trim();
+      const batch = inputs[1].value.trim();
+      const size = inputs[2].value.trim();
+      if(zpValue) data.push({ zpValue, batch, size });
+    }
+  });
+  if(data.length > 0) {
+    localStorage.setItem('zpTableData', JSON.stringify(data));
+    localStorage.setItem('zpDataTimestamp', Date.now().toString());
+  } else {
+    localStorage.removeItem('zpTableData');
+    localStorage.removeItem('zpDataTimestamp');
+  }
+}
+let saveTimer = null;
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveTableData, 1000);
+}
+
+/* ═══════ PREVENT DATA LOSS ═══════ */
+window.addEventListener('beforeunload', (e) => {
+  saveTableData();
+  if(cards.length > 0) {
+    const msg = currentLang === 'pl' ? 'Masz niezapisane kody QR. Czy na pewno chcesz wyjść?' :
+                currentLang === 'ua' ? 'У вас є незбережені QR-коди. Ви впевнені, що хочете вийти?' :
+                'You have unsaved QR codes. Are you sure you want to leave?';
+    e.preventDefault();
+    e.returnValue = msg;
+    return msg;
+  }
+});
+
+console.log('ZP Smart QR Generator v2.2 (settings font boosted) initialized');
+</script>
+</body>
+</html>
