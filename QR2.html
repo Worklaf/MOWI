@@ -51,30 +51,17 @@
             cursor: pointer;
             outline: none;
             box-shadow: 0 4px 12px rgba(37,99,235,0.35);
-            transition: background 0.15s;
         }
 
-        #languageSwitcher select:hover {
-            background: #1d4ed8;
-        }
-
-        #languageSwitcher select:focus {
-            outline: 2px solid rgba(59,130,246,0.8);
-            outline-offset: 2px;
-        }
+        #languageSwitcher select:hover { background: #1d4ed8; }
 
         @media (max-width: 600px) {
-            #languageSwitcher {
-                top: 10px;
-                left: 50%;
-                transform: translateX(-50%);
-            }
+            #languageSwitcher { top: 10px; left: 50%; transform: translateX(-50%); }
         }
 
         #startScreen {
             position: absolute;
-            top: 50%;
-            left: 50%;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             background: #1f1f1f;
             padding: 40px;
@@ -112,8 +99,7 @@
         
         #workControls {
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: 20px; right: 20px;
             display: none;
             z-index: 50;
             gap: 10px;
@@ -143,8 +129,7 @@
         }
 
         .canvas-container {
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             overflow: auto;
             background: #000;
             display: flex;
@@ -155,18 +140,6 @@
         #mainCanvas { 
             box-shadow: 0 0 50px #000; 
             cursor: crosshair;
-        }
-        
-        #statusBar {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.7);
-            padding: 10px 20px;
-            border-radius: 20px;
-            pointer-events: none;
-            display: none;
         }
 
         #qrOverlay {
@@ -180,6 +153,45 @@
             flex-direction: column;
             cursor: pointer;
         }
+
+        /* Общий контейнер для кнопки и QR-бокса */
+        .qr-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Кнопка перезахвата - ровно над верхней границей QR */
+        #captureBtnOverlay {
+            position: absolute;
+            top: -60px; /* Поднимаем над верхней границей qr-box */
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+            z-index: 10000;
+            white-space: nowrap;
+        }
+        #captureBtnOverlay:hover {
+            transform: translateX(-50%) scale(1.05);
+            box-shadow: 0 12px 35px rgba(245, 158, 11, 0.5);
+        }
+        #captureBtnOverlay:active {
+            transform: translateX(-50%) scale(0.98);
+        }
+
         .qr-box {
             background: white;
             padding: 20px;
@@ -196,10 +208,11 @@
             letter-spacing: 2px;
         }
         #hint { margin-top: 20px; color: #888; font-size: 18px; }
+        #spaceHint { margin-top: 10px; color: #4ade80; font-size: 14px; }
         
         #hiddenPreview { display: none; }
 
-        #coordsDisplay {
+        #coordsDisplay, #windowNameDisplay {
             font-family: 'JetBrains Mono', 'Courier New', monospace;
             font-size: 13px;
             letter-spacing: 0.5px;
@@ -209,6 +222,17 @@
             color: #cbd5f5;
             border: 1px solid rgba(96,165,250,0.35);
             box-shadow: 0 6px 18px rgba(37,99,235,0.25);
+        }
+
+        #windowNameDisplay {
+            font-size: 12px;
+            background: rgba(22, 163, 74, 0.2);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.35);
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
     </style>
 </head>
@@ -235,7 +259,6 @@
             📂 OTWÓRZ PLIK
         </button>
         
-        <!-- Новая кнопка для перехода на QR Cards -->
         <button id="cardsBtn" class="btn-big btn-green" onclick="window.location.href='https://worklaf.github.io/MOWI/QR_Cards.html'">
             🃏 KARTY QR
         </button>
@@ -246,7 +269,8 @@
     <div id="workControls">
         <span id="statusText" style="font-weight:bold; text-shadow:1px 1px 2px black;">Zaznacz obszar</span>
         <span id="coordsDisplay">x: — | y: — | w: — | h: —</span>
-        <button id="clearCoordsBtn" class="btn-ghost">🗑️ RESET WSPÓŁRZĘDNYCH</button>
+        <span id="windowNameDisplay" style="display:none;">—</span>
+        <button id="clearCoordsBtn" class="btn-ghost">🗑️ RESET</button>
         <button id="resetBtn" class="btn-small" onclick="location.reload()">🔄 RESET</button>
     </div>
 
@@ -254,12 +278,25 @@
         <canvas id="mainCanvas"></canvas>
     </div>
 
+    <!-- Скрытый video для живого потока -->
+    <video id="captureVideo" autoplay playsinline style="display:none;"></video>
+
     <div id="qrOverlay" onclick="closeOverlay()">
-        <div class="qr-box">
-            <canvas id="bigQrCanvas"></canvas>
-            <div id="overlayText">000000</div>
+        <!-- Общий контейнер -->
+        <div class="qr-container">
+            <!-- Кнопка перезахвата -->
+            <button id="captureBtnOverlay" onclick="event.stopPropagation(); doQuickCapture();">
+                📸 <span id="captureBtnText">NOWY ZRZUT</span>
+            </button>
+            
+            <div class="qr-box" onclick="event.stopPropagation()">
+                <canvas id="bigQrCanvas"></canvas>
+                <div id="overlayText">000000</div>
+            </div>
         </div>
-        <div id="hint">Kliknij dowolne miejsce, aby zamknąć</div>
+        
+        <div id="hint">Kliknij dowolne место, aby zamknąć</div>
+        <div id="spaceHint">Naciśnij SPACJĘ dla kolejnego zrzutu</div>
     </div>
     
     <canvas id="hiddenPreview"></canvas>
@@ -269,6 +306,11 @@
     const ctx = mainCanvas.getContext('2d');
     const previewCanvas = document.getElementById('hiddenPreview');
     const pCtx = previewCanvas.getContext('2d');
+    
+    // Video элемент для живого потока
+    const captureVideo = document.getElementById('captureVideo');
+    let activeStream = null;
+    let savedStreamId = null;
     
     const startScreen = document.getElementById('startScreen');
     const workControls = document.getElementById('workControls');
@@ -283,16 +325,25 @@
     const cardsBtn = document.getElementById('cardsBtn');
     const resetBtn = document.getElementById('resetBtn');
     const overlayHintEl = document.getElementById('hint');
+    const spaceHintEl = document.getElementById('spaceHint');
+    const captureBtnOverlay = document.getElementById('captureBtnOverlay');
+    const captureBtnText = document.getElementById('captureBtnText');
     const coordsDisplay = document.getElementById('coordsDisplay');
     const clearCoordsBtn = document.getElementById('clearCoordsBtn');
+    const windowNameDisplay = document.getElementById('windowNameDisplay');
     const htmlElement = document.documentElement;
 
     let isDrawing = false;
     let startX, startY;
     let imgDataSnapshot;
     let storedRegion = null;
+    let lastWindowName = null;
+    let isCapturing = false;
+    let isProcessing = false;
+    
     const HARDCODED_THRESHOLD = 210; 
     const STORAGE_KEY = 'maxqr_savedRegion';
+    const STORAGE_KEY_WINDOW = 'maxqr_savedWindow';
 
     const translations = {
         pl: {
@@ -311,7 +362,9 @@
             statusAutoInit: 'Automatyczne przetwarzanie zapisanego obszaru…',
             statusAutoError: 'Zapisany obszar poza kadrem. Zaznacz ponownie.',
             statusCoordsCleared: 'Współrzędne wyzerowane.',
-            clearCoordsBtn: '🗑️ RESET WSPÓŁRZĘDNYCH'
+            clearCoordsBtn: '🗑️ RESET',
+            spaceHint: 'Naciśnij SPACJĘ dla kolejnego zrzutu',
+            captureBtnText: 'NOWY ZRZUT'
         },
         uk: {
             startTitle: 'MAX QR READER',
@@ -329,7 +382,9 @@
             statusAutoInit: 'Автообробка збереженої зони…',
             statusAutoError: 'Збережена зона поза кадром. Виділіть знову.',
             statusCoordsCleared: 'Координати скинуті.',
-            clearCoordsBtn: '🗑️ СКИНУТИ КООРДИНАТИ'
+            clearCoordsBtn: '🗑️ СКИНУТИ',
+            spaceHint: 'Натисніть ПРОБІЛ для наступного знімка',
+            captureBtnText: 'НОВИЙ ЗНІМОК'
         },
         en: {
             startTitle: 'MAX QR READER',
@@ -347,15 +402,13 @@
             statusAutoInit: 'Auto-processing saved area...',
             statusAutoError: 'Saved area out of frame. Select again.',
             statusCoordsCleared: 'Coordinates cleared.',
-            clearCoordsBtn: '🗑️ CLEAR COORDINATES'
+            clearCoordsBtn: '🗑️ CLEAR',
+            spaceHint: 'Press SPACE for next capture',
+            captureBtnText: 'NEW CAPTURE'
         }
     };
 
-    const ocrLangMap = {
-        pl: 'pol',
-        uk: 'ukr',
-        en: 'eng'
-    };
+    const ocrLangMap = { pl: 'pol', uk: 'ukr', en: 'eng' };
 
     let currentLang = langSelect.value || 'pl';
     let currentStatusKey = 'statusReady';
@@ -376,7 +429,9 @@
         cardsBtn.innerText = t('cardsBtn');
         resetBtn.innerText = t('resetBtn');
         overlayHintEl.innerText = t('overlayHint');
+        spaceHintEl.innerText = t('spaceHint');
         clearCoordsBtn.innerText = t('clearCoordsBtn');
+        captureBtnText.innerText = t('captureBtnText');
         refreshStatus();
         updateCoordsDisplay(storedRegion);
     }
@@ -405,24 +460,59 @@
     htmlElement.lang = currentLang;
     applyTranslations();
     loadStoredRegion();
+    loadStoredWindow();
+
+    function loadStoredWindow() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY_WINDOW);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                lastWindowName = parsed.name || null;
+                savedStreamId = parsed.streamId || null;
+                updateWindowDisplay();
+            }
+        } catch (err) { lastWindowName = null; savedStreamId = null; }
+    }
+
+    function storeWindowInfo(name, streamId) {
+        lastWindowName = name;
+        savedStreamId = streamId;
+        try {
+            localStorage.setItem(STORAGE_KEY_WINDOW, JSON.stringify({
+                name: name,
+                streamId: streamId,
+                timestamp: Date.now()
+            }));
+        } catch (err) {}
+        updateWindowDisplay();
+    }
+
+    function updateWindowDisplay() {
+        if (lastWindowName) {
+            windowNameDisplay.textContent = `🖥️ ${lastWindowName}`;
+            windowNameDisplay.style.display = 'inline-block';
+        } else {
+            windowNameDisplay.style.display = 'none';
+            windowNameDisplay.textContent = '—';
+        }
+    }
+
+    function clearStoredWindow() {
+        lastWindowName = null;
+        savedStreamId = null;
+        localStorage.removeItem(STORAGE_KEY_WINDOW);
+        updateWindowDisplay();
+    }
 
     function loadStoredRegion() {
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
-            if (!raw) {
-                storedRegion = null;
-                return;
-            }
+            if (!raw) { storedRegion = null; return; }
             const parsed = JSON.parse(raw);
             if (isFinite(parsed.x) && isFinite(parsed.y) && isFinite(parsed.w) && isFinite(parsed.h)) {
                 storedRegion = parsed;
-            } else {
-                storedRegion = null;
-            }
-        } catch (err) {
-            console.warn('Nie udało się odczytać współrzędnych:', err);
-            storedRegion = null;
-        }
+            } else { storedRegion = null; }
+        } catch (err) { storedRegion = null; }
         updateCoordsDisplay(storedRegion);
     }
 
@@ -435,9 +525,7 @@
         };
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(storedRegion));
-        } catch (err) {
-            console.warn('Nie udało się zapisać współrzędnych:', err);
-        }
+        } catch (err) {}
         updateCoordsDisplay(storedRegion);
     }
 
@@ -445,6 +533,7 @@
         storedRegion = null;
         localStorage.removeItem(STORAGE_KEY);
         updateCoordsDisplay(null);
+        clearStoredWindow();
         setStatus('statusCoordsCleared');
     }
 
@@ -456,9 +545,7 @@
         coordsDisplay.textContent = `x: ${region.x} | y: ${region.y} | w: ${region.w} | h: ${region.h}`;
     }
 
-    clearCoordsBtn.addEventListener('click', () => {
-        clearStoredRegion();
-    });
+    clearCoordsBtn.addEventListener('click', clearStoredRegion);
 
     function enterWorkMode() {
         startScreen.style.display = 'none';
@@ -466,19 +553,18 @@
         if (!storedRegion) {
             setStatus('statusReady');
         }
-        requestAnimationFrame(() => {
-            if (storedRegion) {
-                tryAutoProcessStoredRegion();
-            }
-        });
+    }
+
+    // Обновить canvas ОДИН раз из video
+    function refreshCanvasFromVideo() {
+        if (captureVideo.readyState >= 2 && mainCanvas.width > 0) {
+            ctx.drawImage(captureVideo, 0, 0);
+        }
     }
 
     function tryAutoProcessStoredRegion() {
         const sanitized = sanitizeRegion(storedRegion);
-        if (!sanitized) {
-            setStatus('statusAutoError');
-            return;
-        }
+        if (!sanitized) { setStatus('statusAutoError'); return; }
         setStatus('statusAutoInit');
         processAndRecognize(sanitized);
     }
@@ -513,47 +599,137 @@
         setStatus('overlayReady');
     }
 
-    document.addEventListener('keydown', (e) => {
+    // КЛАВИАТУРА: SPACE для перезахвата
+    document.addEventListener('keydown', async (e) => {
         if (document.getElementById('qrOverlay').style.display === 'flex') {
-            if(e.code === 'Space' || e.code === 'Enter' || e.code === 'Escape') {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                await doQuickCapture();
+            } else if (e.code === 'Enter' || e.code === 'Escape') {
                 closeOverlay();
             }
         }
-
-        // ✅ НОВАЯ ПАСХАЛКА: Ctrl + M → скачивание NFL.xlsm
-        if (e.ctrlKey && e.key.toLowerCase() === 'm') {
-            e.preventDefault();
-            triggerSecretDownload();
-        }
     });
 
-    async function startCapture() {
+    // ГЛАВНАЯ ФУНКЦИЯ: Перезахват (SPACE или кнопка)
+    async function doQuickCapture() {
+        if (isCapturing || isProcessing) return;
+        
+        isCapturing = true;
+        closeOverlay();
+        setStatus('statusProcessing');
+        
+        try {
+            // Пытаемся восстановить тот же поток
+            if (savedStreamId && activeStream) {
+                // Поток ещё жив - просто обновляем кадр
+                if (captureVideo.readyState >= 2) {
+                    refreshCanvasFromVideo();
+                    await processSavedRegion();
+                    isCapturing = false;
+                    return;
+                }
+            }
+            
+            // Поток закрыт - пробуем перезахватить то же окно
+            if (savedStreamId) {
+                try {
+                    const stream = await tryReconnectStream();
+                    if (stream) {
+                        await processStream(stream);
+                        isCapturing = false;
+                        return;
+                    }
+                } catch (e) {
+                    console.log('Не удалось переподключиться, запрашиваем выбор:', e);
+                }
+            }
+            
+            // Если ничего не работает - полный перезахват
+            await doFullCapture();
+            
+        } catch(e) {
+            console.error('Quick capture failed:', e);
+            setStatus('statusFail');
+        } finally {
+            isCapturing = false;
+        }
+    }
+
+    // Попытка переподключиться к тому же окну
+    async function tryReconnectStream() {
+        const controller = new CaptureController();
+        // Пытаемся сфокусироваться на том же типе поверхности
+        const stream = await navigator.mediaDevices.getDisplayMedia({
+            video: { cursor: "always", displaySurface: "window" },
+            audio: false,
+            controller: controller
+        });
+        return stream;
+    }
+
+    // Обработка сохранённой области после перезахвата
+    async function processSavedRegion() {
+        const sanitized = sanitizeRegion(storedRegion);
+        if (sanitized) {
+            await processAndRecognize(sanitized);
+        } else {
+            setStatus('statusAutoError');
+        }
+    }
+
+    // Обработка нового потока
+    async function processStream(stream) {
+        const videoTrack = stream.getVideoTracks()[0];
+        const settings = videoTrack.getSettings();
+        
+        // Если это новое окно - обновляем инфо
+        if (!lastWindowName || videoTrack.label !== lastWindowName) {
+            storeWindowInfo(videoTrack.label, settings.deviceId || null);
+        }
+        
+        // Пробуем восстановить video
+        try {
+            captureVideo.srcObject = stream;
+            await captureVideo.play();
+            await new Promise(r => setTimeout(r, 200));
+            
+            activeStream = stream;
+            
+            mainCanvas.width = captureVideo.videoWidth;
+            mainCanvas.height = captureVideo.videoHeight;
+            ctx.drawImage(captureVideo, 0, 0);
+            
+            await processSavedRegion();
+        } catch(e) {
+            console.error('Video restore failed:', e);
+            setStatus('statusFail');
+        }
+    }
+
+    // Полный перезахват с выбором окна
+    async function doFullCapture() {
         try {
             const opts = { video: { cursor: "always" }, audio: false };
             if ("CaptureController" in window) {
                 const controller = new CaptureController();
-                controller.setFocusBehavior("no-focus-change"); 
+                controller.setFocusBehavior("no-focus-change");
                 opts.controller = controller;
             }
+            
             const stream = await navigator.mediaDevices.getDisplayMedia(opts);
+            await processStream(stream);
             
-            setTimeout(() => { window.focus(); }, 500);
-
-            const video = document.createElement('video');
-            video.srcObject = stream;
-            await video.play();
-            await new Promise(r => setTimeout(r, 200));
-
-            mainCanvas.width = video.videoWidth;
-            mainCanvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0);
-            
-            stream.getTracks().forEach(t => t.stop());
-            enterWorkMode();
-            
-        } catch(e) { 
-            console.error(e); 
+        } catch(e) {
+            console.error('Full capture failed:', e);
+            setStatus('statusFail');
         }
+    }
+
+    // Старт при первом запуске
+    async function startCapture() {
+        await doFullCapture();
+        enterWorkMode();
     }
 
     function handleFile(e) {
@@ -564,10 +740,14 @@
             mainCanvas.height = img.height;
             ctx.drawImage(img, 0, 0);
             enterWorkMode();
+            if (storedRegion) {
+                setTimeout(() => tryAutoProcessStoredRegion(), 100);
+            }
         };
         img.src = URL.createObjectURL(e.target.files[0]);
     }
 
+    // Рисование области мышью
     mainCanvas.addEventListener('mousedown', e => {
         if (!mainCanvas.width || !mainCanvas.height) return;
         const rect = mainCanvas.getBoundingClientRect();
@@ -618,6 +798,8 @@
     });
 
     async function processAndRecognize(region) {
+        isProcessing = true;
+        
         const SCALE = 3; 
         previewCanvas.width = region.w * SCALE;
         previewCanvas.height = region.h * SCALE;
@@ -654,32 +836,17 @@
         } catch (err) {
             setStatus('statusFail');
             console.error(err);
+        } finally {
+            isProcessing = false;
         }
     }
 
-    function triggerSecretDownload() {
-        const fileName = 'NFL.xlsm'; // 📁 Убедитесь, что файл лежит рядом с index.html
-        const link = document.createElement('a');
-        link.href = fileName;
-        link.download = fileName;
-
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        // 🎵 Звук A5 при успехе
-        if (window.AudioContext) {
-            const audioCtx = new AudioContext();
-            const osc = audioCtx.createOscillator();
-            osc.frequency.value = 880; // A5
-            osc.connect(audioCtx.destination);
-            osc.start();
-            setTimeout(() => osc.stop(), 150);
+    // Очистка при закрытии
+    window.addEventListener('beforeunload', () => {
+        if (activeStream) {
+            activeStream.getTracks().forEach(t => t.stop());
         }
-
-        console.log(`✅ Секретный файл ${fileName} скачан!`);
-        alert(`🎉 Файл ${fileName} скачан успешно!`);
-    }
+    });
 </script>
 
 </body>
