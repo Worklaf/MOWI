@@ -20,10 +20,79 @@
             position: relative;
         }
 
-        #languageSwitcher {
+        /* Переключатель режимов */
+        #modeSwitcher {
             position: absolute;
             top: 20px;
             left: 20px;
+            background: rgba(31,31,31,0.9);
+            padding: 10px 16px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 150;
+            font-size: 14px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #dc2626;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #16a34a;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .mode-label {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .mode-label.on { color: #4ade80; }
+        .mode-label.off { color: #f87171; }
+
+        #languageSwitcher {
+            position: absolute;
+            top: 20px;
+            left: 200px;
             background: rgba(31,31,31,0.9);
             padding: 10px 14px;
             border-radius: 12px;
@@ -55,8 +124,17 @@
 
         #languageSwitcher select:hover { background: #1d4ed8; }
 
-        @media (max-width: 600px) {
-            #languageSwitcher { top: 10px; left: 50%; transform: translateX(-50%); }
+        @media (max-width: 700px) {
+            #modeSwitcher { 
+                top: 10px; 
+                left: 50%; 
+                transform: translateX(-50%);
+            }
+            #languageSwitcher { 
+                top: 60px; 
+                left: 50%; 
+                transform: translateX(-50%);
+            }
         }
 
         #startScreen {
@@ -154,7 +232,6 @@
             cursor: pointer;
         }
 
-        /* Общий контейнер для кнопки и QR-бокса */
         .qr-container {
             position: relative;
             display: flex;
@@ -162,10 +239,9 @@
             align-items: center;
         }
 
-        /* Кнопка перезахвата - ровно над верхней границей QR */
         #captureBtnOverlay {
             position: absolute;
-            top: -60px; /* Поднимаем над верхней границей qr-box */
+            top: -60px;
             left: 50%;
             transform: translateX(-50%);
             padding: 12px 24px;
@@ -234,9 +310,23 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
+
+        #captureVideo {
+            display: none;
+        }
     </style>
 </head>
 <body>
+
+    <!-- Переключатель режимов -->
+    <div id="modeSwitcher">
+        <span id="modeLabelOff" class="mode-label off">📺</span>
+        <label class="switch">
+            <input type="checkbox" id="modeToggle">
+            <span class="slider"></span>
+        </label>
+        <span id="modeLabelOn" class="mode-label on">🔴</span>
+    </div>
 
     <div id="languageSwitcher">
         <span id="currentFlag" class="fi fi-pl"></span>
@@ -278,13 +368,10 @@
         <canvas id="mainCanvas"></canvas>
     </div>
 
-    <!-- Скрытый video для живого потока -->
-    <video id="captureVideo" autoplay playsinline style="display:none;"></video>
+    <video id="captureVideo" autoplay playsinline></video>
 
     <div id="qrOverlay" onclick="closeOverlay()">
-        <!-- Общий контейнер -->
         <div class="qr-container">
-            <!-- Кнопка перезахвата -->
             <button id="captureBtnOverlay" onclick="event.stopPropagation(); doQuickCapture();">
                 📸 <span id="captureBtnText">NOWY ZRZUT</span>
             </button>
@@ -295,7 +382,7 @@
             </div>
         </div>
         
-        <div id="hint">Kliknij dowolne место, aby zamknąć</div>
+        <div id="hint">Kliknij dowolne miejsce, aby zamknąć</div>
         <div id="spaceHint">Naciśnij SPACJĘ dla kolejnego zrzutu</div>
     </div>
     
@@ -307,7 +394,6 @@
     const previewCanvas = document.getElementById('hiddenPreview');
     const pCtx = previewCanvas.getContext('2d');
     
-    // Video элемент для живого потока
     const captureVideo = document.getElementById('captureVideo');
     let activeStream = null;
     let savedStreamId = null;
@@ -315,6 +401,11 @@
     const startScreen = document.getElementById('startScreen');
     const workControls = document.getElementById('workControls');
     const statusText = document.getElementById('statusText');
+
+    // Элементы переключателя
+    const modeToggle = document.getElementById('modeToggle');
+    const modeLabelOn = document.getElementById('modeLabelOn');
+    const modeLabelOff = document.getElementById('modeLabelOff');
 
     const langSelect = document.getElementById('langSelect');
     const currentFlag = document.getElementById('currentFlag');
@@ -340,10 +431,12 @@
     let lastWindowName = null;
     let isCapturing = false;
     let isProcessing = false;
+    let isVideoMode = false; // true = автоподключение, false = ручной выбор
     
     const HARDCODED_THRESHOLD = 210; 
     const STORAGE_KEY = 'maxqr_savedRegion';
     const STORAGE_KEY_WINDOW = 'maxqr_savedWindow';
+    const STORAGE_KEY_MODE = 'maxqr_videoMode';
 
     const translations = {
         pl: {
@@ -364,7 +457,11 @@
             statusCoordsCleared: 'Współrzędne wyzerowane.',
             clearCoordsBtn: '🗑️ RESET',
             spaceHint: 'Naciśnij SPACJĘ dla kolejnego zrzutu',
-            captureBtnText: 'NOWY ZRZUT'
+            captureBtnText: 'NOWY ZRZUT',
+            statusReconnecting: '🔄 Próba połączenia z ostatnim oknem...',
+            statusSelectNew: '⚠️ Wybierz okno ponownie',
+            statusVideoOn: 'AUTO',
+            statusVideoOff: 'MANUAL'
         },
         uk: {
             startTitle: 'MAX QR READER',
@@ -384,7 +481,11 @@
             statusCoordsCleared: 'Координати скинуті.',
             clearCoordsBtn: '🗑️ СКИНУТИ',
             spaceHint: 'Натисніть ПРОБІЛ для наступного знімка',
-            captureBtnText: 'НОВИЙ ЗНІМОК'
+            captureBtnText: 'НОВИЙ ЗНІМОК',
+            statusReconnecting: '🔄 Спроба з\'єднання з останнім вікном...',
+            statusSelectNew: '⚠️ Виберіть вікно знову',
+            statusVideoOn: 'АВТО',
+            statusVideoOff: 'РУЧН'
         },
         en: {
             startTitle: 'MAX QR READER',
@@ -404,7 +505,11 @@
             statusCoordsCleared: 'Coordinates cleared.',
             clearCoordsBtn: '🗑️ CLEAR',
             spaceHint: 'Press SPACE for next capture',
-            captureBtnText: 'NEW CAPTURE'
+            captureBtnText: 'NEW CAPTURE',
+            statusReconnecting: '🔄 Trying to reconnect to last window...',
+            statusSelectNew: '⚠️ Select window again',
+            statusVideoOn: 'AUTO',
+            statusVideoOff: 'MANUAL'
         }
     };
 
@@ -412,6 +517,47 @@
 
     let currentLang = langSelect.value || 'pl';
     let currentStatusKey = 'statusReady';
+
+    // ========== Переключатель режимов ==========
+    function initMode() {
+        const savedMode = localStorage.getItem(STORAGE_KEY_MODE);
+        isVideoMode = savedMode === 'true';
+        modeToggle.checked = isVideoMode;
+        updateModeUI();
+    }
+
+    function updateModeUI() {
+        if (isVideoMode) {
+            modeLabelOn.classList.add('on');
+            modeLabelOn.classList.remove('off');
+            modeLabelOff.classList.add('off');
+            modeLabelOff.classList.remove('on');
+        } else {
+            modeLabelOn.classList.add('off');
+            modeLabelOn.classList.remove('on');
+            modeLabelOff.classList.add('on');
+            modeLabelOff.classList.remove('off');
+        }
+    }
+
+    modeToggle.addEventListener('change', () => {
+        isVideoMode = modeToggle.checked;
+        localStorage.setItem(STORAGE_KEY_MODE, isVideoMode);
+        updateModeUI();
+        
+        // Если выключили - останавливаем стрим
+        if (!isVideoMode && activeStream) {
+            stopVideoStream();
+        }
+    });
+
+    function stopVideoStream() {
+        if (activeStream) {
+            activeStream.getTracks().forEach(t => t.stop());
+            activeStream = null;
+        }
+        captureVideo.srcObject = null;
+    }
 
     function t(key) {
         return (translations[currentLang] && translations[currentLang][key]) ? translations[currentLang][key] : key;
@@ -459,6 +605,7 @@
 
     htmlElement.lang = currentLang;
     applyTranslations();
+    initMode();
     loadStoredRegion();
     loadStoredWindow();
 
@@ -555,7 +702,6 @@
         }
     }
 
-    // Обновить canvas ОДИН раз из video
     function refreshCanvasFromVideo() {
         if (captureVideo.readyState >= 2 && mainCanvas.width > 0) {
             ctx.drawImage(captureVideo, 0, 0);
@@ -599,7 +745,6 @@
         setStatus('overlayReady');
     }
 
-    // КЛАВИАТУРА: SPACE для перезахвата
     document.addEventListener('keydown', async (e) => {
         if (document.getElementById('qrOverlay').style.display === 'flex') {
             if (e.code === 'Space') {
@@ -611,7 +756,7 @@
         }
     });
 
-    // ГЛАВНАЯ ФУНКЦИЯ: Перезахват (SPACE или кнопка)
+    // ========== ГЛАВНАЯ ФУНКЦИЯ: Перезахват ==========
     async function doQuickCapture() {
         if (isCapturing || isProcessing) return;
         
@@ -620,20 +765,19 @@
         setStatus('statusProcessing');
         
         try {
-            // Пытаемся восстановить тот же поток
-            if (savedStreamId && activeStream) {
-                // Поток ещё жив - просто обновляем кадр
-                if (captureVideo.readyState >= 2) {
+            // Режим ON (видео): пробуем восстановить поток
+            if (isVideoMode && savedStreamId) {
+                // Если поток ещё жив
+                if (activeStream && captureVideo.readyState >= 2) {
                     refreshCanvasFromVideo();
                     await processSavedRegion();
                     isCapturing = false;
                     return;
                 }
-            }
-            
-            // Поток закрыт - пробуем перезахватить то же окно
-            if (savedStreamId) {
+                
+                // Поток закрыт - пробуем переподключиться
                 try {
+                    setStatus('statusReconnecting');
                     const stream = await tryReconnectStream();
                     if (stream) {
                         await processStream(stream);
@@ -641,11 +785,12 @@
                         return;
                     }
                 } catch (e) {
-                    console.log('Не удалось переподключиться, запрашиваем выбор:', e);
+                    console.log('Не удалось переподключиться:', e);
                 }
             }
             
-            // Если ничего не работает - полный перезахват
+            // Режим OFF (ручной) или не удалось подключиться в режиме ON
+            // -> делаем полный захват с выбором окна
             await doFullCapture();
             
         } catch(e) {
@@ -656,10 +801,9 @@
         }
     }
 
-    // Попытка переподключиться к тому же окну
+    // Попытка переподключиться к последнему окну
     async function tryReconnectStream() {
         const controller = new CaptureController();
-        // Пытаемся сфокусироваться на том же типе поверхности
         const stream = await navigator.mediaDevices.getDisplayMedia({
             video: { cursor: "always", displaySurface: "window" },
             audio: false,
@@ -668,7 +812,6 @@
         return stream;
     }
 
-    // Обработка сохранённой области после перезахвата
     async function processSavedRegion() {
         const sanitized = sanitizeRegion(storedRegion);
         if (sanitized) {
@@ -678,23 +821,25 @@
         }
     }
 
-    // Обработка нового потока
     async function processStream(stream) {
         const videoTrack = stream.getVideoTracks()[0];
         const settings = videoTrack.getSettings();
         
-        // Если это новое окно - обновляем инфо
         if (!lastWindowName || videoTrack.label !== lastWindowName) {
             storeWindowInfo(videoTrack.label, settings.deviceId || null);
         }
         
-        // Пробуем восстановить video
         try {
             captureVideo.srcObject = stream;
             await captureVideo.play();
             await new Promise(r => setTimeout(r, 200));
             
             activeStream = stream;
+            
+            // Следим за окончанием стрима
+            videoTrack.onended = () => {
+                activeStream = null;
+            };
             
             mainCanvas.width = captureVideo.videoWidth;
             mainCanvas.height = captureVideo.videoHeight;
@@ -707,7 +852,7 @@
         }
     }
 
-    // Полный перезахват с выбором окна
+    // Полный захват с выбором окна
     async function doFullCapture() {
         try {
             const opts = { video: { cursor: "always" }, audio: false };
@@ -726,7 +871,6 @@
         }
     }
 
-    // Старт при первом запуске
     async function startCapture() {
         await doFullCapture();
         enterWorkMode();
@@ -841,7 +985,6 @@
         }
     }
 
-    // Очистка при закрытии
     window.addEventListener('beforeunload', () => {
         if (activeStream) {
             activeStream.getTracks().forEach(t => t.stop());
