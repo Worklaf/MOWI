@@ -314,10 +314,169 @@
         #captureVideo {
             display: none;
         }
+        /* ── Левая панель ── */
+.history-panel {
+  position: fixed;
+  left: 0; top: 0; height: 100%;
+  width: 210px;
+  background: #141414;
+  border-right: 1px solid #2a2a2a;
+  overflow-y: auto;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+}
+.history-panel.hidden { display: none; }
+
+.history-header {
+  padding: 10px 8px 6px;
+  font-size: 11px;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid #1e1e1e;
+  flex-shrink: 0;
+}
+
+.history-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  padding: 8px;
+}
+
+.h-thumb {
+  cursor: pointer;
+  background: #1a1a1a;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+.h-thumb:hover  { border-color: #4af; }
+.h-thumb.active { border-color: #4af; }
+
+.h-thumb img {
+  width: 100%;
+  height: 52px;
+  object-fit: cover;
+  display: block;
+}
+
+.h-thumb-code {
+  font-size: 9px;
+  color: #888;
+  text-align: center;
+  padding: 3px 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Модалка ── */
+.history-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.history-modal.hidden { display: none; }
+
+.h-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  cursor: pointer;
+}
+
+.h-content {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  z-index: 1;
+}
+
+.h-item { text-align: center; }
+
+.h-item img {
+  max-width: min(620px, 70vw);
+  max-height: 65vh;
+  border-radius: 6px;
+  border: 1px solid #333;
+  display: block;
+}
+
+.h-code {
+  margin-top: 14px;
+  font-size: 30px;
+  color: #fff;
+  font-family: monospace;
+  letter-spacing: 3px;
+}
+
+.h-counter {
+  margin-top: 5px;
+  font-size: 11px;
+  color: #555;
+}
+
+.h-nav {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+  font-size: 48px;
+  line-height: 1;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+.h-nav:hover:not(:disabled) { background: rgba(255,255,255,0.15); }
+.h-nav:disabled { opacity: 0.12; cursor: default; }
+
+.h-close {
+  position: absolute;
+  top: -40px; right: 0;
+  background: rgba(255,255,255,0.08);
+  border: none;
+  color: #bbb;
+  font-size: 15px;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.h-close:hover { background: rgba(255,255,255,0.18); }
     </style>
 </head>
 <body>
+<!-- Левая панель истории -->
+<div id="historyPanel" class="history-panel hidden">
+  <div class="history-header">История</div>
+  <div id="historyGrid" class="history-grid"></div>
+</div>
 
+<!-- Модалка для увеличенного просмотра -->
+<div id="historyModal" class="history-modal hidden">
+  <div class="h-overlay" id="hOverlay"></div>
+  <div class="h-content">
+    <button class="h-nav" id="hPrev">&#8249;</button>
+    <div class="h-item">
+      <img id="hImg" src="" alt="">
+      <div id="hCode" class="h-code"></div>
+      <div id="hCounter" class="h-counter"></div>
+    </div>
+    <button class="h-nav" id="hNext">&#8250;</button>
+    <button class="h-close" id="hClose">&#10005;</button>
+  </div>
+</div>
     <!-- Переключатель режимов -->
     <div id="modeSwitcher">
         <span id="modeLabelOff" class="mode-label off">📺</span>
@@ -392,7 +551,7 @@
     const mainCanvas = document.getElementById('mainCanvas');
     const ctx = mainCanvas.getContext('2d');
     const previewCanvas = document.getElementById('hiddenPreview');
-    const pCtx = previewCanvas.getContext('2d');
+    const pCtx = previewCanvas.getContext('2d', { willReadFrequently: true });
     
     const captureVideo = document.getElementById('captureVideo');
     let activeStream = null;
@@ -730,15 +889,25 @@
         return { x, y, w, h };
     }
 
-    function showOverlay(text) {
-        new QRious({
-            element: document.getElementById('bigQrCanvas'),
-            value: text,
-            size: 400
-        });
-        document.getElementById('overlayText').innerText = text;
-        document.getElementById('qrOverlay').style.display = 'flex';
+   function showOverlay(text) {
+    const bigQrCanvas = document.getElementById('bigQrCanvas');
+
+    new QRious({
+        element: bigQrCanvas,
+        value: text,
+        size: 400
+    });
+    document.getElementById('overlayText').innerText = text;
+    document.getElementById('qrOverlay').style.display = 'flex';
+
+    // 🔹 Добавляем в историю картинку QR + код
+    try {
+        const dataURL = bigQrCanvas.toDataURL('image/png');
+        addToHistory(dataURL, text);
+    } catch (err) {
+        console.error('History save failed', err);
     }
+}
 
     function closeOverlay() {
         document.getElementById('qrOverlay').style.display = 'none';
@@ -803,15 +972,18 @@
 
     // Попытка переподключиться к последнему окну
     async function tryReconnectStream() {
-        const controller = new CaptureController();
-        const stream = await navigator.mediaDevices.getDisplayMedia({
-            video: { cursor: "always", displaySurface: "window" },
-            audio: false,
-            controller: controller
-        });
-        return stream;
+    const controller = new CaptureController();
+    // *** ФИКС: без этого браузер крадёт фокус при каждом переподключении ***
+    if (typeof controller.setFocusBehavior === 'function') {
+        controller.setFocusBehavior("no-focus-change");
     }
-
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: { cursor: "always", displaySurface: "window" },
+        audio: false,
+        controller: controller
+    });
+    return stream;
+}
     async function processSavedRegion() {
         const sanitized = sanitizeRegion(storedRegion);
         if (sanitized) {
@@ -822,54 +994,70 @@
     }
 
     async function processStream(stream) {
-        const videoTrack = stream.getVideoTracks()[0];
-        const settings = videoTrack.getSettings();
-        
-        if (!lastWindowName || videoTrack.label !== lastWindowName) {
-            storeWindowInfo(videoTrack.label, settings.deviceId || null);
-        }
-        
-        try {
-            captureVideo.srcObject = stream;
-            await captureVideo.play();
-            await new Promise(r => setTimeout(r, 200));
-            
-            activeStream = stream;
-            
-            // Следим за окончанием стрима
-            videoTrack.onended = () => {
-                activeStream = null;
-            };
-            
-            mainCanvas.width = captureVideo.videoWidth;
-            mainCanvas.height = captureVideo.videoHeight;
-            ctx.drawImage(captureVideo, 0, 0);
-            
-            await processSavedRegion();
-        } catch(e) {
-            console.error('Video restore failed:', e);
-            setStatus('statusFail');
-        }
+    if (activeStream && activeStream !== stream) {
+        activeStream.getTracks().forEach(t => t.stop());
+        activeStream = null;
+        captureVideo.srcObject = null;
     }
+
+    const videoTrack = stream.getVideoTracks()[0];
+    const settings = videoTrack.getSettings();
+
+    if (!lastWindowName || videoTrack.label !== lastWindowName) {
+        storeWindowInfo(videoTrack.label, settings.deviceId || null);
+    }
+
+    try {
+        captureVideo.srcObject = stream;
+        await captureVideo.play();
+        await new Promise(r => setTimeout(r, 200));
+
+        mainCanvas.width = captureVideo.videoWidth;
+        mainCanvas.height = captureVideo.videoHeight;
+        ctx.drawImage(captureVideo, 0, 0);
+
+        // *** УЛУЧШЕНИЕ: в ручном режиме стрим больше не нужен — освобождаем сразу ***
+        if (!isVideoMode) {
+            stream.getTracks().forEach(t => t.stop());
+            captureVideo.srcObject = null;
+            activeStream = null;
+        } else {
+            activeStream = stream;
+            videoTrack.onended = () => { activeStream = null; };
+        }
+
+        await processSavedRegion();
+
+    } catch(e) {
+        console.error('Video restore failed:', e);
+        stream.getTracks().forEach(t => t.stop());
+        setStatus('statusFail');
+    }
+}
 
     // Полный захват с выбором окна
     async function doFullCapture() {
-        try {
-            const opts = { video: { cursor: "always" }, audio: false };
-            if ("CaptureController" in window) {
-                const controller = new CaptureController();
-                controller.setFocusBehavior("no-focus-change");
-                opts.controller = controller;
-            }
-            
-            const stream = await navigator.mediaDevices.getDisplayMedia(opts);
-            await processStream(stream);
-            
-        } catch(e) {
-            console.error('Full capture failed:', e);
-            setStatus('statusFail');
+    try {
+        // *** ФИКС: всегда останавливаем старый стрим перед новым захватом ***
+        if (activeStream) {
+            stopVideoStream();
         }
+
+        const opts = { video: { cursor: "always" }, audio: false };
+        if ("CaptureController" in window) {
+            const controller = new CaptureController();
+            controller.setFocusBehavior("no-focus-change");
+            opts.controller = controller;
+        }
+
+        const stream = await navigator.mediaDevices.getDisplayMedia(opts);
+        await processStream(stream);
+
+    } catch(e) {
+        console.error('Full capture failed:', e);
+        setStatus('statusFail');
     }
+}
 
     async function startCapture() {
         await doFullCapture();
@@ -990,6 +1178,87 @@
             activeStream.getTracks().forEach(t => t.stop());
         }
     });
+    // ════════════════════════════════════════
+//  История сканов
+// ════════════════════════════════════════
+const scansHistory = [];
+let modalIndex = -1;
+
+const historyPanel = document.getElementById('historyPanel');
+const historyGrid  = document.getElementById('historyGrid');
+const historyModal = document.getElementById('historyModal');
+const hImg         = document.getElementById('hImg');
+const hCode        = document.getElementById('hCode');
+const hCounter     = document.getElementById('hCounter');
+const hPrev        = document.getElementById('hPrev');
+const hNext        = document.getElementById('hNext');
+
+function addToHistory(dataURL, code) {
+  scansHistory.unshift({ dataURL, code });   // новый — наверх
+  renderGrid();
+
+  // Панель появляется только начиная со 2-го скана
+  if (scansHistory.length >= 2) {
+    historyPanel.classList.remove('hidden');
+    // сдвигаем основной контент вправо — замени 'document.body' на свой контейнер если нужно
+    document.body.style.marginLeft = '210px';
+  }
+}
+
+function renderGrid() {
+  historyGrid.innerHTML = '';
+  scansHistory.forEach((item, i) => {
+    const el = document.createElement('div');
+    el.className = 'h-thumb';
+    el.innerHTML = `
+      <img src="${item.dataURL}" alt="">
+      <div class="h-thumb-code">${item.code || '—'}</div>
+    `;
+    el.addEventListener('click', () => openModal(i));
+    historyGrid.appendChild(el);
+  });
+}
+
+function openModal(index) {
+  modalIndex = index;
+  refreshModal();
+  historyModal.classList.remove('hidden');
+}
+
+function refreshModal() {
+  const item = scansHistory[modalIndex];
+  hImg.src = item.dataURL;
+  hCode.textContent = item.code || '—';
+  hCounter.textContent = `${modalIndex + 1} / ${scansHistory.length}`;
+  hPrev.disabled = (modalIndex === 0);
+  hNext.disabled = (modalIndex === scansHistory.length - 1);
+
+  document.querySelectorAll('.h-thumb')
+    .forEach((el, i) => el.classList.toggle('active', i === modalIndex));
+}
+
+function closeModal() {
+  historyModal.classList.add('hidden');
+  modalIndex = -1;
+  document.querySelectorAll('.h-thumb').forEach(el => el.classList.remove('active'));
+}
+
+hPrev.addEventListener('click', () => {
+  if (modalIndex > 0) { modalIndex--; refreshModal(); }
+});
+hNext.addEventListener('click', () => {
+  if (modalIndex < scansHistory.length - 1) { modalIndex++; refreshModal(); }
+});
+document.getElementById('hClose').addEventListener('click', closeModal);
+document.getElementById('hOverlay').addEventListener('click', closeModal);
+
+// Клавиатурная навигация в модалке
+document.addEventListener('keydown', e => {
+  if (historyModal.classList.contains('hidden')) return;
+  if (e.key === 'ArrowLeft'  && modalIndex > 0) { modalIndex--; refreshModal(); }
+  if (e.key === 'ArrowRight' && modalIndex < scansHistory.length - 1) { modalIndex++; refreshModal(); }
+  if (e.key === 'Escape') closeModal();
+});
 </script>
 
 </body>
