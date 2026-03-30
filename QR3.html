@@ -392,7 +392,7 @@
     const mainCanvas = document.getElementById('mainCanvas');
     const ctx = mainCanvas.getContext('2d');
     const previewCanvas = document.getElementById('hiddenPreview');
-    const pCtx = previewCanvas.getContext('2d');
+    const pCtx = previewCanvas.getContext('2d', { willReadFrequently: true });
     
     const captureVideo = document.getElementById('captureVideo');
     let activeStream = null;
@@ -825,7 +825,6 @@
     }
 
     async function processStream(stream) {
-    // *** ФИКС: если по какой-то причине старый стрим ещё жив — убиваем его ***
     if (activeStream && activeStream !== stream) {
         activeStream.getTracks().forEach(t => t.stop());
         activeStream = null;
@@ -844,19 +843,25 @@
         await captureVideo.play();
         await new Promise(r => setTimeout(r, 200));
 
-        activeStream = stream;
-
-        videoTrack.onended = () => {
-            activeStream = null;
-        };
-
         mainCanvas.width = captureVideo.videoWidth;
         mainCanvas.height = captureVideo.videoHeight;
         ctx.drawImage(captureVideo, 0, 0);
 
+        // *** УЛУЧШЕНИЕ: в ручном режиме стрим больше не нужен — освобождаем сразу ***
+        if (!isVideoMode) {
+            stream.getTracks().forEach(t => t.stop());
+            captureVideo.srcObject = null;
+            activeStream = null;
+        } else {
+            activeStream = stream;
+            videoTrack.onended = () => { activeStream = null; };
+        }
+
         await processSavedRegion();
+
     } catch(e) {
         console.error('Video restore failed:', e);
+        stream.getTracks().forEach(t => t.stop());
         setStatus('statusFail');
     }
 }
