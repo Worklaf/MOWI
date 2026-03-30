@@ -116,15 +116,17 @@
 
         /* ── Sidebar 2-column, абсолютно слева ── */
         #qhSidebar {
-            position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
-            width: 264px;
-            max-height: 80vh;
-            display: none; flex-direction: column;
-            background: rgba(14,14,14,0.98);
-            border: 1px solid #272727; border-radius: 14px;
-            overflow: hidden; cursor: default;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.7);
-        }
+    display: none;
+    flex-direction: column;
+    width: 290px;                     /* было 220px */
+    max-height: 75vh;
+    background: rgba(16,16,16,0.95);
+    border: 1px solid #2a2a2a;
+    border-radius: 14px;
+    overflow: hidden;
+    flex-shrink: 0;
+    cursor: default;
+}}
 
         .qh-header {
             padding: 8px 12px 7px; font-size: 10px; color: #4a4a4a;
@@ -133,33 +135,44 @@
         }
 
         #qhList {
-            display: grid;
-            grid-template-columns: 1fr 1fr; /* 2 колонки */
-            gap: 9px; padding: 9px;
-            overflow-y: auto;
-        }
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 8px;
+    box-sizing: border-box;
+}
         #qhList::-webkit-scrollbar { width: 4px; }
         #qhList::-webkit-scrollbar-track { background: #0e0e0e; }
         #qhList::-webkit-scrollbar-thumb { background: #2e2e2e; border-radius: 2px; }
 
         .qh-card {
-            background: #fff; border: 3px solid transparent;
-            border-radius: 10px; padding: 7px 7px 5px;
-            cursor: pointer; text-align: center;
-            transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s;
-        }
-        .qh-card:hover  { border-color: #38bdf8; transform: scale(1.06); box-shadow: 0 4px 20px rgba(56,189,248,0.25); }
-        .qh-card.active { border-color: #38bdf8; }
+    background: #fff;
+    border: 3px solid transparent;
+    border-radius: 10px;
+    padding: 6px;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.1s;
+    text-align: center;
+    min-width: 0;          /* ← ключевое: не выпирать из grid */
+    box-sizing: border-box;
+}
+.qh-card:hover  { border-color: #44aaff; transform: scale(1.04); }
+.qh-card.active { border-color: #44aaff; }
         .qh-card img {
-            width: 100%; aspect-ratio: 1/1;
-            object-fit: contain; display: block; border-radius: 5px;
-        }
-        .qh-card-code {
-            font-size: 10px; color: #222; margin-top: 4px;
-            font-family: 'Courier New', monospace; font-weight: bold;
-            letter-spacing: 1px; overflow: hidden;
-            text-overflow: ellipsis; white-space: nowrap;
-        }
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    display: block;
+    border-radius: 4px;
+}
+.qh-card-code {
+    font-size: 9px; color: #222;
+    margin-top: 4px;
+    font-family: 'Courier New', monospace;
+    font-weight: bold; letter-spacing: 0.5px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 
         /* ── Центральный QR ── */
         .qr-center { display: flex; flex-direction: column; align-items: center; cursor: default; }
@@ -270,24 +283,125 @@
             border: 1px solid rgba(34,197,94,0.35);
             max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
+        /* ══════════════════════════════════════
+   МОДАЛКА ПРОСМОТРА — красивая версия
+══════════════════════════════════════ */
+#viewModal {
+    display: none;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(ellipse at 50% 30%,
+        rgba(20, 8, 55, 0.98) 0%,
+        rgba(4, 4, 18, 0.99) 65%);
+    z-index: 99999;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+}
+
+.vm-content {
+    display: flex; align-items: center; gap: 24px;
+    position: relative;
+    background: linear-gradient(145deg, #0f172a 0%, #1a1040 55%, #0f172a 100%);
+    border: 1px solid rgba(139,92,246,0.35);
+    border-radius: 30px;
+    padding: 50px 44px;
+    box-shadow:
+        0 0 80px  rgba(99,102,241,0.28),
+        0 0 180px rgba(139,92,246,0.14),
+        inset 0 1px 0 rgba(255,255,255,0.07);
+}
+
+.vm-item {
+    text-align: center;
+    max-width: 90vw; max-height: 85vh;
+    display: flex; flex-direction: column; align-items: center;
+}
+
+.vm-item img {
+    max-width: 420px;
+    max-height: 55vh;
+    border-radius: 14px;
+    border: 2px solid rgba(139,92,246,0.4);
+    box-shadow: 0 0 50px rgba(99,102,241,0.35);
+    display: block;
+}
+
+/* Градиентная плашка с кодом */
+.vm-code-wrap {
+    margin-top: 24px;
+    background: linear-gradient(135deg,
+        #7c3aed 0%, #4f46e5 35%, #2563eb 70%, #0891b2 100%);
+    border-radius: 20px;
+    padding: 18px 44px;
+    box-shadow:
+        0 8px 40px  rgba(124,58,237,0.55),
+        0 0  80px   rgba(37,99,235,0.25);
+}
+
+.vm-code {
+    font-size: 46px;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    color: #fff;
+    letter-spacing: 8px;
+    text-shadow: 0 2px 18px rgba(0,0,0,0.5);
+    margin: 0;
+}
+
+.vm-counter {
+    margin-top: 12px;
+    font-size: 13px;
+    color: #6366f1;
+    letter-spacing: 1px;
+}
+
+.vm-nav {
+    background: rgba(99,102,241,0.12);
+    border: 1px solid rgba(99,102,241,0.35);
+    color: #a5b4fc;
+    font-size: 46px;
+    padding: 10px 18px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    user-select: none;
+    line-height: 1;
+}
+.vm-nav:hover:not(:disabled) {
+    background: rgba(99,102,241,0.28);
+    border-color: rgba(99,102,241,0.55);
+}
+.vm-nav:disabled { opacity: 0.12; cursor: default; }
+
+.vm-close {
+    position: absolute; top: -48px; right: 0;
+    background: rgba(99,102,241,0.12);
+    border: 1px solid rgba(99,102,241,0.35);
+    color: #a5b4fc; font-size: 14px;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+}
+.vm-close:hover { background: rgba(99,102,241,0.3); }
     </style>
 </head>
 <body>
 
-<!-- ── History Viewer (поверх всего) ── -->
-<div id="histViewer" class="hidden">
-    <div class="hv-bg" id="hvBg"></div>
-    <div class="hv-wrap">
-        <button class="hv-nav" id="hvPrev">&#8249;</button>
-        <div class="hv-center">
-            <button class="hv-close" id="hvClose">&#10005;</button>
-            <div class="hv-qr-box">
-                <canvas id="hvCanvas"></canvas>
+<!-- ══ МОДАЛКА ПРОСМОТРА ══ -->
+<div id="viewModal">
+    <div class="vm-content">
+        <button class="vm-nav" id="vmPrev">&#8249;</button>
+        <div class="vm-item">
+            <img id="vmImg" src="" alt="">
+            <div class="vm-code-wrap">
+                <div id="vmCode" class="vm-code"></div>
             </div>
-            <div class="hv-code" id="hvCode"></div>
-            <div class="hv-counter" id="hvCounter"></div>
+            <div id="vmCounter" class="vm-counter"></div>
         </div>
-        <button class="hv-nav" id="hvNext">&#8250;</button>
+        <button class="vm-nav" id="vmNext">&#8250;</button>
+        <button class="vm-close" id="vmClose">✕</button>
     </div>
 </div>
 
