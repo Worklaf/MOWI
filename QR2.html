@@ -11,69 +11,56 @@
     <style>
         body {
             font-family: 'Segoe UI', sans-serif;
-            background: #121212;
-            color: #eee;
+            background: #121212; color: #eee;
             margin: 0; padding: 0;
-            height: 100vh; overflow: hidden;
-            position: relative;
+            height: 100vh; overflow: hidden; position: relative;
         }
 
-        /* ── Переключатель режимов ── */
         #modeSwitcher {
             position: absolute; top: 20px; left: 20px;
-            background: rgba(31,31,31,0.9);
-            padding: 10px 16px; border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-            display: flex; align-items: center; gap: 10px;
-            z-index: 150; font-size: 14px;
+            background: rgba(31,31,31,0.9); padding: 10px 16px;
+            border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            display: flex; align-items: center; gap: 10px; z-index: 150; font-size: 14px;
         }
         .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider {
-            position: absolute; cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
             background-color: #dc2626; transition: .4s; border-radius: 34px;
         }
         .slider:before {
-            position: absolute; content: "";
-            height: 18px; width: 18px; left: 4px; bottom: 4px;
-            background-color: white; transition: .4s; border-radius: 50%;
+            position: absolute; content: ""; height: 18px; width: 18px;
+            left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%;
         }
         input:checked + .slider { background-color: #16a34a; }
         input:checked + .slider:before { transform: translateX(24px); }
         .mode-label { font-weight: 600; font-size: 13px; }
-        .mode-label.on { color: #4ade80; }
+        .mode-label.on  { color: #4ade80; }
         .mode-label.off { color: #f87171; }
 
         #languageSwitcher {
             position: absolute; top: 20px; left: 200px;
-            background: rgba(31,31,31,0.9);
-            padding: 10px 14px; border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-            display: flex; align-items: center; gap: 8px;
-            z-index: 150; font-size: 14px;
+            background: rgba(31,31,31,0.9); padding: 10px 14px;
+            border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            display: flex; align-items: center; gap: 8px; z-index: 150; font-size: 14px;
         }
         #languageSwitcher .flag-icon { font-size: 22px; line-height: 1; }
         #languageSwitcher select {
-            background: #2563eb; color: white; border: none;
-            border-radius: 8px; padding: 6px 10px;
-            font-size: 14px; font-weight: 600; cursor: pointer; outline: none;
+            background: #2563eb; color: white; border: none; border-radius: 8px;
+            padding: 6px 10px; font-size: 14px; font-weight: 600; cursor: pointer; outline: none;
         }
         #languageSwitcher select:hover { background: #1d4ed8; }
 
         @media (max-width: 700px) {
-            #modeSwitcher { top: 10px; left: 50%; transform: translateX(-50%); }
-            #languageSwitcher { top: 60px; left: 50%; transform: translateX(-50%); }
+            #modeSwitcher    { top: 10px; left: 50%; transform: translateX(-50%); }
+            #languageSwitcher{ top: 60px; left: 50%; transform: translateX(-50%); }
         }
 
-        /* ── Стартовый экран ── */
         #startScreen {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: #1f1f1f; padding: 40px; border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
-            text-align: center; display: flex; flex-direction: column; gap: 20px;
-            z-index: 100;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7); text-align: center;
+            display: flex; flex-direction: column; gap: 20px; z-index: 100;
         }
         h1 { margin: 0 0 10px 0; font-size: 24px; color: #fff; }
         p  { margin: 0 0 20px 0; color: #888; }
@@ -81,16 +68,15 @@
         .btn-big {
             padding: 15px 30px; font-size: 18px; cursor: pointer;
             border: none; border-radius: 8px; font-weight: bold; color: white;
-            transition: transform 0.1s;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: transform 0.1s; display: flex; align-items: center;
+            justify-content: center; gap: 10px;
         }
         .btn-big:active { transform: scale(0.98); }
-        .btn-blue { background: #2563eb; }
-        .btn-blue:hover { background: #1d4ed8; }
+        .btn-blue  { background: #2563eb; }
+        .btn-blue:hover  { background: #1d4ed8; }
         .btn-green { background: #16a34a; }
         .btn-green:hover { background: #15803d; }
 
-        /* ── Рабочие контролы ── */
         #workControls {
             position: absolute; top: 20px; right: 20px;
             display: none; z-index: 50; gap: 10px; align-items: center;
@@ -106,111 +92,81 @@
             background: rgba(15,15,15,0.65); color: #f8fafc;
             font-weight: 600; box-shadow: 0 6px 18px rgba(0,0,0,0.45);
         }
-
         .canvas-container {
             width: 100%; height: 100%; overflow: auto; background: #000;
             display: flex; justify-content: center; align-items: center;
         }
         #mainCanvas { box-shadow: 0 0 50px #000; cursor: crosshair; }
 
-        /* ══════════════════════════════════════
+        /* ═══════════════════════════════════════
            QR OVERLAY
-        ══════════════════════════════════════ */
+        ═══════════════════════════════════════ */
         #qrOverlay {
-            display: none;
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 9999;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.95); z-index: 9999;
+            flex-direction: column; align-items: center;
+            justify-content: space-between; cursor: pointer;
         }
 
         .qr-overlay-body {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 30px;
-            padding: 60px 30px 10px;
-            width: 100%;
-            box-sizing: border-box;
-            overflow: hidden;
+            position: relative; flex: 1;
+            display: flex; align-items: center; justify-content: center;
+            width: 100%; padding-top: 60px; box-sizing: border-box;
         }
 
-        /* ── Левая история (2 колонки) ── */
+        /* ── Sidebar 2-column, абсолютно слева ── */
         #qhSidebar {
-            display: none;
-            flex-direction: column;
-            width: 220px;                     /* чуть шире */
-            max-height: 75vh;
-            background: rgba(16,16,16,0.95);
-            border: 1px solid #2a2a2a;
-            border-radius: 14px;
-            overflow: hidden;
-            flex-shrink: 0;
-            cursor: default;
+            position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+            width: 264px;
+            max-height: 80vh;
+            display: none; flex-direction: column;
+            background: rgba(14,14,14,0.98);
+            border: 1px solid #272727; border-radius: 14px;
+            overflow: hidden; cursor: default;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.7);
         }
 
         .qh-header {
-            padding: 10px 10px 8px;
-            font-size: 11px; color: #666;
-            text-transform: uppercase; letter-spacing: 1.2px;
-            border-bottom: 1px solid #1e1e1e;
-            text-align: center; flex-shrink: 0;
+            padding: 8px 12px 7px; font-size: 10px; color: #4a4a4a;
+            text-transform: uppercase; letter-spacing: 1.4px;
+            border-bottom: 1px solid #1c1c1c; text-align: center; flex-shrink: 0;
         }
 
         #qhList {
-            overflow-y: auto;
             display: grid;
-            grid-template-columns: 1fr 1fr;  /* 2 колонки */
-            gap: 10px;
-            padding: 10px;
+            grid-template-columns: 1fr 1fr; /* 2 колонки */
+            gap: 9px; padding: 9px;
+            overflow-y: auto;
         }
-        #qhList::-webkit-scrollbar { width: 5px; }
-        #qhList::-webkit-scrollbar-track { background: #111; }
-        #qhList::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+        #qhList::-webkit-scrollbar { width: 4px; }
+        #qhList::-webkit-scrollbar-track { background: #0e0e0e; }
+        #qhList::-webkit-scrollbar-thumb { background: #2e2e2e; border-radius: 2px; }
 
-        /* Карточка истории */
         .qh-card {
-            background: #fff;
-            border: 3px solid transparent;
-            border-radius: 10px;
-            padding: 8px;
-            cursor: pointer;
-            transition: border-color 0.15s, transform 0.1s;
-            text-align: center;
+            background: #fff; border: 3px solid transparent;
+            border-radius: 10px; padding: 7px 7px 5px;
+            cursor: pointer; text-align: center;
+            transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s;
         }
-        .qh-card:hover  { border-color: #44aaff; transform: scale(1.05); }
-        .qh-card.active { border-color: #44aaff; }
-
+        .qh-card:hover  { border-color: #38bdf8; transform: scale(1.06); box-shadow: 0 4px 20px rgba(56,189,248,0.25); }
+        .qh-card.active { border-color: #38bdf8; }
         .qh-card img {
-            width: 100%;
-            aspect-ratio: 1 / 1;
-            object-fit: contain;
-            display: block;
-            border-radius: 4px;
+            width: 100%; aspect-ratio: 1/1;
+            object-fit: contain; display: block; border-radius: 5px;
         }
         .qh-card-code {
-            font-size: 10px; color: #222;
-            margin-top: 5px;
-            font-family: 'Courier New', monospace;
-            font-weight: bold; letter-spacing: 1px;
+            font-size: 10px; color: #222; margin-top: 4px;
+            font-family: 'Courier New', monospace; font-weight: bold;
+            letter-spacing: 1px; overflow: hidden;
+            text-overflow: ellipsis; white-space: nowrap;
         }
 
         /* ── Центральный QR ── */
-        .qr-center {
-            display: flex; flex-direction: column;
-            align-items: center;
-            cursor: default;
-        }
-
+        .qr-center { display: flex; flex-direction: column; align-items: center; cursor: default; }
         .qr-container { position: relative; display: flex; flex-direction: column; align-items: center; }
 
         #captureBtnOverlay {
-            position: absolute; top: -60px; left: 50%;
-            transform: translateX(-50%);
+            position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
             padding: 12px 24px; font-size: 16px; font-weight: bold;
             background: linear-gradient(135deg, #f59e0b, #d97706);
             color: white; border: none; border-radius: 12px; cursor: pointer;
@@ -224,678 +180,645 @@
         .qr-box {
             background: white; padding: 20px; border-radius: 15px;
             text-align: center; box-shadow: 0 0 50px rgba(255,255,255,0.2);
+            cursor: zoom-in; transition: transform 0.15s, box-shadow 0.15s;
         }
+        .qr-box:hover { transform: scale(1.02); box-shadow: 0 0 70px rgba(255,255,255,0.3); }
+
         #overlayText {
-            margin-top: 15px;
-            font-size: 60px; font-family: 'Courier New', monospace;
-            font-weight: bold; color: #000; letter-spacing: 2px;
+            margin-top: 15px; font-size: 60px;
+            font-family: 'Courier New', monospace; font-weight: bold;
+            color: #000; letter-spacing: 2px;
         }
 
-        /* ── Подсказки снизу ── */
         .qr-overlay-footer { padding: 10px 0 18px; text-align: center; cursor: default; }
         #hint      { color: #888; font-size: 18px; }
         #spaceHint { margin-top: 8px; color: #4ade80; font-size: 14px; }
 
-        /* ══════════════════════════════════════
-           МОДАЛКА ПРОСМОТРА (поверх всего)
-        ══════════════════════════════════════ */
-        #viewModal {
-            display: none;
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.92);
-            z-index: 99999;
-            align-items: center;
-            justify-content: center;
-            cursor: default;
-        }
-
-        .vm-content {
-            display: flex; align-items: center; gap: 20px;
-            position: relative;
-        }
-
-        .vm-item {
-            text-align: center;
-            max-width: 90vw; max-height: 85vh;
-            display: flex; flex-direction: column; align-items: center;
-        }
-
-        .vm-item img {
-            max-width: 600px;
-            max-height: 70vh;
-            border-radius: 12px;
-            border: 2px solid #333;
-            box-shadow: 0 0 40px rgba(0,0,0,0.8);
-            display: block;
-        }
-
-        .vm-code {
-            margin-top: 20px;
-            font-size: 42px;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            color: #fff;
-            letter-spacing: 4px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-        }
-
-        .vm-counter {
-            margin-top: 8px;
-            font-size: 14px;
-            color: #666;
-        }
-
-        .vm-nav {
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.15);
-            color: #fff;
-            font-size: 42px;
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.15s;
-            user-select: none;
-        }
-        .vm-nav:hover:not(:disabled) { background: rgba(255,255,255,0.18); }
-        .vm-nav:disabled { opacity: 0.15; cursor: default; }
-
-        .vm-close {
-            position: absolute; top: -50px; right: 0;
-            background: rgba(255,255,255,0.08);
-            border: none; color: #bbb; font-size: 14px;
-            width: 36px; height: 36px;
-            border-radius: 50%;
-            cursor: pointer;
+        /* ═══════════════════════════════════════
+           HISTORY VIEWER — полноэкранный модал
+        ═══════════════════════════════════════ */
+        #histViewer {
+            position: fixed; inset: 0; z-index: 99999;
             display: flex; align-items: center; justify-content: center;
-            transition: background 0.15s;
         }
-        .vm-close:hover { background: rgba(255,255,255,0.2); }
+        #histViewer.hidden { display: none; }
 
-        /* ── Разное ── */
+        .hv-bg {
+            position: absolute; inset: 0;
+            background: rgba(0,0,0,0.94); cursor: pointer;
+        }
+
+        .hv-wrap {
+            position: relative; z-index: 1;
+            display: flex; align-items: center; gap: 28px;
+        }
+
+        .hv-center {
+            position: relative; display: flex;
+            flex-direction: column; align-items: center; text-align: center;
+        }
+
+        .hv-qr-box {
+            background: #fff; padding: 22px; border-radius: 18px;
+            box-shadow: 0 0 80px rgba(255,255,255,0.18);
+        }
+
+        .hv-code {
+            margin-top: 18px; font-size: 56px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold; color: #fff; letter-spacing: 3px;
+        }
+
+        .hv-counter { margin-top: 6px; font-size: 13px; color: #444; }
+
+        .hv-nav {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.14);
+            color: #fff; font-size: 60px; line-height: 1;
+            padding: 10px 20px; border-radius: 12px;
+            cursor: pointer; user-select: none; flex-shrink: 0;
+            transition: background 0.15s, transform 0.1s;
+        }
+        .hv-nav:hover:not(:disabled) { background: rgba(255,255,255,0.16); transform: scale(1.08); }
+        .hv-nav:disabled { opacity: 0.1; cursor: default; pointer-events: none; }
+
+        .hv-close {
+            position: absolute; top: -48px; right: 0;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #bbb; width: 36px; height: 36px;
+            border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 17px; transition: background 0.15s;
+        }
+        .hv-close:hover { background: rgba(255,255,255,0.22); color: #fff; }
+
+        /* Misc */
         #hiddenPreview { display: none; }
-        #captureVideo   { display: none; }
+        #captureVideo  { display: none; }
 
         #coordsDisplay, #windowNameDisplay {
             font-family: 'JetBrains Mono', 'Courier New', monospace;
             font-size: 13px; letter-spacing: 0.5px;
-            background: rgba(15,23,42,0.8);
-            padding: 8px 12px; border-radius: 8px; color: #cbd5f5;
+            background: rgba(15,23,42,0.8); padding: 8px 12px;
+            border-radius: 8px; color: #cbd5f5;
             border: 1px solid rgba(96,165,250,0.35);
             box-shadow: 0 6px 18px rgba(37,99,235,0.25);
         }
         #windowNameDisplay {
-            font-size: 12px;
-            background: rgba(22,163,74,0.2); color: #86efac;
+            font-size: 12px; background: rgba(22,163,74,0.2); color: #86efac;
             border: 1px solid rgba(34,197,94,0.35);
-            max-width: 200px; overflow: hidden;
-            text-overflow: ellipsis; white-space: nowrap;
+            max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
     </style>
 </head>
 <body>
 
-    <!-- Переключатель режимов -->
-    <div id="modeSwitcher">
-        <span id="modeLabelOff" class="mode-label off">📺</span>
-        <label class="switch">
-            <input type="checkbox" id="modeToggle">
-            <span class="slider"></span>
-        </label>
-        <span id="modeLabelOn" class="mode-label on">🔴</span>
-    </div>
-
-    <div id="languageSwitcher">
-        <span id="currentFlag" class="fi fi-pl"></span>
-        <select id="langSelect">
-            <option value="pl" data-flag="fi fi-pl">Polski</option>
-            <option value="uk" data-flag="fi fi-ua">Українська</option>
-            <option value="en" data-flag="fi fi-gb">English</option>
-        </select>
-    </div>
-
-    <!-- Стартовый экран -->
-    <div id="startScreen">
-        <h1 id="startTitle">MAX QR READER</h1>
-        <p  id="startSubtitle">Wybierz źródło obrazu</p>
-        <button id="captureBtn" class="btn-big btn-blue" onclick="startCapture()">📸 PRZECHWYĆ OKNO</button>
-        <button id="fileBtn"    class="btn-big btn-blue" style="background:#4b5563"
-                onclick="document.getElementById('fileIn').click()">📂 OTWÓRZ PLIK</button>
-        <button id="cardsBtn"   class="btn-big btn-green"
-                onclick="window.location.href='https://worklaf.github.io/MOWI/QR_Cards.html'">🃏 KARTY QR</button>
-        <input type="file" id="fileIn" hidden onchange="handleFile(event)">
-    </div>
-
-    <!-- Рабочие контролы -->
-    <div id="workControls">
-        <span id="statusText" style="font-weight:bold;text-shadow:1px 1px 2px black;">Zaznacz obszar</span>
-        <span id="coordsDisplay">x: — | y: — | w: — | h: —</span>
-        <span id="windowNameDisplay" style="display:none;">—</span>
-        <button id="clearCoordsBtn" class="btn-ghost">🗑️ RESET</button>
-        <button id="resetBtn" class="btn-small" onclick="location.reload()">🔄 RESET</button>
-    </div>
-
-    <!-- Холст -->
-    <div class="canvas-container">
-        <canvas id="mainCanvas"></canvas>
-    </div>
-
-    <video id="captureVideo" autoplay playsinline></video>
-
-    <!-- ══ QR OVERLAY ══ -->
-    <div id="qrOverlay" onclick="closeOverlay()">
-        <div class="qr-overlay-body">
-
-            <!-- Левая история -->
-            <div id="qhSidebar" onclick="event.stopPropagation()">
-                <div class="qh-header">Historia</div>
-                <div id="qhList"></div>
+<!-- ── History Viewer (поверх всего) ── -->
+<div id="histViewer" class="hidden">
+    <div class="hv-bg" id="hvBg"></div>
+    <div class="hv-wrap">
+        <button class="hv-nav" id="hvPrev">&#8249;</button>
+        <div class="hv-center">
+            <button class="hv-close" id="hvClose">&#10005;</button>
+            <div class="hv-qr-box">
+                <canvas id="hvCanvas"></canvas>
             </div>
+            <div class="hv-code" id="hvCode"></div>
+            <div class="hv-counter" id="hvCounter"></div>
+        </div>
+        <button class="hv-nav" id="hvNext">&#8250;</button>
+    </div>
+</div>
 
-            <!-- Центр -->
-            <div class="qr-center" onclick="event.stopPropagation()">
-                <div class="qr-container">
-                    <button id="captureBtnOverlay" onclick="event.stopPropagation(); doQuickCapture();">
-                        📸 <span id="captureBtnText">NOWY ZRZUT</span>
-                    </button>
-                    <div class="qr-box">
-                        <canvas id="bigQrCanvas"></canvas>
-                        <div id="overlayText">000000</div>
-                    </div>
+<div id="modeSwitcher">
+    <span id="modeLabelOff" class="mode-label off">📺</span>
+    <label class="switch">
+        <input type="checkbox" id="modeToggle">
+        <span class="slider"></span>
+    </label>
+    <span id="modeLabelOn" class="mode-label on">🔴</span>
+</div>
+
+<div id="languageSwitcher">
+    <span id="currentFlag" class="fi fi-pl"></span>
+    <select id="langSelect">
+        <option value="pl" data-flag="fi fi-pl">Polski</option>
+        <option value="uk" data-flag="fi fi-ua">Українська</option>
+        <option value="en" data-flag="fi fi-gb">English</option>
+    </select>
+</div>
+
+<div id="startScreen">
+    <h1 id="startTitle">MAX QR READER</h1>
+    <p  id="startSubtitle">Wybierz źródło obrazu</p>
+    <button id="captureBtn" class="btn-big btn-blue" onclick="startCapture()">📸 PRZECHWYĆ OKNO</button>
+    <button id="fileBtn" class="btn-big btn-blue" style="background:#4b5563"
+            onclick="document.getElementById('fileIn').click()">📂 OTWÓRZ PLIK</button>
+    <button id="cardsBtn" class="btn-big btn-green"
+            onclick="window.location.href='https://worklaf.github.io/MOWI/QR_Cards.html'">🃏 KARTY QR</button>
+    <input type="file" id="fileIn" hidden onchange="handleFile(event)">
+</div>
+
+<div id="workControls">
+    <span id="statusText" style="font-weight:bold;text-shadow:1px 1px 2px black;">Zaznacz obszar</span>
+    <span id="coordsDisplay">x: — | y: — | w: — | h: —</span>
+    <span id="windowNameDisplay" style="display:none;">—</span>
+    <button id="clearCoordsBtn" class="btn-ghost">🗑️ RESET</button>
+    <button id="resetBtn" class="btn-small" onclick="location.reload()">🔄 RESET</button>
+</div>
+
+<div class="canvas-container">
+    <canvas id="mainCanvas"></canvas>
+</div>
+<video id="captureVideo" autoplay playsinline></video>
+
+<!-- ── QR Overlay ── -->
+<div id="qrOverlay" onclick="closeOverlay()">
+    <div class="qr-overlay-body">
+
+        <!-- SIDEBAR: 2-column history, absolute left, не двигает центр -->
+        <div id="qhSidebar" onclick="event.stopPropagation()">
+            <div class="qh-header">История</div>
+            <div id="qhList"></div>
+        </div>
+
+        <!-- CENTER: текущий QR, клик = открыть viewer -->
+        <div class="qr-center" onclick="event.stopPropagation()">
+            <div class="qr-container">
+                <button id="captureBtnOverlay" onclick="event.stopPropagation(); doQuickCapture();">
+                    📸 <span id="captureBtnText">NOWY ZRZUT</span>
+                </button>
+                <div class="qr-box" onclick="if(scansHistory.length) openHistViewer(0)">
+                    <canvas id="bigQrCanvas"></canvas>
+                    <div id="overlayText">000000</div>
                 </div>
             </div>
+        </div>
 
-        </div>
-        <div class="qr-overlay-footer">
-            <div id="hint">Kliknij dowolne miejsce, aby zamknąć</div>
-            <div id="spaceHint">Naciśnij SPACJĘ dla kolejnego zrzutu</div>
-        </div>
     </div>
-
-    <!-- ══ МОДАЛКА ПРОСМОТРА ══ -->
-    <div id="viewModal">
-        <div class="vm-content">
-            <button class="vm-nav" id="vmPrev">&#8249;</button>
-            <div class="vm-item">
-                <img id="vmImg" src="" alt="">
-                <div id="vmCode" class="vm-code"></div>
-                <div id="vmCounter" class="vm-counter"></div>
-            </div>
-            <button class="vm-nav" id="vmNext">&#8250;</button>
-            <button class="vm-close" id="vmClose">✕</button>
-        </div>
+    <div class="qr-overlay-footer">
+        <div id="hint">Kliknij dowolne miejsce, aby zamknąć</div>
+        <div id="spaceHint">Naciśnij SPACJĘ dla kolejnego zrzutu</div>
     </div>
+</div>
 
-    <canvas id="hiddenPreview"></canvas>
+<canvas id="hiddenPreview"></canvas>
 
 <script>
-    /* ── Основные переменные ── */
-    const mainCanvas = document.getElementById('mainCanvas');
-    const ctx = mainCanvas.getContext('2d');
-    const previewCanvas = document.getElementById('hiddenPreview');
-    const pCtx = previewCanvas.getContext('2d', { willReadFrequently: true });
-    const captureVideo = document.getElementById('captureVideo');
+const mainCanvas    = document.getElementById('mainCanvas');
+const ctx           = mainCanvas.getContext('2d');
+const previewCanvas = document.getElementById('hiddenPreview');
+const pCtx          = previewCanvas.getContext('2d', { willReadFrequently: true });
+const captureVideo  = document.getElementById('captureVideo');
 
-    let activeStream = null, savedStreamId = null;
-    let isDrawing = false, startX, startY, imgDataSnapshot;
-    let storedRegion = null, lastWindowName = null;
-    let isCapturing = false, isProcessing = false, isVideoMode = false;
+let activeStream = null, savedStreamId = null;
+let isDrawing = false, startX, startY, imgDataSnapshot;
+let storedRegion = null, lastWindowName = null;
+let isCapturing = false, isProcessing = false, isVideoMode = false;
 
-    /* ── Элементы DOM ── */
-    const startScreen = document.getElementById('startScreen');
-    const workControls = document.getElementById('workControls');
-    const statusText = document.getElementById('statusText');
-    const modeToggle = document.getElementById('modeToggle');
-    const modeLabelOn = document.getElementById('modeLabelOn');
-    const modeLabelOff = document.getElementById('modeLabelOff');
-    const langSelect = document.getElementById('langSelect');
-    const currentFlag = document.getElementById('currentFlag');
-    const startTitleEl = document.getElementById('startTitle');
-    const startSubtitleEl = document.getElementById('startSubtitle');
-    const captureBtn = document.getElementById('captureBtn');
-    const fileBtn = document.getElementById('fileBtn');
-    const cardsBtn = document.getElementById('cardsBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const overlayHintEl = document.getElementById('hint');
-    const spaceHintEl = document.getElementById('spaceHint');
-    const captureBtnText = document.getElementById('captureBtnText');
-    const coordsDisplay = document.getElementById('coordsDisplay');
-    const clearCoordsBtn = document.getElementById('clearCoordsBtn');
-    const windowNameDisplay = document.getElementById('windowNameDisplay');
-    const htmlElement = document.documentElement;
-    const qhSidebar = document.getElementById('qhSidebar');
-    const qhList = document.getElementById('qhList');
+const startScreen       = document.getElementById('startScreen');
+const workControls      = document.getElementById('workControls');
+const statusText        = document.getElementById('statusText');
+const modeToggle        = document.getElementById('modeToggle');
+const modeLabelOn       = document.getElementById('modeLabelOn');
+const modeLabelOff      = document.getElementById('modeLabelOff');
+const langSelect        = document.getElementById('langSelect');
+const currentFlag       = document.getElementById('currentFlag');
+const startTitleEl      = document.getElementById('startTitle');
+const startSubtitleEl   = document.getElementById('startSubtitle');
+const captureBtn        = document.getElementById('captureBtn');
+const fileBtn           = document.getElementById('fileBtn');
+const cardsBtn          = document.getElementById('cardsBtn');
+const resetBtn          = document.getElementById('resetBtn');
+const overlayHintEl     = document.getElementById('hint');
+const spaceHintEl       = document.getElementById('spaceHint');
+const captureBtnText    = document.getElementById('captureBtnText');
+const coordsDisplay     = document.getElementById('coordsDisplay');
+const clearCoordsBtn    = document.getElementById('clearCoordsBtn');
+const windowNameDisplay = document.getElementById('windowNameDisplay');
+const htmlEl            = document.documentElement;
+const qhSidebar         = document.getElementById('qhSidebar');
+const qhList            = document.getElementById('qhList');
 
-    /* ── Модалка просмотра ── */
-    const viewModal = document.getElementById('viewModal');
-    const vmImg = document.getElementById('vmImg');
-    const vmCode = document.getElementById('vmCode');
-    const vmCounter = document.getElementById('vmCounter');
-    const vmPrev = document.getElementById('vmPrev');
-    const vmNext = document.getElementById('vmNext');
-    const vmClose = document.getElementById('vmClose');
+const HARDCODED_THRESHOLD = 210;
+const STORAGE_KEY         = 'maxqr_savedRegion';
+const STORAGE_KEY_WINDOW  = 'maxqr_savedWindow';
+const STORAGE_KEY_MODE    = 'maxqr_videoMode';
 
-    let viewIndex = -1;
-
-    /* ── Константы ── */
-    const HARDCODED_THRESHOLD = 210;
-    const STORAGE_KEY = 'maxqr_savedRegion';
-    const STORAGE_KEY_WINDOW = 'maxqr_savedWindow';
-    const STORAGE_KEY_MODE = 'maxqr_videoMode';
-
-    const translations = {
-        pl: {
-            startTitle:'MAX QR READER', startSubtitle:'Wybierz źródło obrazu',
-            captureWindowBtn:'📸 PRZECHWYĆ OKNO', openFileBtn:'📂 OTWÓRZ PLIK',
-            cardsBtn:'🃏 KARTY QR', resetBtn:'🔄 RESET',
-            statusReady:'Zaznacz obszar', statusProcessing:'⚡ Przetwarzanie...',
-            statusDone:'Gotowe!', statusFail:'Nic nie znaleziono.',
-            overlayHint:'Kliknij, aby zamknąć', overlayReady:'Gotowy',
-            statusAutoInit:'Automatyczne przetwarzanie...', statusAutoError:'Obszar poza kadrem.',
-            statusCoordsCleared:'Współrzędne wyzerowane.', clearCoordsBtn:'🗑️ RESET',
-            spaceHint:'SPACJA = nowy zrzut', captureBtnText:'NOWY ZRZUT',
-            statusReconnecting:'🔄 Łączenie z ostatnim oknem...', statusSelectNew:'⚠️ Wybierz okno',
-        },
-        uk: {
-            startTitle:'MAX QR READER', startSubtitle:'Виберіть джерело',
-            captureWindowBtn:'📸 ЗАХОПИТИ ВІКНО', openFileBtn:'📂 ВІДКРИТИ ФАЙЛ',
-            cardsBtn:'🃏 QR КАРТКИ', resetBtn:'🔄 СКИНУТИ',
-            statusReady:'Виділіть область', statusProcessing:'⚡ Обробка...',
-            statusDone:'Готово!', statusFail:'Нічого не знайдено.',
-            overlayHint:'Клікніть, щоб закрити', overlayReady:'Готовий',
-            statusAutoInit:'Автообробка...', statusAutoError:'Зона поза кадром.',
-            statusCoordsCleared:'Координати скинуті.', clearCoordsBtn:'🗑️ СКИНУТИ',
-            spaceHint:'ПРОБІЛ = новий знімок', captureBtnText:'НОВИЙ ЗНІМОК',
-            statusReconnecting:'🔄 З\'єднання...', statusSelectNew:'⚠️ Виберіть вікно',
-        },
-        en: {
-            startTitle:'MAX QR READER', startSubtitle:'Select image source',
-            captureWindowBtn:'📸 CAPTURE WINDOW', openFileBtn:'📂 OPEN FILE',
-            cardsBtn:'🃏 QR CARDS', resetBtn:'🔄 RESET',
-            statusReady:'Select area', statusProcessing:'⚡ Processing...',
-            statusDone:'Done!', statusFail:'Nothing found.',
-            overlayHint:'Click to close', overlayReady:'Ready',
-            statusAutoInit:'Auto-processing...', statusAutoError:'Area out of frame.',
-            statusCoordsCleared:'Coordinates cleared.', clearCoordsBtn:'🗑️ CLEAR',
-            spaceHint:'SPACE = new capture', captureBtnText:'NEW CAPTURE',
-            statusReconnecting:'🔄 Reconnecting...', statusSelectNew:'⚠️ Select window',
-        }
-    };
-    const ocrLangMap = { pl: 'pol', uk: 'ukr', en: 'eng' };
-
-    let currentLang = langSelect.value || 'pl';
-    let currentStatusKey = 'statusReady';
-
-    /* ── Режим ── */
-    function initMode() {
-        isVideoMode = localStorage.getItem(STORAGE_KEY_MODE) === 'true';
-        modeToggle.checked = isVideoMode;
-        updateModeUI();
+const translations = {
+    pl: {
+        startTitle:'MAX QR READER', startSubtitle:'Wybierz źródło obrazu',
+        captureWindowBtn:'📸 PRZECHWYĆ OKNO', openFileBtn:'📂 OTWÓRZ PLIK',
+        cardsBtn:'🃏 KARTY QR', resetBtn:'🔄 RESET',
+        statusReady:'Zaznacz obszar', statusProcessing:'⚡ Przetwarzanie...',
+        statusDone:'Gotowe!', statusFail:'Nic nie znaleziono. Spróbuj ponownie.',
+        overlayHint:'Kliknij dowolne miejsce, aby zamknąć', overlayReady:'Gotowy na kolejne zaznaczenie',
+        statusAutoInit:'Automatyczne przetwarzanie zapisanego obszaru…',
+        statusAutoError:'Zapisany obszar poza kadrem. Zaznacz ponownie.',
+        statusCoordsCleared:'Współrzędne wyzerowane.', clearCoordsBtn:'🗑️ RESET',
+        spaceHint:'Naciśnij SPACJĘ dla kolejnego zrzutu', captureBtnText:'NOWY ZRZUT',
+        statusReconnecting:'🔄 Próba połączenia z ostatnim oknem...', statusSelectNew:'⚠️ Wybierz okno ponownie',
+    },
+    uk: {
+        startTitle:'MAX QR READER', startSubtitle:'Виберіть джерело зображення',
+        captureWindowBtn:'📸 ЗАХОПИТИ ВІКНО', openFileBtn:'📂 ВІДКРИТИ ФАЙЛ',
+        cardsBtn:'🃏 QR КАРТКИ', resetBtn:'🔄 СКИНУТИ',
+        statusReady:'Виділіть область', statusProcessing:'⚡ Обробка...',
+        statusDone:'Готово!', statusFail:'Нічого не знайдено. Спробуйте ще раз.',
+        overlayHint:'Клікніть будь-де, щоб закрити', overlayReady:'Готовий до нового виділення',
+        statusAutoInit:'Автообробка збереженої зони…',
+        statusAutoError:'Збережена зона поза кадром. Виділіть знову.',
+        statusCoordsCleared:'Координати скинуті.', clearCoordsBtn:'🗑️ СКИНУТИ',
+        spaceHint:'Натисніть ПРОБІЛ для наступного знімка', captureBtnText:'НОВИЙ ЗНІМОК',
+        statusReconnecting:'🔄 Спроба з\'єднання...', statusSelectNew:'⚠️ Виберіть вікно знову',
+    },
+    en: {
+        startTitle:'MAX QR READER', startSubtitle:'Select image source',
+        captureWindowBtn:'📸 CAPTURE WINDOW', openFileBtn:'📂 OPEN FILE',
+        cardsBtn:'🃏 QR CARDS', resetBtn:'🔄 RESET',
+        statusReady:'Select area', statusProcessing:'⚡ Processing...',
+        statusDone:'Done!', statusFail:'Nothing found. Try again.',
+        overlayHint:'Click anywhere to close', overlayReady:'Ready for next selection',
+        statusAutoInit:'Auto-processing saved area...',
+        statusAutoError:'Saved area out of frame. Select again.',
+        statusCoordsCleared:'Coordinates cleared.', clearCoordsBtn:'🗑️ CLEAR',
+        spaceHint:'Press SPACE for next capture', captureBtnText:'NEW CAPTURE',
+        statusReconnecting:'🔄 Reconnecting...', statusSelectNew:'⚠️ Select window again',
     }
-    function updateModeUI() {
-        modeLabelOn.className  = isVideoMode ? 'mode-label on' : 'mode-label off';
-        modeLabelOff.className = isVideoMode ? 'mode-label off' : 'mode-label on';
-    }
-    modeToggle.addEventListener('change', () => {
-        isVideoMode = modeToggle.checked;
-        localStorage.setItem(STORAGE_KEY_MODE, isVideoMode);
-        updateModeUI();
-        if (!isVideoMode && activeStream) stopVideoStream();
-    });
-    function stopVideoStream() {
-        if (activeStream) { activeStream.getTracks().forEach(t => t.stop()); activeStream = null; }
-        captureVideo.srcObject = null;
-    }
+};
+const ocrLangMap = { pl:'pol', uk:'ukr', en:'eng' };
+let currentLang = langSelect.value || 'pl';
+let currentStatusKey = 'statusReady';
 
-    /* ── Переводы ── */
-    function t(k) { return (translations[currentLang]||{})[k] || k; }
-    function refreshStatus() { statusText.innerText = t(currentStatusKey); }
-    function setStatus(k) { currentStatusKey = k; refreshStatus(); }
-    function applyTranslations() {
-        startTitleEl.innerText = t('startTitle');
-        startSubtitleEl.innerText = t('startSubtitle');
-        captureBtn.innerText = t('captureWindowBtn');
-        fileBtn.innerText = t('openFileBtn');
-        cardsBtn.innerText = t('cardsBtn');
-        resetBtn.innerText = t('resetBtn');
-        overlayHintEl.innerText = t('overlayHint');
-        spaceHintEl.innerText = t('spaceHint');
-        clearCoordsBtn.innerText = t('clearCoordsBtn');
-        captureBtnText.innerText = t('captureBtnText');
-        refreshStatus();
-        updateCoordsDisplay(storedRegion);
-    }
-    langSelect.addEventListener('change', () => {
-        currentLang = langSelect.value;
-        htmlElement.lang = currentLang;
-        currentFlag.className = langSelect.options[langSelect.selectedIndex].getAttribute('data-flag');
-        applyTranslations();
-    });
-    (function initFlag() {
-        const o = langSelect.options[langSelect.selectedIndex];
-        if (o && o.dataset.flag) currentFlag.className = o.dataset.flag;
-    })();
+// ── Mode ──
+function initMode() {
+    isVideoMode = localStorage.getItem(STORAGE_KEY_MODE) === 'true';
+    modeToggle.checked = isVideoMode; updateModeUI();
+}
+function updateModeUI() {
+    modeLabelOn.className  = isVideoMode ? 'mode-label on'  : 'mode-label off';
+    modeLabelOff.className = isVideoMode ? 'mode-label off' : 'mode-label on';
+}
+modeToggle.addEventListener('change', () => {
+    isVideoMode = modeToggle.checked;
+    localStorage.setItem(STORAGE_KEY_MODE, isVideoMode);
+    updateModeUI();
+    if (!isVideoMode && activeStream) stopVideoStream();
+});
+function stopVideoStream() {
+    if (activeStream) { activeStream.getTracks().forEach(t => t.stop()); activeStream = null; }
+    captureVideo.srcObject = null;
+}
 
-    /* ── Регион ── */
-    function loadStoredRegion() {
-        try {
-            const r = JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
-            storedRegion = (r && isFinite(r.x) && isFinite(r.y) && isFinite(r.w) && isFinite(r.h)) ? r : null;
-        } catch { storedRegion = null; }
-        updateCoordsDisplay(storedRegion);
-    }
-    function storeRegion(region) {
-        storedRegion = { x:Math.round(region.x), y:Math.round(region.y), w:Math.round(region.w), h:Math.round(region.h) };
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(storedRegion)); } catch {}
-        updateCoordsDisplay(storedRegion);
-    }
-    function clearStoredRegion() {
-        storedRegion = null;
-        localStorage.removeItem(STORAGE_KEY);
-        updateCoordsDisplay(null);
-        clearStoredWindow();
-        setStatus('statusCoordsCleared');
-    }
-    function updateCoordsDisplay(r) {
-        coordsDisplay.textContent = r ? `x: ${r.x} | y: ${r.y} | w: ${r.w} | h: ${r.h}` : 'x: — | y: — | w: — | h: —';
-    }
-    clearCoordsBtn.addEventListener('click', clearStoredRegion);
+// ── Translations ──
+function t(k) { return (translations[currentLang]||{})[k] || k; }
+function refreshStatus() { statusText.innerText = t(currentStatusKey); }
+function setStatus(k) { currentStatusKey = k; refreshStatus(); }
+function applyTranslations() {
+    startTitleEl.innerText    = t('startTitle');
+    startSubtitleEl.innerText = t('startSubtitle');
+    captureBtn.innerText      = t('captureWindowBtn');
+    fileBtn.innerText         = t('openFileBtn');
+    cardsBtn.innerText        = t('cardsBtn');
+    resetBtn.innerText        = t('resetBtn');
+    overlayHintEl.innerText   = t('overlayHint');
+    spaceHintEl.innerText     = t('spaceHint');
+    clearCoordsBtn.innerText  = t('clearCoordsBtn');
+    captureBtnText.innerText  = t('captureBtnText');
+    refreshStatus(); updateCoordsDisplay(storedRegion);
+}
+langSelect.addEventListener('change', () => {
+    currentLang = langSelect.value; htmlEl.lang = currentLang;
+    currentFlag.className = langSelect.options[langSelect.selectedIndex].getAttribute('data-flag');
+    applyTranslations();
+});
+(function initFlag() {
+    const o = langSelect.options[langSelect.selectedIndex];
+    if (o && o.dataset.flag) currentFlag.className = o.dataset.flag;
+})();
 
-    /* ── Окно ── */
-    function loadStoredWindow() {
-        try {
-            const p = JSON.parse(localStorage.getItem(STORAGE_KEY_WINDOW)||'null');
-            if (p) { lastWindowName = p.name||null; savedStreamId = p.streamId||null; updateWindowDisplay(); }
-        } catch { lastWindowName = null; savedStreamId = null; }
-    }
-    function storeWindowInfo(name, streamId) {
-        lastWindowName = name; savedStreamId = streamId;
-        try { localStorage.setItem(STORAGE_KEY_WINDOW, JSON.stringify({name, streamId, timestamp:Date.now()})); } catch {}
-        updateWindowDisplay();
-    }
-    function updateWindowDisplay() {
-        if (lastWindowName) {
-            windowNameDisplay.textContent = `🖥️ ${lastWindowName}`;
-            windowNameDisplay.style.display = 'inline-block';
-        } else { windowNameDisplay.style.display = 'none'; }
-    }
-    function clearStoredWindow() {
-        lastWindowName = null; savedStreamId = null;
-        localStorage.removeItem(STORAGE_KEY_WINDOW);
-        updateWindowDisplay();
-    }
+// ── Region ──
+function loadStoredRegion() {
+    try {
+        const r = JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
+        storedRegion = (r && isFinite(r.x) && isFinite(r.y) && isFinite(r.w) && isFinite(r.h)) ? r : null;
+    } catch { storedRegion = null; }
+    updateCoordsDisplay(storedRegion);
+}
+function storeRegion(r) {
+    storedRegion = { x:Math.round(r.x), y:Math.round(r.y), w:Math.round(r.w), h:Math.round(r.h) };
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(storedRegion)); } catch {}
+    updateCoordsDisplay(storedRegion);
+}
+function clearStoredRegion() {
+    storedRegion = null; localStorage.removeItem(STORAGE_KEY);
+    updateCoordsDisplay(null); clearStoredWindow(); setStatus('statusCoordsCleared');
+}
+function updateCoordsDisplay(r) {
+    coordsDisplay.textContent = r         ? `x: ${r.x} | y: ${r.y} | w: ${r.w} | h: ${r.h}`
+        : 'x: — | y: — | w: — | h: —';
+}
 
-    /* ── Инициализация ── */
-    htmlElement.lang = currentLang;
-    applyTranslations(); initMode(); loadStoredRegion(); loadStoredWindow();
+// ── Window Name ──
+function clearStoredWindow() {
+    lastWindowName = null; localStorage.removeItem(STORAGE_KEY_WINDOW);
+    windowNameDisplay.style.display = 'none';
+}
+function saveStoredWindow(name) {
+    lastWindowName = name; localStorage.setItem(STORAGE_KEY_WINDOW, name);
+    windowNameDisplay.textContent = `🖥 ${name}`;
+    windowNameDisplay.style.display = 'inline-block';
+}
+function loadStoredWindow() {
+    const w = localStorage.getItem(STORAGE_KEY_WINDOW);
+    if (w) { lastWindowName = w; windowNameDisplay.textContent = `🖥 ${w}`; windowNameDisplay.style.display = 'inline-block'; }
+}
 
-    function enterWorkMode() {
+clearCoordsBtn.addEventListener('click', clearStoredRegion);
+
+// ── Canvas mouse: draw selection ──
+mainCanvas.addEventListener('mousedown', e => {
+    if (!activeStream && !mainCanvas.dataset.hasImage) return;
+    isDrawing = true;
+    const rect = mainCanvas.getBoundingClientRect();
+    const sx = mainCanvas.width / rect.width, sy = mainCanvas.height / rect.height;
+    startX = (e.clientX - rect.left) * sx;
+    startY = (e.clientY - rect.top)  * sy;
+    imgDataSnapshot = ctx.getImageData(0, 0, mainCanvas.width, mainCanvas.height);
+});
+
+mainCanvas.addEventListener('mousemove', e => {
+    if (!isDrawing) return;
+    const rect = mainCanvas.getBoundingClientRect();
+    const sx = mainCanvas.width / rect.width, sy = mainCanvas.height / rect.height;
+    const mx = (e.clientX - rect.left) * sx, my = (e.clientY - rect.top) * sy;
+    ctx.putImageData(imgDataSnapshot, 0, 0);
+    ctx.strokeStyle = '#00ff88'; ctx.lineWidth = 2;
+    ctx.strokeRect(startX, startY, mx - startX, my - startY);
+});
+
+mainCanvas.addEventListener('mouseup', async e => {
+    if (!isDrawing) return;
+    isDrawing = false;
+    const rect = mainCanvas.getBoundingClientRect();
+    const sx = mainCanvas.width / rect.width, sy = mainCanvas.height / rect.height;
+    const ex = (e.clientX - rect.left) * sx, ey = (e.clientY - rect.top) * sy;
+    const rx = Math.min(startX, ex), ry = Math.min(startY, ey);
+    const rw = Math.abs(ex - startX),  rh = Math.abs(ey - startY);
+    if (rw < 5 || rh < 5) return;
+    storeRegion({ x: rx, y: ry, w: rw, h: rh });
+    await processRegion({ x: rx, y: ry, w: rw, h: rh });
+});
+
+// ── Screen Capture ──
+async function startCapture() {
+    try {
+        activeStream = await navigator.mediaDevices.getDisplayMedia({ video: { cursor: 'never' }, audio: false });
+        const track = activeStream.getVideoTracks()[0];
+        saveStoredWindow(track.label || '');
+        captureVideo.srcObject = activeStream;
+        await new Promise(r => captureVideo.onloadedmetadata = r);
+        mainCanvas.width  = captureVideo.videoWidth;
+        mainCanvas.height = captureVideo.videoHeight;
+        captureVideo.play();
+        drawVideoFrame();
         startScreen.style.display = 'none';
         workControls.style.display = 'flex';
-        if (!storedRegion) setStatus('statusReady');
-    }
-
-    /* ══════════════════════════════════════
-       ИСТОРИЯ (слева, 2 колонки)
-    ══════════════════════════════════════ */
-    const scansHistory = [];
-
-    function addToHistory(dataURL, code) {
-        scansHistory.unshift({ dataURL, code });
-        renderSidebar();
-    }
-
-    function renderSidebar() {
-        qhList.innerHTML = '';
-        const prev = scansHistory.slice(1); // всё кроме последнего
-
-        if (prev.length === 0) { qhSidebar.style.display = 'none'; return; }
-        qhSidebar.style.display = 'flex';
-
-        prev.forEach((item, i) => {
-            const el = document.createElement('div');
-            el.className = 'qh-card';
-            el.innerHTML = `<img src="${item.dataURL}" alt=""><div class="qh-card-code">${item.code}</div>`;
-            el.addEventListener('click', e => { e.stopPropagation(); openViewModal(i + 1); });
-            qhList.appendChild(el);
+        setStatus('statusReady');
+        loadStoredRegion();
+        if (storedRegion) autoRunSavedRegion();
+        activeStream.getVideoTracks()[0].addEventListener('ended', () => {
+            stopVideoStream(); setStatus('statusSelectNew');
         });
+    } catch(err) { console.warn('Capture cancelled:', err); }
+}
+
+function stopVideoStream() {
+    if (activeStream) { activeStream.getTracks().forEach(t => t.stop()); activeStream = null; }
+    captureVideo.srcObject = null;
+}
+
+function drawVideoFrame() {
+    if (!activeStream) return;
+    if (captureVideo.readyState >= 2) ctx.drawImage(captureVideo, 0, 0);
+    requestAnimationFrame(drawVideoFrame);
+}
+
+async function doQuickCapture() {
+    if (isCapturing || isProcessing) return;
+    if (activeStream && storedRegion) { await processRegion(storedRegion); return; }
+    if (activeStream) { closeOverlay(); setStatus('statusReady'); return; }
+    await startCapture();
+    if (activeStream && storedRegion) await processRegion(storedRegion);
+}
+
+async function autoRunSavedRegion() {
+    if (!storedRegion) return;
+    const R = storedRegion;
+    if (R.x + R.w > mainCanvas.width || R.y + R.h > mainCanvas.height) {
+        setStatus('statusAutoError'); storedRegion = null; return;
     }
+    setStatus('statusAutoInit');
+    await processRegion(R);
+}
 
-    /* ══════════════════════════════════════
-       МОДАЛКА ПРОСМОТРА (полноэкранная)
-    ══════════════════════════════════════ */
-    function openViewModal(index) {
-        viewIndex = index;
-        refreshViewModal();
-        viewModal.style.display = 'flex';
+function handleFile(e) {
+    const file = e.target.files[0]; if (!file) return;
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+        mainCanvas.width = img.width; mainCanvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        mainCanvas.dataset.hasImage = '1';
+        stopVideoStream();
+        startScreen.style.display = 'none';
+        workControls.style.display = 'flex';
+        setStatus('statusReady');
+        loadStoredRegion();
+        URL.revokeObjectURL(url);
+    };
+    img.src = url;
+}
+
+// ── OCR Processing ──
+async function processRegion(r) {
+    if (isProcessing) return;
+    isProcessing = true;
+    setStatus('statusProcessing');
+    if (activeStream && captureVideo.readyState >= 2) ctx.drawImage(captureVideo, 0, 0);
+    previewCanvas.width = r.w; previewCanvas.height = r.h;
+    pCtx.drawImage(mainCanvas, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
+    const raw = pCtx.getImageData(0, 0, r.w, r.h);
+    pCtx.putImageData(toBlackWhite(raw, HARDCODED_THRESHOLD), 0, 0);
+    try {
+        const result = await Tesseract.recognize(
+            previewCanvas, ocrLangMap[currentLang] || 'eng',
+            { tessedit_char_whitelist: '0123456789' }
+        );
+        const digits = (result.data.text || '').replace(/\D/g, '').trim();
+        if (digits.length >= 4) { setStatus('statusDone'); showOverlay(digits); }
+        else { setStatus('statusFail'); }
+    } catch(err) { console.error('OCR error:', err); setStatus('statusFail'); }
+    isProcessing = false;
+}
+
+function toBlackWhite(imgData, threshold) {
+    const d = new Uint8ClampedArray(imgData.data);
+    for (let i = 0; i < d.length; i += 4) {
+        const g = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
+        const v = g > threshold ? 255 : 0;
+        d[i] = d[i+1] = d[i+2] = v;
     }
+    return new ImageData(d, imgData.width, imgData.height);
+}
 
-    function closeViewModal() {
-        viewModal.style.display = 'none';
-        viewIndex = -1;
-    }
+// ═══════════════════════════════════
+//  HISTORY + SIDEBAR
+// ═══════════════════════════════════
+const scansHistory = [];
 
-    function refreshViewModal() {
-        if (viewIndex < 0 || viewIndex >= scansHistory.length) return;
-        const item = scansHistory[viewIndex];
-        vmImg.src = item.dataURL;
-        vmCode.textContent = item.code;
-        vmCounter.textContent = `${viewIndex + 1} / ${scansHistory.length}`;
-        vmPrev.disabled = (viewIndex === 0);
-        vmNext.disabled = (viewIndex === scansHistory.length - 1);
-    }
+function addToHistory(code) {
+    scansHistory.unshift(code);
+    if (scansHistory.length > 30) scansHistory.pop();
+    renderSidebar();
+}
 
-    vmPrev.addEventListener('click', () => { if (viewIndex > 0) { viewIndex--; refreshViewModal(); } });
-    vmNext.addEventListener('click', () => { if (viewIndex < scansHistory.length - 1) { viewIndex++; refreshViewModal(); } });
-    vmClose.addEventListener('click', closeViewModal);
-    viewModal.addEventListener('click', e => { if (e.target === viewModal) closeViewModal(); });
+function renderSidebar() {
+    qhList.innerHTML = '';
+    // показываем все записи кроме текущей (index 0)
+    const toShow = scansHistory.slice(1);
+    if (!toShow.length) { qhSidebar.style.display = 'none'; return; }
 
-    // Клавиши в модалке
-    document.addEventListener('keydown', e => {
-        if (viewModal.style.display !== 'flex') return;
-        if (e.key === 'ArrowLeft' && viewIndex > 0) { viewIndex--; refreshViewModal(); }
-        if (e.key === 'ArrowRight' && viewIndex < scansHistory.length - 1) { viewIndex++; refreshViewModal(); }
-        if (e.key === 'Escape') closeViewModal();
-    });
+    toShow.forEach((code, i) => {
+        const realIdx = i + 1;
+        const card = document.createElement('div');
+        card.className = 'qh-card';
+        card.dataset.idx = realIdx;
 
-    /* ── Оверлей ── */
-    function showOverlay(text) {
-        const bigQrCanvas = document.getElementById('bigQrCanvas');
-        new QRious({ element: bigQrCanvas, value: text, size: 400 });
-        document.getElementById('overlayText').innerText = text;
+        const cvs = document.createElement('canvas');
+        new QRious({ element: cvs, value: code, size: 130, background: '#fff', foreground: '#000' });
+        const img = document.createElement('img');
+        img.src = cvs.toDataURL();
 
-        addToHistory(bigQrCanvas.toDataURL('image/png'), text);
+        const label = document.createElement('div');
+        label.className = 'qh-card-code';
+        label.textContent = code;
 
-        document.getElementById('qrOverlay').style.display = 'flex';
-    }
-
-    function closeOverlay() {
-        document.getElementById('qrOverlay').style.display = 'none';
-        setStatus('overlayReady');
-    }
-
-    // Глобальные клавиши
-    document.addEventListener('keydown', async e => {
-        const qrOpen = document.getElementById('qrOverlay').style.display === 'flex';
-        
-        if (qrOpen && viewModal.style.display !== 'flex') {
-            if (e.code === 'Space') { e.preventDefault(); await doQuickCapture(); }
-            else if (e.code === 'Enter' || e.code === 'Escape') closeOverlay();
-        }
-    });
-
-    /* ── Захват ── */
-    async function doQuickCapture() {
-        if (isCapturing || isProcessing) return;
-        isCapturing = true;
-        closeOverlay();
-        setStatus('statusProcessing');
-        try {
-            if (isVideoMode && savedStreamId) {
-                if (activeStream && captureVideo.readyState >= 2) {
-                    refreshCanvasFromVideo(); await processSavedRegion();
-                    isCapturing = false; return;
-                }
-                try {
-                    setStatus('statusReconnecting');
-                    const s = await tryReconnectStream();
-                    if (s) { await processStream(s); isCapturing = false; return; }
-                } catch (e) { console.log('Reconnect failed:', e); }
-            }
-            await doFullCapture();
-        } catch(e) { console.error(e); setStatus('statusFail'); }
-        finally    { isCapturing = false; }
-    }
-
-    function refreshCanvasFromVideo() {
-        if (captureVideo.readyState >= 2 && mainCanvas.width > 0) ctx.drawImage(captureVideo, 0, 0);
-    }
-
-    async function tryReconnectStream() {
-        const controller = new CaptureController();
-        if (typeof controller.setFocusBehavior === 'function') controller.setFocusBehavior('no-focus-change');
-        return await navigator.mediaDevices.getDisplayMedia({
-            video: { cursor: 'always', displaySurface: 'window' }, audio: false, controller
+        card.appendChild(img);
+        card.appendChild(label);
+        card.addEventListener('click', e => {
+            e.stopPropagation();
+            openHistViewer(realIdx);
         });
-    }
-
-    async function processSavedRegion() {
-        const s = sanitizeRegion(storedRegion);
-        if (s) await processAndRecognize(s); else setStatus('statusAutoError');
-    }
-
-    async function processStream(stream) {
-        if (activeStream && activeStream !== stream) {
-            activeStream.getTracks().forEach(t => t.stop());
-            activeStream = null; captureVideo.srcObject = null;
-        }
-        const vt = stream.getVideoTracks()[0];
-        const settings = vt.getSettings();
-        if (!lastWindowName || vt.label !== lastWindowName) storeWindowInfo(vt.label, settings.deviceId||null);
-        try {
-            captureVideo.srcObject = stream;
-            await captureVideo.play();
-            await new Promise(r => setTimeout(r, 200));
-            mainCanvas.width  = captureVideo.videoWidth;
-            mainCanvas.height = captureVideo.videoHeight;
-            ctx.drawImage(captureVideo, 0, 0);
-            if (!isVideoMode) {
-                stream.getTracks().forEach(t => t.stop());
-                captureVideo.srcObject = null; activeStream = null;
-            } else {
-                activeStream = stream;
-                vt.onended = () => { activeStream = null; };
-            }
-            await processSavedRegion();
-        } catch(e) {
-            console.error(e); stream.getTracks().forEach(t => t.stop()); setStatus('statusFail');
-        }
-    }
-
-    async function doFullCapture() {
-        try {
-            if (activeStream) stopVideoStream();
-            const opts = { video: { cursor: 'always' }, audio: false };
-            if ('CaptureController' in window) {
-                const c = new CaptureController();
-                c.setFocusBehavior('no-focus-change');
-                opts.controller = c;
-            }
-            await processStream(await navigator.mediaDevices.getDisplayMedia(opts));
-        } catch(e) { console.error(e); setStatus('statusFail'); }
-    }
-
-    async function startCapture() { await doFullCapture(); enterWorkMode(); }
-
-    function handleFile(e) {
-        if (!e.target.files[0]) return;
-        const img = new Image();
-        img.onload = () => {
-            mainCanvas.width = img.width; mainCanvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            enterWorkMode();
-            if (storedRegion) setTimeout(() => tryAutoProcessStoredRegion(), 100);
-        };
-        img.src = URL.createObjectURL(e.target.files[0]);
-    }
-
-    function tryAutoProcessStoredRegion() {
-        const s = sanitizeRegion(storedRegion);
-        if (!s) { setStatus('statusAutoError'); return; }
-        setStatus('statusAutoInit');
-        processAndRecognize(s);
-    }
-
-    function sanitizeRegion(r) {
-        if (!r) return null;
-        const cw = mainCanvas.width, ch = mainCanvas.height;
-        if (!cw || !ch) return null;
-        const x = Math.max(0, Math.min(cw-1, r.x));
-        const y = Math.max(0, Math.min(ch-1, r.y));
-        const w = Math.max(0, Math.min(r.w, cw-x));
-        const h = Math.max(0, Math.min(r.h, ch-y));
-        return (w < 6 || h < 6) ? null : { x, y, w, h };
-    }
-
-    /* ── Мышь ── */
-    mainCanvas.addEventListener('mousedown', e => {
-        if (!mainCanvas.width) return;
-        const rect = mainCanvas.getBoundingClientRect();
-        const sx = mainCanvas.width/rect.width, sy = mainCanvas.height/rect.height;
-        startX = (e.clientX - rect.left)*sx; startY = (e.clientY - rect.top)*sy;
-        isDrawing = true;
-        imgDataSnapshot = ctx.getImageData(0, 0, mainCanvas.width, mainCanvas.height);
+        qhList.appendChild(card);
     });
-    mainCanvas.addEventListener('mousemove', e => {
-        if (!isDrawing) return;
-        const rect = mainCanvas.getBoundingClientRect();
-        const sx = mainCanvas.width/rect.width, sy = mainCanvas.height/rect.height;
-        const cx = (e.clientX-rect.left)*sx, cy = (e.clientY-rect.top)*sy;
-        ctx.putImageData(imgDataSnapshot, 0, 0);
-        ctx.strokeStyle = '#facc15'; ctx.lineWidth = 5;
-        ctx.strokeRect(startX, startY, cx-startX, cy-startY);
-    });
-    mainCanvas.addEventListener('mouseup', e => {
-        if (!isDrawing) return;
-        isDrawing = false;
-        const rect = mainCanvas.getBoundingClientRect();
-        const sx = mainCanvas.width/rect.width, sy = mainCanvas.height/rect.height;
-        const ex = (e.clientX-rect.left)*sx, ey = (e.clientY-rect.top)*sy;
-        const w = Math.abs(ex-startX), h = Math.abs(ey-startY);
-        if (w > 5 && h > 5) {
-            const region = { x:Math.min(startX,ex), y:Math.min(startY,ey), w, h };
-            storeRegion(region); setStatus('statusProcessing');
-            processAndRecognize(region);
-        }
-    });
+    qhSidebar.style.display = 'flex';
+}
 
-    /* ── OCR ── */
-    async function processAndRecognize(region) {
-        isProcessing = true;
-        const SCALE = 3;
-        previewCanvas.width  = region.w * SCALE;
-        previewCanvas.height = region.h * SCALE;
-        pCtx.imageSmoothingEnabled = true;
-        pCtx.drawImage(mainCanvas, region.x, region.y, region.w, region.h, 0, 0, previewCanvas.width, previewCanvas.height);
-        const imageData = pCtx.getImageData(0, 0, previewCanvas.width, previewCanvas.height);
-        const data = imageData.data;
-        for (let i = 0; i < data.length; i += 4) {
-            const v = (data[i]+data[i+1]+data[i+2])/3 < HARDCODED_THRESHOLD ? 0 : 255;
-            data[i] = v; data[i+1] = v; data[i+2] = v;
-        }
-        pCtx.putImageData(imageData, 0, 0);
-        try {
-            const result = await Tesseract.recognize(previewCanvas, ocrLangMap[currentLang]||'pol',
-                { tessedit_char_whitelist: '0123456789' });
-            const clean = result.data.text.replace(/\D/g,'').trim();
-            if (clean.length > 0) { setStatus('statusDone'); showOverlay(clean); }
-            else setStatus('statusFail');
-        } catch(err) { setStatus('statusFail'); console.error(err); }
-        finally     { isProcessing = false; }
+function highlightSidebarCard(idx) {
+    document.querySelectorAll('.qh-card').forEach(c => {
+        c.classList.toggle('active', parseInt(c.dataset.idx) === idx);
+    });
+}
+
+// ═══════════════════════════════════
+//  QR OVERLAY
+// ═══════════════════════════════════
+const bigQrCanvas  = document.getElementById('bigQrCanvas');
+const overlayTextEl = document.getElementById('overlayText');
+const qrOverlay     = document.getElementById('qrOverlay');
+
+function showOverlay(code) {
+    overlayTextEl.textContent = code;
+    new QRious({ element: bigQrCanvas, value: code, size: 280, background:'#fff', foreground:'#000' });
+    addToHistory(code);
+    qrOverlay.style.display = 'flex';
+}
+
+function closeOverlay() {
+    if (!histViewer.classList.contains('hidden')) { closeHistViewer(); return; }
+    qrOverlay.style.display = 'none';
+    setStatus('statusReady');
+}
+
+// ═══════════════════════════════════
+//  HISTORY VIEWER — полноэкранный
+// ═══════════════════════════════════
+const histViewer = document.getElementById('histViewer');
+const hvCanvas   = document.getElementById('hvCanvas');
+const hvCode     = document.getElementById('hvCode');
+const hvCounter  = document.getElementById('hvCounter');
+const hvPrev     = document.getElementById('hvPrev');
+const hvNext     = document.getElementById('hvNext');
+const hvClose    = document.getElementById('hvClose');
+const hvBg       = document.getElementById('hvBg');
+
+let hvIndex = 0;
+
+function openHistViewer(idx) {
+    if (!scansHistory.length) return;
+    hvIndex = Math.max(0, Math.min(idx, scansHistory.length - 1));
+    renderHistViewer();
+    histViewer.classList.remove('hidden');
+}
+
+function closeHistViewer() {
+    histViewer.classList.add('hidden');
+    highlightSidebarCard(-1);
+}
+
+function renderHistViewer() {
+    const code = scansHistory[hvIndex];
+    hvCode.textContent = code;
+    new QRious({ element: hvCanvas, value: code, size: 300, background:'#fff', foreground:'#000' });
+    hvCounter.textContent = `${hvIndex + 1} / ${scansHistory.length}`;
+    hvPrev.disabled = hvIndex <= 0;
+    hvNext.disabled = hvIndex >= scansHistory.length - 1;
+    highlightSidebarCard(hvIndex);
+}
+
+hvPrev.addEventListener('click', e => {
+    e.stopPropagation();
+    if (hvIndex > 0) { hvIndex--; renderHistViewer(); }
+});
+hvNext.addEventListener('click', e => {
+    e.stopPropagation();
+    if (hvIndex < scansHistory.length - 1) { hvIndex++; renderHistViewer(); }
+});
+hvClose.addEventListener('click', e => { e.stopPropagation(); closeHistViewer(); });
+hvBg.addEventListener('click', closeHistViewer);
+document.querySelector('.hv-wrap').addEventListener('click', e => e.stopPropagation());
+
+// ═══════════════════════════════════
+//  KEYBOARD
+// ═══════════════════════════════════
+document.addEventListener('keydown', e => {
+    // Viewer открыт — навигация стрелками
+    if (!histViewer.classList.contains('hidden')) {
+        if (e.key === 'ArrowLeft')  { e.preventDefault(); if (hvIndex > 0) { hvIndex--; renderHistViewer(); } }
+        if (e.key === 'ArrowRight') { e.preventDefault(); if (hvIndex < scansHistory.length - 1) { hvIndex++; renderHistViewer(); } }
+        if (e.key === 'Escape') closeHistViewer();
+        return;
     }
+    // Overlay открыт
+    if (qrOverlay.style.display === 'flex') {
+        if (e.key === ' ' || e.key === 'Spacebar') {
+            e.preventDefault();
+            closeOverlay();
+            setTimeout(doQuickCapture, 80);
+        }
+        if (e.key === 'Escape') closeOverlay();
+    }
+});
 
-    window.addEventListener('beforeunload', () => {
-        if (activeStream) activeStream.getTracks().forEach(t => t.stop());
-    });
+// ═══════════════════════════════════
+//  INIT
+// ═══════════════════════════════════
+initMode();
+loadStoredRegion();
+loadStoredWindow();
+applyTranslations();
 </script>
 </body>
 </html>
