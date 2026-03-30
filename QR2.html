@@ -9,6 +9,8 @@
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <style>
+        /* ... (wszystkie poprzednie style bez zmian) ... */
+        
         body {
             font-family: 'Segoe UI', sans-serif;
             background: #121212; color: #eee;
@@ -108,16 +110,35 @@
             position: relative; flex: 1; display: flex;
             align-items: center; justify-content: center;
             width: 100%; padding-top: 60px; box-sizing: border-box;
+            gap: 0;
         }
 
-        /* Sidebar */
+        /* Sidebar - teraz z możliwością ukrycia */
         #qhSidebar {
-            display: none; flex-direction: column; width: 290px; max-height: 75vh;
+            display: none; flex-direction: column; width: 260px; max-height: 75vh;
             background: rgba(16,16,16,0.95); border: 1px solid #2a2a2a; border-radius: 14px;
             overflow: hidden; cursor: default;
             position: absolute; left: 20px; top: 50%; transform: translateY(-50%); z-index: 10;
-            transition: background 0.4s, border-color 0.4s, box-shadow 0.4s;
+            transition: all 0.4s ease;
         }
+        
+        #qhSidebar.visible {
+            display: flex;
+            left: 30px;
+        }
+        
+        /* Przycisk przełączania paska historii */
+        #historyToggleBtn {
+            position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
+            width: 44px; height: 44px; border-radius: 50%;
+            background: rgba(30,30,30,0.9); border: 1px solid rgba(255,255,255,0.2);
+            color: #888; font-size: 20px; cursor: pointer;
+            display: none; align-items: center; justify-content: center;
+            transition: all 0.25s; z-index: 5;
+        }
+        #historyToggleBtn:hover { background: rgba(50,50,50,0.95); color: #fff; border-color: rgba(255,255,255,0.4); }
+        #historyToggleBtn.visible { display: flex; }
+
         .qh-header {
             padding: 8px 12px 7px; font-size: 10px; color: #4a4a4a;
             text-transform: uppercase; letter-spacing: 1.4px;
@@ -187,7 +208,7 @@
         #hint  { color: #888; font-size: 18px; transition: color 0.4s; }
         #spaceHint { color: #4ade80; font-size: 14px; transition: color 0.4s; }
 
-        /* ── PRZYCISK MOTYWU ── */
+        /* Przycisk motywu */
         #themeToggleBtn {
             padding: 8px 20px; font-size: 13px; font-weight: 700; letter-spacing: 0.6px;
             border: 1px solid rgba(255,255,255,0.2); border-radius: 30px;
@@ -202,84 +223,61 @@
         }
 
         /* ═══════════════════════════════════════════════
-           MOTYW: GLOW (klasa theme-glow na #qrOverlay)
+           MOTYW: GLOW
         ════════════════════════════════════════════════ */
         #qrOverlay.theme-glow {
-            background: radial-gradient(ellipse at 50% 30%,
-                rgba(20,8,55,0.98) 0%,
-                rgba(4,4,18,0.99) 65%);
+            background: radial-gradient(ellipse at 50% 30%, rgba(20,8,55,0.98) 0%, rgba(4,4,18,0.99) 65%);
         }
-
-        /* Sidebar – glow */
         #qrOverlay.theme-glow #qhSidebar {
             background: linear-gradient(145deg, #0f172a 0%, #1a1040 55%, #0f172a 100%);
             border: 1px solid rgba(139,92,246,0.38);
-            box-shadow:
-                0 0 50px rgba(99,102,241,0.22),
-                0 0 110px rgba(139,92,246,0.12),
-                inset 0 1px 0 rgba(255,255,255,0.06);
+            box-shadow: 0 0 50px rgba(99,102,241,0.22), 0 0 110px rgba(139,92,246,0.12), inset 0 1px 0 rgba(255,255,255,0.06);
         }
-        #qrOverlay.theme-glow .qh-header {
-            color: #818cf8;
-            border-bottom-color: rgba(99,102,241,0.22);
-        }
+        #qrOverlay.theme-glow .qh-header { color: #818cf8; border-bottom-color: rgba(99,102,241,0.22); }
         #qrOverlay.theme-glow .qh-card {
             background: rgba(15,23,42,0.95);
             border-color: rgba(99,102,241,0.22);
         }
         #qrOverlay.theme-glow .qh-card:hover {
-            border-color: #7c3aed;
-            transform: scale(1.04);
+            border-color: #7c3aed; transform: scale(1.04);
             box-shadow: 0 0 20px rgba(124,58,237,0.45), 0 0 40px rgba(99,102,241,0.2);
         }
-        #qrOverlay.theme-glow .qh-card.active {
-            border-color: #7c3aed;
-            box-shadow: 0 0 20px rgba(124,58,237,0.45);
-        }
+        #qrOverlay.theme-glow .qh-card.active { border-color: #7c3aed; box-shadow: 0 0 20px rgba(124,58,237,0.45); }
         #qrOverlay.theme-glow .qh-card-code { color: #a5b4fc; }
+        
+        #qrOverlay.theme-glow #historyToggleBtn {
+            background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(37,99,235,0.2));
+            border-color: rgba(139,92,246,0.4);
+            color: #a5b4fc;
+        }
+        #qrOverlay.theme-glow #historyToggleBtn:hover {
+            background: linear-gradient(135deg, rgba(124,58,237,0.4), rgba(37,99,235,0.4));
+            box-shadow: 0 4px 20px rgba(124,58,237,0.3);
+        }
 
-        /* Centralny QR box – glow */
         #qrOverlay.theme-glow .qr-box {
             background: linear-gradient(145deg, #0f172a 0%, #1a1040 55%, #0f172a 100%);
             border: 2px solid rgba(139,92,246,0.5);
-            box-shadow:
-                0 0 80px rgba(99,102,241,0.55),
-                0 0 160px rgba(139,92,246,0.25),
-                inset 0 1px 0 rgba(255,255,255,0.07);
+            box-shadow: 0 0 80px rgba(99,102,241,0.55), 0 0 160px rgba(139,92,246,0.25), inset 0 1px 0 rgba(255,255,255,0.07);
         }
         #qrOverlay.theme-glow .qr-box:hover {
-            box-shadow:
-                0 0 110px rgba(99,102,241,0.7),
-                0 0 200px rgba(139,92,246,0.35),
-                inset 0 1px 0 rgba(255,255,255,0.07);
+            box-shadow: 0 0 110px rgba(99,102,241,0.7), 0 0 200px rgba(139,92,246,0.35), inset 0 1px 0 rgba(255,255,255,0.07);
         }
         #qrOverlay.theme-glow #bigQrCanvas { border-radius: 10px; }
-
-        /* Liczby pod QR – gradient glow */
         #qrOverlay.theme-glow #overlayText {
             background: linear-gradient(135deg, #a78bfa 0%, #818cf8 45%, #38bdf8 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            color: transparent;
-            filter: drop-shadow(0 0 16px rgba(99,102,241,0.7));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            color: transparent; filter: drop-shadow(0 0 16px rgba(99,102,241,0.7));
         }
-
-        /* Stopka – glow */
-        #qrOverlay.theme-glow #hint      { color: #6366f1; }
+        #qrOverlay.theme-glow #hint { color: #6366f1; }
         #qrOverlay.theme-glow #spaceHint { color: #a78bfa; }
-
-        /* Przycisk motywu – glow */
         #qrOverlay.theme-glow #themeToggleBtn {
             background: linear-gradient(135deg, rgba(124,58,237,0.28), rgba(37,99,235,0.28));
-            border-color: rgba(139,92,246,0.5);
-            color: #a5b4fc;
-            box-shadow: 0 4px 20px rgba(124,58,237,0.35);
+            border-color: rgba(139,92,246,0.5); color: #a5b4fc; box-shadow: 0 4px 20px rgba(124,58,237,0.35);
         }
         #qrOverlay.theme-glow #themeToggleBtn:hover {
             background: linear-gradient(135deg, rgba(124,58,237,0.48), rgba(37,99,235,0.48));
-            box-shadow: 0 6px 30px rgba(124,58,237,0.55);
-            color: #fff;
+            box-shadow: 0 6px 30px rgba(124,58,237,0.55); color: #fff;
         }
         #qrOverlay.theme-glow #themeToggleBtn .dot {
             background: radial-gradient(circle, #a78bfa, #6366f1);
@@ -287,14 +285,13 @@
         }
 
         /* ═══════════════════════════════════════════════
-           HISTORY VIEWER (zawsze fioletowy)
+           HISTORY VIEWER
         ════════════════════════════════════════════════ */
         #histViewer {
             position: fixed; inset: 0; z-index: 99999;
             display: flex; align-items: center; justify-content: center;
         }
         #histViewer.hidden { display: none; }
-
         .hv-bg {
             position: absolute; inset: 0; cursor: pointer;
             background: radial-gradient(ellipse at 50% 30%, rgba(20,8,55,0.98) 0%, rgba(4,4,18,0.99) 65%);
@@ -303,10 +300,7 @@
             position: relative; z-index: 1; display: flex; align-items: center; gap: 24px;
             background: linear-gradient(145deg, #0f172a 0%, #1a1040 55%, #0f172a 100%);
             border: 1px solid rgba(139,92,246,0.35); border-radius: 30px; padding: 50px 44px;
-            box-shadow:
-                0 0 80px rgba(99,102,241,0.28),
-                0 0 180px rgba(139,92,246,0.14),
-                inset 0 1px 0 rgba(255,255,255,0.07);
+            box-shadow: 0 0 80px rgba(99,102,241,0.28), 0 0 180px rgba(139,92,246,0.14), inset 0 1px 0 rgba(255,255,255,0.07);
         }
         .hv-center {
             position: relative; display: flex; flex-direction: column; align-items: center;
@@ -328,7 +322,6 @@
             color: #fff; letter-spacing: 8px; text-shadow: 0 2px 18px rgba(0,0,0,0.5); margin: 0;
         }
         #hvCounter { margin-top: 12px; font-size: 13px; color: #6366f1; letter-spacing: 1px; }
-
         .hv-nav {
             background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.35);
             color: #a5b4fc; font-size: 46px; padding: 10px 18px; border-radius: 12px;
@@ -337,7 +330,6 @@
         }
         .hv-nav:hover:not(:disabled) { background: rgba(99,102,241,0.28); border-color: rgba(99,102,241,0.55); }
         .hv-nav:disabled { opacity: 0.12; cursor: default; }
-
         #hvClose {
             position: absolute; top: -48px; right: 0;
             background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.35);
@@ -371,9 +363,7 @@
         <button class="hv-nav" id="hvPrev">&#8249;</button>
         <div class="hv-center">
             <canvas id="hvCanvas"></canvas>
-            <div class="hv-code-wrap">
-                <div id="hvCode"></div>
-            </div>
+            <div class="hv-code-wrap"><div id="hvCode"></div></div>
             <div id="hvCounter"></div>
         </div>
         <button class="hv-nav" id="hvNext">&#8250;</button>
@@ -425,6 +415,9 @@
 <div id="qrOverlay" onclick="closeOverlay()">
     <div class="qr-overlay-body">
 
+        <!-- Przełącznik paska historii -->
+        <button id="historyToggleBtn" onclick="event.stopPropagation(); toggleHistorySidebar();">📋</button>
+
         <!-- SIDEBAR -->
         <div id="qhSidebar" onclick="event.stopPropagation()">
             <div class="qh-header">Historia</div>
@@ -449,11 +442,12 @@
     <div class="qr-overlay-footer">
         <div id="hint">Kliknij dowolne miejsce, aby zamknąć</div>
         <div id="spaceHint">Naciśnij SPACJĘ dla kolejnego zrzutu</div>
-        <!-- ── PRZYCISK MOTYWU ── -->
-        <button id="themeToggleBtn" onclick="event.stopPropagation(); toggleOverlayTheme();">
-            <span class="dot"></span>
-            <span id="themeBtnLabel">✨ Glow OFF</span>
-        </button>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <button id="themeToggleBtn" onclick="event.stopPropagation(); toggleOverlayTheme();">
+                <span class="dot"></span>
+                <span id="themeBtnLabel">✨ Glow OFF</span>
+            </button>
+        </div>
     </div>
 </div>
 
@@ -473,6 +467,7 @@ let activeStream  = null;
 let isDrawing     = false, startX, startY, imgDataSnapshot;
 let storedRegion  = null, lastWindowName = null;
 let isCapturing   = false, isProcessing = false, isVideoMode = false;
+let isHistoryVisible = true;
 
 const startScreen       = document.getElementById('startScreen');
 const workControls      = document.getElementById('workControls');
@@ -500,12 +495,14 @@ const qhList            = document.getElementById('qhList');
 const qrOverlay         = document.getElementById('qrOverlay');
 const themeToggleBtn    = document.getElementById('themeToggleBtn');
 const themeBtnLabel     = document.getElementById('themeBtnLabel');
+const historyToggleBtn  = document.getElementById('historyToggleBtn');
 
 const HARDCODED_THRESHOLD = 210;
 const STORAGE_KEY         = 'maxqr_savedRegion';
 const STORAGE_KEY_WINDOW  = 'maxqr_savedWindow';
 const STORAGE_KEY_MODE    = 'maxqr_videoMode';
 const STORAGE_KEY_THEME   = 'maxqr_glowTheme';
+const STORAGE_KEY_HISTORY = 'maxqr_historyVisible';
 
 /* ══════════════════════════════════════════════
    MOTYW GLOW
@@ -527,15 +524,47 @@ function applyTheme() {
     if (isGlowTheme) {
         qrOverlay.classList.add('theme-glow');
         themeBtnLabel.textContent = '✨ Glow ON';
-        themeToggleBtn.querySelector('.dot').style.background =
-            'radial-gradient(circle, #a78bfa, #6366f1)';
-        themeToggleBtn.querySelector('.dot').style.boxShadow =
-            '0 0 8px rgba(124,58,237,0.8)';
+        themeToggleBtn.querySelector('.dot').style.background = 'radial-gradient(circle, #a78bfa, #6366f1)';
+        themeToggleBtn.querySelector('.dot').style.boxShadow = '0 0 8px rgba(124,58,237,0.8)';
     } else {
         qrOverlay.classList.remove('theme-glow');
         themeBtnLabel.textContent = '✨ Glow OFF';
         themeToggleBtn.querySelector('.dot').style.background = '#555';
         themeToggleBtn.querySelector('.dot').style.boxShadow = 'none';
+    }
+}
+
+/* ══════════════════════════════════════════════
+   PASEK HISTORII - UKRYWANIE/POKAZYWANIE
+══════════════════════════════════════════════ */
+function initHistoryState() {
+    // Domyślnie ukryte na małych ekranach, w przeciwnym razie użyj zapisanej wartości
+    const saved = localStorage.getItem(STORAGE_KEY_HISTORY);
+    const viewportWidth = window.innerWidth;
+    
+    if (viewportWidth < 900) {
+        isHistoryVisible = false;
+    } else if (saved !== null) {
+        isHistoryVisible = saved === 'true';
+    } else {
+        isHistoryVisible = true;
+    }
+    updateHistoryVisibility();
+}
+
+function toggleHistorySidebar() {
+    isHistoryVisible = !isHistoryVisible;
+    localStorage.setItem(STORAGE_KEY_HISTORY, isHistoryVisible);
+    updateHistoryVisibility();
+}
+
+function updateHistoryVisibility() {
+    if (isHistoryVisible) {
+        qhSidebar.classList.add('visible');
+        historyToggleBtn.classList.add('visible');
+    } else {
+        qhSidebar.classList.remove('visible');
+        historyToggleBtn.classList.add('visible');
     }
 }
 
@@ -660,9 +689,7 @@ function clearStoredRegion() {
     updateCoordsDisplay(null); clearStoredWindow(); setStatus('statusCoordsCleared');
 }
 function updateCoordsDisplay(r) {
-    coordsDisplay.textContent = r
-        ? `x: ${r.x} | y: ${r.y} | w: ${r.w} | h: ${r.h}`
-        : 'x: — | y: — | w: — | h: —';
+    coordsDisplay.textContent = r ? `x: ${r.x} | y: ${r.y} | w: ${r.w} | h: ${r.h}` : 'x: — | y: — | w: — | h: —';
 }
 
 /* ══════════════════════════════════════════════
@@ -833,13 +860,16 @@ function addToHistory(code) {
 function renderSidebar() {
     qhList.innerHTML = '';
     const toShow = scansHistory.slice(1);
-    if (!toShow.length) { qhSidebar.style.display = 'none'; return; }
+    if (!toShow.length) { 
+        qhSidebar.classList.remove('visible'); 
+        return; 
+    }
     toShow.forEach((code, i) => {
         const realIdx = i + 1;
         const card = document.createElement('div');
         card.className = 'qh-card'; card.dataset.idx = realIdx;
         const cvs = document.createElement('canvas');
-        new QRious({ element: cvs, value: code, size: 130, background:'#fff', foreground:'#000' });
+        new QRious({ element: cvs, value: code, size: 100, background:'#fff', foreground:'#000' });
         const img = document.createElement('img'); img.src = cvs.toDataURL();
         const label = document.createElement('div');
         label.className = 'qh-card-code'; label.textContent = code;
@@ -847,7 +877,7 @@ function renderSidebar() {
         card.addEventListener('click', e => { e.stopPropagation(); openHistViewer(realIdx); });
         qhList.appendChild(card);
     });
-    qhSidebar.style.display = 'flex';
+    if (isHistoryVisible) qhSidebar.classList.add('visible');
 }
 
 function highlightSidebarCard(idx) {
@@ -857,7 +887,7 @@ function highlightSidebarCard(idx) {
 }
 
 /* ══════════════════════════════════════════════
-   QR OVERLAY (centralny)
+   QR OVERLAY
 ══════════════════════════════════════════════ */
 const bigQrCanvas  = document.getElementById('bigQrCanvas');
 const overlayTextEl = document.getElementById('overlayText');
@@ -926,6 +956,8 @@ document.addEventListener('keydown', e => {
     if (qrOverlay.style.display === 'flex') {
         if (e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); doQuickCapture(); }
         if (e.key === 'Escape') closeOverlay();
+        // Klawisz H - przełączanie paska historii
+        if (e.key === 'h' || e.key === 'H' || e.key === 'р' || e.key === 'Р') { e.preventDefault(); toggleHistorySidebar(); }
     }
 });
 
@@ -934,6 +966,7 @@ document.addEventListener('keydown', e => {
 ══════════════════════════════════════════════ */
 initMode();
 initTheme();
+initHistoryState();
 loadStoredRegion();
 loadStoredWindow();
 applyTranslations();
