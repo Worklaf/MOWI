@@ -14,11 +14,11 @@
             background: #121212;
             color: #eee;
             margin: 0; padding: 0;
-            height: 100vh;
-            overflow: hidden;
+            height: 100vh; overflow: hidden;
             position: relative;
         }
 
+        /* ── Переключатель режимов ── */
         #modeSwitcher {
             position: absolute; top: 20px; left: 20px;
             background: rgba(31,31,31,0.9);
@@ -66,6 +66,7 @@
             #languageSwitcher { top: 60px; left: 50%; transform: translateX(-50%); }
         }
 
+        /* ── Стартовый экран ── */
         #startScreen {
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
@@ -89,6 +90,7 @@
         .btn-green { background: #16a34a; }
         .btn-green:hover { background: #15803d; }
 
+        /* ── Рабочие контролы ── */
         #workControls {
             position: absolute; top: 20px; right: 20px;
             display: none; z-index: 50; gap: 10px; align-items: center;
@@ -112,7 +114,7 @@
         #mainCanvas { box-shadow: 0 0 50px #000; cursor: crosshair; }
 
         /* ══════════════════════════════════════
-           QR OVERLAY — новая структура
+           QR OVERLAY
         ══════════════════════════════════════ */
         #qrOverlay {
             display: none;
@@ -125,7 +127,6 @@
             cursor: pointer;
         }
 
-        /* Тело: sidebar + центр */
         .qr-overlay-body {
             flex: 1;
             display: flex;
@@ -138,11 +139,11 @@
             overflow: hidden;
         }
 
-        /* ── Левая история (внутри оверлея) ── */
+        /* ── Левая история (2 колонки) ── */
         #qhSidebar {
-            display: none;               /* появляется со 2-го скана */
+            display: none;
             flex-direction: column;
-            width: 165px;
+            width: 220px;                     /* чуть шире */
             max-height: 75vh;
             background: rgba(16,16,16,0.95);
             border: 1px solid #2a2a2a;
@@ -153,8 +154,8 @@
         }
 
         .qh-header {
-            padding: 8px 10px 6px;
-            font-size: 10px; color: #555;
+            padding: 10px 10px 8px;
+            font-size: 11px; color: #666;
             text-transform: uppercase; letter-spacing: 1.2px;
             border-bottom: 1px solid #1e1e1e;
             text-align: center; flex-shrink: 0;
@@ -162,36 +163,38 @@
 
         #qhList {
             overflow-y: auto;
-            display: flex; flex-direction: column;
-            gap: 8px; padding: 8px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;  /* 2 колонки */
+            gap: 10px;
+            padding: 10px;
         }
-        #qhList::-webkit-scrollbar { width: 4px; }
+        #qhList::-webkit-scrollbar { width: 5px; }
         #qhList::-webkit-scrollbar-track { background: #111; }
-        #qhList::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+        #qhList::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
 
-        /* Карточка истории — белая, как QR-карточка */
+        /* Карточка истории */
         .qh-card {
             background: #fff;
             border: 3px solid transparent;
             border-radius: 10px;
-            padding: 7px 7px 5px;
+            padding: 8px;
             cursor: pointer;
             transition: border-color 0.15s, transform 0.1s;
             text-align: center;
         }
-        .qh-card:hover  { border-color: #44aaff; transform: scale(1.03); }
+        .qh-card:hover  { border-color: #44aaff; transform: scale(1.05); }
         .qh-card.active { border-color: #44aaff; }
 
         .qh-card img {
             width: 100%;
-            aspect-ratio: 1 / 1;   /* полный QR, без обрезки */
+            aspect-ratio: 1 / 1;
             object-fit: contain;
             display: block;
             border-radius: 4px;
         }
         .qh-card-code {
             font-size: 10px; color: #222;
-            margin-top: 4px;
+            margin-top: 5px;
             font-family: 'Courier New', monospace;
             font-weight: bold; letter-spacing: 1px;
         }
@@ -203,10 +206,7 @@
             cursor: default;
         }
 
-        .qr-container {
-            position: relative;
-            display: flex; flex-direction: column; align-items: center;
-        }
+        .qr-container { position: relative; display: flex; flex-direction: column; align-items: center; }
 
         #captureBtnOverlay {
             position: absolute; top: -60px; left: 50%;
@@ -232,15 +232,88 @@
         }
 
         /* ── Подсказки снизу ── */
-        .qr-overlay-footer {
-            padding: 10px 0 18px;
-            text-align: center; cursor: default;
-        }
+        .qr-overlay-footer { padding: 10px 0 18px; text-align: center; cursor: default; }
         #hint      { color: #888; font-size: 18px; }
         #spaceHint { margin-top: 8px; color: #4ade80; font-size: 14px; }
 
+        /* ══════════════════════════════════════
+           МОДАЛКА ПРОСМОТРА (поверх всего)
+        ══════════════════════════════════════ */
+        #viewModal {
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.92);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+            cursor: default;
+        }
+
+        .vm-content {
+            display: flex; align-items: center; gap: 20px;
+            position: relative;
+        }
+
+        .vm-item {
+            text-align: center;
+            max-width: 90vw; max-height: 85vh;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .vm-item img {
+            max-width: 600px;
+            max-height: 70vh;
+            border-radius: 12px;
+            border: 2px solid #333;
+            box-shadow: 0 0 40px rgba(0,0,0,0.8);
+            display: block;
+        }
+
+        .vm-code {
+            margin-top: 20px;
+            font-size: 42px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #fff;
+            letter-spacing: 4px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .vm-counter {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .vm-nav {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: #fff;
+            font-size: 42px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s;
+            user-select: none;
+        }
+        .vm-nav:hover:not(:disabled) { background: rgba(255,255,255,0.18); }
+        .vm-nav:disabled { opacity: 0.15; cursor: default; }
+
+        .vm-close {
+            position: absolute; top: -50px; right: 0;
+            background: rgba(255,255,255,0.08);
+            border: none; color: #bbb; font-size: 14px;
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.15s;
+        }
+        .vm-close:hover { background: rgba(255,255,255,0.2); }
+
+        /* ── Разное ── */
         #hiddenPreview { display: none; }
-        #captureVideo  { display: none; }
+        #captureVideo   { display: none; }
 
         #coordsDisplay, #windowNameDisplay {
             font-family: 'JetBrains Mono', 'Courier New', monospace;
@@ -261,6 +334,7 @@
 </head>
 <body>
 
+    <!-- Переключатель режимов -->
     <div id="modeSwitcher">
         <span id="modeLabelOff" class="mode-label off">📺</span>
         <label class="switch">
@@ -279,6 +353,7 @@
         </select>
     </div>
 
+    <!-- Стартовый экран -->
     <div id="startScreen">
         <h1 id="startTitle">MAX QR READER</h1>
         <p  id="startSubtitle">Wybierz źródło obrazu</p>
@@ -290,6 +365,7 @@
         <input type="file" id="fileIn" hidden onchange="handleFile(event)">
     </div>
 
+    <!-- Рабочие контролы -->
     <div id="workControls">
         <span id="statusText" style="font-weight:bold;text-shadow:1px 1px 2px black;">Zaznacz obszar</span>
         <span id="coordsDisplay">x: — | y: — | w: — | h: —</span>
@@ -298,28 +374,27 @@
         <button id="resetBtn" class="btn-small" onclick="location.reload()">🔄 RESET</button>
     </div>
 
+    <!-- Холст -->
     <div class="canvas-container">
         <canvas id="mainCanvas"></canvas>
     </div>
 
     <video id="captureVideo" autoplay playsinline></video>
 
-    <!-- ══ QR Overlay ══ -->
+    <!-- ══ QR OVERLAY ══ -->
     <div id="qrOverlay" onclick="closeOverlay()">
-
         <div class="qr-overlay-body">
 
-            <!-- ЛЕВАЯ ИСТОРИЯ -->
+            <!-- Левая история -->
             <div id="qhSidebar" onclick="event.stopPropagation()">
-                <div class="qh-header">История</div>
+                <div class="qh-header">Historia</div>
                 <div id="qhList"></div>
             </div>
 
-            <!-- ЦЕНТРАЛЬНЫЙ QR -->
+            <!-- Центр -->
             <div class="qr-center" onclick="event.stopPropagation()">
                 <div class="qr-container">
-                    <button id="captureBtnOverlay"
-                            onclick="event.stopPropagation(); doQuickCapture();">
+                    <button id="captureBtnOverlay" onclick="event.stopPropagation(); doQuickCapture();">
                         📸 <span id="captureBtnText">NOWY ZRZUT</span>
                     </button>
                     <div class="qr-box">
@@ -330,20 +405,34 @@
             </div>
 
         </div>
-
         <div class="qr-overlay-footer">
             <div id="hint">Kliknij dowolne miejsce, aby zamknąć</div>
             <div id="spaceHint">Naciśnij SPACJĘ dla kolejnego zrzutu</div>
         </div>
     </div>
 
+    <!-- ══ МОДАЛКА ПРОСМОТРА ══ -->
+    <div id="viewModal">
+        <div class="vm-content">
+            <button class="vm-nav" id="vmPrev">&#8249;</button>
+            <div class="vm-item">
+                <img id="vmImg" src="" alt="">
+                <div id="vmCode" class="vm-code"></div>
+                <div id="vmCounter" class="vm-counter"></div>
+            </div>
+            <button class="vm-nav" id="vmNext">&#8250;</button>
+            <button class="vm-close" id="vmClose">✕</button>
+        </div>
+    </div>
+
     <canvas id="hiddenPreview"></canvas>
 
 <script>
-    const mainCanvas   = document.getElementById('mainCanvas');
-    const ctx          = mainCanvas.getContext('2d');
-    const previewCanvas= document.getElementById('hiddenPreview');
-    const pCtx         = previewCanvas.getContext('2d', { willReadFrequently: true });
+    /* ── Основные переменные ── */
+    const mainCanvas = document.getElementById('mainCanvas');
+    const ctx = mainCanvas.getContext('2d');
+    const previewCanvas = document.getElementById('hiddenPreview');
+    const pCtx = previewCanvas.getContext('2d', { willReadFrequently: true });
     const captureVideo = document.getElementById('captureVideo');
 
     let activeStream = null, savedStreamId = null;
@@ -351,34 +440,47 @@
     let storedRegion = null, lastWindowName = null;
     let isCapturing = false, isProcessing = false, isVideoMode = false;
 
-    const startScreen   = document.getElementById('startScreen');
-    const workControls  = document.getElementById('workControls');
-    const statusText    = document.getElementById('statusText');
-    const modeToggle    = document.getElementById('modeToggle');
-    const modeLabelOn   = document.getElementById('modeLabelOn');
-    const modeLabelOff  = document.getElementById('modeLabelOff');
-    const langSelect    = document.getElementById('langSelect');
-    const currentFlag   = document.getElementById('currentFlag');
-    const startTitleEl  = document.getElementById('startTitle');
+    /* ── Элементы DOM ── */
+    const startScreen = document.getElementById('startScreen');
+    const workControls = document.getElementById('workControls');
+    const statusText = document.getElementById('statusText');
+    const modeToggle = document.getElementById('modeToggle');
+    const modeLabelOn = document.getElementById('modeLabelOn');
+    const modeLabelOff = document.getElementById('modeLabelOff');
+    const langSelect = document.getElementById('langSelect');
+    const currentFlag = document.getElementById('currentFlag');
+    const startTitleEl = document.getElementById('startTitle');
     const startSubtitleEl = document.getElementById('startSubtitle');
-    const captureBtn    = document.getElementById('captureBtn');
-    const fileBtn       = document.getElementById('fileBtn');
-    const cardsBtn      = document.getElementById('cardsBtn');
-    const resetBtn      = document.getElementById('resetBtn');
+    const captureBtn = document.getElementById('captureBtn');
+    const fileBtn = document.getElementById('fileBtn');
+    const cardsBtn = document.getElementById('cardsBtn');
+    const resetBtn = document.getElementById('resetBtn');
     const overlayHintEl = document.getElementById('hint');
-    const spaceHintEl   = document.getElementById('spaceHint');
-    const captureBtnText= document.getElementById('captureBtnText');
+    const spaceHintEl = document.getElementById('spaceHint');
+    const captureBtnText = document.getElementById('captureBtnText');
     const coordsDisplay = document.getElementById('coordsDisplay');
-    const clearCoordsBtn= document.getElementById('clearCoordsBtn');
+    const clearCoordsBtn = document.getElementById('clearCoordsBtn');
     const windowNameDisplay = document.getElementById('windowNameDisplay');
-    const htmlElement   = document.documentElement;
-    const qhSidebar     = document.getElementById('qhSidebar');
-    const qhList        = document.getElementById('qhList');
+    const htmlElement = document.documentElement;
+    const qhSidebar = document.getElementById('qhSidebar');
+    const qhList = document.getElementById('qhList');
 
+    /* ── Модалка просмотра ── */
+    const viewModal = document.getElementById('viewModal');
+    const vmImg = document.getElementById('vmImg');
+    const vmCode = document.getElementById('vmCode');
+    const vmCounter = document.getElementById('vmCounter');
+    const vmPrev = document.getElementById('vmPrev');
+    const vmNext = document.getElementById('vmNext');
+    const vmClose = document.getElementById('vmClose');
+
+    let viewIndex = -1;
+
+    /* ── Константы ── */
     const HARDCODED_THRESHOLD = 210;
-    const STORAGE_KEY        = 'maxqr_savedRegion';
+    const STORAGE_KEY = 'maxqr_savedRegion';
     const STORAGE_KEY_WINDOW = 'maxqr_savedWindow';
-    const STORAGE_KEY_MODE   = 'maxqr_videoMode';
+    const STORAGE_KEY_MODE = 'maxqr_videoMode';
 
     const translations = {
         pl: {
@@ -386,51 +488,36 @@
             captureWindowBtn:'📸 PRZECHWYĆ OKNO', openFileBtn:'📂 OTWÓRZ PLIK',
             cardsBtn:'🃏 KARTY QR', resetBtn:'🔄 RESET',
             statusReady:'Zaznacz obszar', statusProcessing:'⚡ Przetwarzanie...',
-            statusDone:'Gotowe!', statusFail:'Nic nie znaleziono. Spróbuj ponownie.',
-            overlayHint:'Kliknij dowolne miejsce, aby zamknąć',
-            overlayReady:'Gotowy na kolejne zaznaczenie',
-            statusAutoInit:'Automatyczne przetwarzanie zapisanego obszaru…',
-            statusAutoError:'Zapisany obszar poza kadrem. Zaznacz ponownie.',
-            statusCoordsCleared:'Współrzędne wyzerowane.',
-            clearCoordsBtn:'🗑️ RESET',
-            spaceHint:'Naciśnij SPACJĘ dla kolejnego zrzutu',
-            captureBtnText:'NOWY ZRZUT',
-            statusReconnecting:'🔄 Próba połączenia z ostatnim oknem...',
-            statusSelectNew:'⚠️ Wybierz okno ponownie',
+            statusDone:'Gotowe!', statusFail:'Nic nie znaleziono.',
+            overlayHint:'Kliknij, aby zamknąć', overlayReady:'Gotowy',
+            statusAutoInit:'Automatyczne przetwarzanie...', statusAutoError:'Obszar poza kadrem.',
+            statusCoordsCleared:'Współrzędne wyzerowane.', clearCoordsBtn:'🗑️ RESET',
+            spaceHint:'SPACJA = nowy zrzut', captureBtnText:'NOWY ZRZUT',
+            statusReconnecting:'🔄 Łączenie z ostatnim oknem...', statusSelectNew:'⚠️ Wybierz okno',
         },
         uk: {
-            startTitle:'MAX QR READER', startSubtitle:'Виберіть джерело зображення',
+            startTitle:'MAX QR READER', startSubtitle:'Виберіть джерело',
             captureWindowBtn:'📸 ЗАХОПИТИ ВІКНО', openFileBtn:'📂 ВІДКРИТИ ФАЙЛ',
             cardsBtn:'🃏 QR КАРТКИ', resetBtn:'🔄 СКИНУТИ',
             statusReady:'Виділіть область', statusProcessing:'⚡ Обробка...',
-            statusDone:'Готово!', statusFail:'Нічого не знайдено. Спробуйте ще раз.',
-            overlayHint:'Клікніть будь-де, щоб закрити',
-            overlayReady:'Готовий до нового виділення',
-            statusAutoInit:'Автообробка збереженої зони…',
-            statusAutoError:'Збережена зона поза кадром. Виділіть знову.',
-            statusCoordsCleared:'Координати скинуті.',
-            clearCoordsBtn:'🗑️ СКИНУТИ',
-            spaceHint:'Натисніть ПРОБІЛ для наступного знімка',
-            captureBtnText:'НОВИЙ ЗНІМОК',
-            statusReconnecting:'🔄 Спроба з\'єднання з останнім вікном...',
-            statusSelectNew:'⚠️ Виберіть вікно знову',
+            statusDone:'Готово!', statusFail:'Нічого не знайдено.',
+            overlayHint:'Клікніть, щоб закрити', overlayReady:'Готовий',
+            statusAutoInit:'Автообробка...', statusAutoError:'Зона поза кадром.',
+            statusCoordsCleared:'Координати скинуті.', clearCoordsBtn:'🗑️ СКИНУТИ',
+            spaceHint:'ПРОБІЛ = новий знімок', captureBtnText:'НОВИЙ ЗНІМОК',
+            statusReconnecting:'🔄 З\'єднання...', statusSelectNew:'⚠️ Виберіть вікно',
         },
         en: {
             startTitle:'MAX QR READER', startSubtitle:'Select image source',
             captureWindowBtn:'📸 CAPTURE WINDOW', openFileBtn:'📂 OPEN FILE',
             cardsBtn:'🃏 QR CARDS', resetBtn:'🔄 RESET',
             statusReady:'Select area', statusProcessing:'⚡ Processing...',
-            statusDone:'Done!', statusFail:'Nothing found. Try again.',
-            overlayHint:'Click anywhere to close',
-            overlayReady:'Ready for next selection',
-            statusAutoInit:'Auto-processing saved area...',
-            statusAutoError:'Saved area out of frame. Select again.',
-            statusCoordsCleared:'Coordinates cleared.',
-            clearCoordsBtn:'🗑️ CLEAR',
-            spaceHint:'Press SPACE for next capture',
-            captureBtnText:'NEW CAPTURE',
-            statusReconnecting:'🔄 Trying to reconnect to last window...',
-            statusSelectNew:'⚠️ Select window again',
+            statusDone:'Done!', statusFail:'Nothing found.',
+            overlayHint:'Click to close', overlayReady:'Ready',
+            statusAutoInit:'Auto-processing...', statusAutoError:'Area out of frame.',
+            statusCoordsCleared:'Coordinates cleared.', clearCoordsBtn:'🗑️ CLEAR',
+            spaceHint:'SPACE = new capture', captureBtnText:'NEW CAPTURE',
+            statusReconnecting:'🔄 Reconnecting...', statusSelectNew:'⚠️ Select window',
         }
     };
     const ocrLangMap = { pl: 'pol', uk: 'ukr', en: 'eng' };
@@ -445,13 +532,8 @@
         updateModeUI();
     }
     function updateModeUI() {
-        if (isVideoMode) {
-            modeLabelOn.className  = 'mode-label on';
-            modeLabelOff.className = 'mode-label off';
-        } else {
-            modeLabelOn.className  = 'mode-label off';
-            modeLabelOff.className = 'mode-label on';
-        }
+        modeLabelOn.className  = isVideoMode ? 'mode-label on' : 'mode-label off';
+        modeLabelOff.className = isVideoMode ? 'mode-label off' : 'mode-label on';
     }
     modeToggle.addEventListener('change', () => {
         isVideoMode = modeToggle.checked;
@@ -469,16 +551,16 @@
     function refreshStatus() { statusText.innerText = t(currentStatusKey); }
     function setStatus(k) { currentStatusKey = k; refreshStatus(); }
     function applyTranslations() {
-        startTitleEl.innerText    = t('startTitle');
+        startTitleEl.innerText = t('startTitle');
         startSubtitleEl.innerText = t('startSubtitle');
-        captureBtn.innerText      = t('captureWindowBtn');
-        fileBtn.innerText         = t('openFileBtn');
-        cardsBtn.innerText        = t('cardsBtn');
-        resetBtn.innerText        = t('resetBtn');
-        overlayHintEl.innerText   = t('overlayHint');
-        spaceHintEl.innerText     = t('spaceHint');
-        clearCoordsBtn.innerText  = t('clearCoordsBtn');
-        captureBtnText.innerText  = t('captureBtnText');
+        captureBtn.innerText = t('captureWindowBtn');
+        fileBtn.innerText = t('openFileBtn');
+        cardsBtn.innerText = t('cardsBtn');
+        resetBtn.innerText = t('resetBtn');
+        overlayHintEl.innerText = t('overlayHint');
+        spaceHintEl.innerText = t('spaceHint');
+        clearCoordsBtn.innerText = t('clearCoordsBtn');
+        captureBtnText.innerText = t('captureBtnText');
         refreshStatus();
         updateCoordsDisplay(storedRegion);
     }
@@ -514,9 +596,7 @@
         setStatus('statusCoordsCleared');
     }
     function updateCoordsDisplay(r) {
-        coordsDisplay.textContent = r
-            ? `x: ${r.x} | y: ${r.y} | w: ${r.w} | h: ${r.h}`
-            : 'x: — | y: — | w: — | h: —';
+        coordsDisplay.textContent = r ? `x: ${r.x} | y: ${r.y} | w: ${r.w} | h: ${r.h}` : 'x: — | y: — | w: — | h: —';
     }
     clearCoordsBtn.addEventListener('click', clearStoredRegion);
 
@@ -536,9 +616,7 @@
         if (lastWindowName) {
             windowNameDisplay.textContent = `🖥️ ${lastWindowName}`;
             windowNameDisplay.style.display = 'inline-block';
-        } else {
-            windowNameDisplay.style.display = 'none';
-        }
+        } else { windowNameDisplay.style.display = 'none'; }
     }
     function clearStoredWindow() {
         lastWindowName = null; savedStreamId = null;
@@ -557,9 +635,9 @@
     }
 
     /* ══════════════════════════════════════
-       ИСТОРИЯ — внутри оверлея
+       ИСТОРИЯ (слева, 2 колонки)
     ══════════════════════════════════════ */
-    const scansHistory = []; // { code, dataURL }
+    const scansHistory = [];
 
     function addToHistory(dataURL, code) {
         scansHistory.unshift({ dataURL, code });
@@ -568,7 +646,7 @@
 
     function renderSidebar() {
         qhList.innerHTML = '';
-        const prev = scansHistory.slice(1); // всё кроме последнего (он в центре)
+        const prev = scansHistory.slice(1); // всё кроме последнего
 
         if (prev.length === 0) { qhSidebar.style.display = 'none'; return; }
         qhSidebar.style.display = 'flex';
@@ -576,20 +654,48 @@
         prev.forEach((item, i) => {
             const el = document.createElement('div');
             el.className = 'qh-card';
-            el.innerHTML = `
-                <img src="${item.dataURL}" alt="">
-                <div class="qh-card-code">${item.code}</div>
-            `;
-            el.addEventListener('click', e => {
-                e.stopPropagation();
-                // Показать этот QR в центре
-                new QRious({ element: document.getElementById('bigQrCanvas'), value: item.code, size: 400 });
-                document.getElementById('overlayText').innerText = item.code;
-                qhList.querySelectorAll('.qh-card').forEach((c, ci) => c.classList.toggle('active', ci === i));
-            });
+            el.innerHTML = `<img src="${item.dataURL}" alt=""><div class="qh-card-code">${item.code}</div>`;
+            el.addEventListener('click', e => { e.stopPropagation(); openViewModal(i + 1); });
             qhList.appendChild(el);
         });
     }
+
+    /* ══════════════════════════════════════
+       МОДАЛКА ПРОСМОТРА (полноэкранная)
+    ══════════════════════════════════════ */
+    function openViewModal(index) {
+        viewIndex = index;
+        refreshViewModal();
+        viewModal.style.display = 'flex';
+    }
+
+    function closeViewModal() {
+        viewModal.style.display = 'none';
+        viewIndex = -1;
+    }
+
+    function refreshViewModal() {
+        if (viewIndex < 0 || viewIndex >= scansHistory.length) return;
+        const item = scansHistory[viewIndex];
+        vmImg.src = item.dataURL;
+        vmCode.textContent = item.code;
+        vmCounter.textContent = `${viewIndex + 1} / ${scansHistory.length}`;
+        vmPrev.disabled = (viewIndex === 0);
+        vmNext.disabled = (viewIndex === scansHistory.length - 1);
+    }
+
+    vmPrev.addEventListener('click', () => { if (viewIndex > 0) { viewIndex--; refreshViewModal(); } });
+    vmNext.addEventListener('click', () => { if (viewIndex < scansHistory.length - 1) { viewIndex++; refreshViewModal(); } });
+    vmClose.addEventListener('click', closeViewModal);
+    viewModal.addEventListener('click', e => { if (e.target === viewModal) closeViewModal(); });
+
+    // Клавиши в модалке
+    document.addEventListener('keydown', e => {
+        if (viewModal.style.display !== 'flex') return;
+        if (e.key === 'ArrowLeft' && viewIndex > 0) { viewIndex--; refreshViewModal(); }
+        if (e.key === 'ArrowRight' && viewIndex < scansHistory.length - 1) { viewIndex++; refreshViewModal(); }
+        if (e.key === 'Escape') closeViewModal();
+    });
 
     /* ── Оверлей ── */
     function showOverlay(text) {
@@ -607,11 +713,14 @@
         setStatus('overlayReady');
     }
 
+    // Глобальные клавиши
     document.addEventListener('keydown', async e => {
-        const open = document.getElementById('qrOverlay').style.display === 'flex';
-        if (!open) return;
-        if (e.code === 'Space')                        { e.preventDefault(); await doQuickCapture(); }
-        else if (e.code === 'Enter' || e.code === 'Escape') { closeOverlay(); }
+        const qrOpen = document.getElementById('qrOverlay').style.display === 'flex';
+        
+        if (qrOpen && viewModal.style.display !== 'flex') {
+            if (e.code === 'Space') { e.preventDefault(); await doQuickCapture(); }
+            else if (e.code === 'Enter' || e.code === 'Escape') closeOverlay();
+        }
     });
 
     /* ── Захват ── */
