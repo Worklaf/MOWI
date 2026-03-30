@@ -88,38 +88,45 @@
             background: rgba(15,15,15,0.65); color: #f8fafc; font-weight: 600; box-shadow: 0 6px 18px rgba(0,0,0,0.45);
         }
         .canvas-container {
-            width: 100%; height: 100%; overflow: auto; background: #000; display: flex; justify-content: center; align-items: center;
+            width: 100%; height: 100%; overflow: auto; background: #000;
+            display: flex; justify-content: center; align-items: center;
         }
         #mainCanvas { box-shadow: 0 0 50px #000; cursor: crosshair; }
 
-        /* ═══════════════════════════════════════
-           QR OVERLAY & SIDEBAR
-        ═══════════════════════════════════════ */
+        /* ═══════════════════════════════════════════════
+           QR OVERLAY — NORMALNY MOTYW (domyślny)
+        ════════════════════════════════════════════════ */
         #qrOverlay {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999;
-            flex-direction: column; align-items: center; justify-content: space-between; cursor: pointer;
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 9999; flex-direction: column; align-items: center;
+            justify-content: space-between; cursor: pointer;
+            transition: background 0.4s;
         }
 
         .qr-overlay-body {
-            position: relative; flex: 1; display: flex; align-items: center; justify-content: center;
+            position: relative; flex: 1; display: flex;
+            align-items: center; justify-content: center;
             width: 100%; padding-top: 60px; box-sizing: border-box;
         }
 
-        /* Sidebar - pozycjonowany absolutnie, aby nie przesuwał centrum! */
+        /* Sidebar */
         #qhSidebar {
             display: none; flex-direction: column; width: 290px; max-height: 75vh;
             background: rgba(16,16,16,0.95); border: 1px solid #2a2a2a; border-radius: 14px;
             overflow: hidden; cursor: default;
             position: absolute; left: 20px; top: 50%; transform: translateY(-50%); z-index: 10;
+            transition: background 0.4s, border-color 0.4s, box-shadow 0.4s;
         }
-
         .qh-header {
-            padding: 8px 12px 7px; font-size: 10px; color: #4a4a4a; text-transform: uppercase; letter-spacing: 1.4px;
+            padding: 8px 12px 7px; font-size: 10px; color: #4a4a4a;
+            text-transform: uppercase; letter-spacing: 1.4px;
             border-bottom: 1px solid #1c1c1c; text-align: center; flex-shrink: 0;
+            transition: color 0.4s, border-color 0.4s;
         }
-
         #qhList {
-            overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 8px; box-sizing: border-box;
+            overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr;
+            gap: 8px; padding: 8px; box-sizing: border-box;
         }
         #qhList::-webkit-scrollbar { width: 4px; }
         #qhList::-webkit-scrollbar-track { background: #0e0e0e; }
@@ -127,43 +134,161 @@
 
         .qh-card {
             background: #fff; border: 3px solid transparent; border-radius: 10px; padding: 6px;
-            cursor: pointer; transition: border-color 0.15s, transform 0.1s; text-align: center; min-width: 0; box-sizing: border-box;
+            cursor: pointer; transition: border-color 0.15s, transform 0.1s, background 0.3s, box-shadow 0.2s;
+            text-align: center; min-width: 0; box-sizing: border-box;
         }
         .qh-card:hover  { border-color: #44aaff; transform: scale(1.04); }
         .qh-card.active { border-color: #44aaff; }
-        .qh-card img { width: 100%; aspect-ratio: 1 / 1; object-fit: contain; display: block; border-radius: 4px; }
+        .qh-card img { width: 100%; aspect-ratio: 1/1; object-fit: contain; display: block; border-radius: 4px; }
         .qh-card-code {
-            font-size: 9px; color: #222; margin-top: 4px; font-family: 'Courier New', monospace;
-            font-weight: bold; letter-spacing: 0.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            font-size: 9px; color: #222; margin-top: 4px;
+            font-family: 'Courier New', monospace; font-weight: bold;
+            letter-spacing: 0.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            transition: color 0.3s;
         }
 
         /* Centralny QR */
-        .qr-center { display: flex; flex-direction: column; align-items: center; cursor: default; position: relative; z-index: 1; }
+        .qr-center {
+            display: flex; flex-direction: column; align-items: center;
+            cursor: default; position: relative; z-index: 1;
+        }
         .qr-container { position: relative; display: flex; flex-direction: column; align-items: center; }
 
         #captureBtnOverlay {
             position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
-            padding: 12px 24px; font-size: 16px; font-weight: bold; background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white; border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 8px 25px rgba(245,158,11,0.4);
-            display: flex; align-items: center; gap: 10px; transition: all 0.2s; white-space: nowrap;
+            padding: 12px 24px; font-size: 16px; font-weight: bold;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white; border: none; border-radius: 12px; cursor: pointer;
+            box-shadow: 0 8px 25px rgba(245,158,11,0.4);
+            display: flex; align-items: center; gap: 10px;
+            transition: all 0.2s; white-space: nowrap;
         }
         #captureBtnOverlay:hover  { transform: translateX(-50%) scale(1.05); box-shadow: 0 12px 35px rgba(245,158,11,0.5); }
         #captureBtnOverlay:active { transform: translateX(-50%) scale(0.98); }
 
         .qr-box {
             background: white; padding: 20px; border-radius: 15px; text-align: center;
-            box-shadow: 0 0 50px rgba(255,255,255,0.2); cursor: zoom-in; transition: transform 0.15s, box-shadow 0.15s;
+            box-shadow: 0 0 50px rgba(255,255,255,0.2); cursor: zoom-in;
+            transition: transform 0.15s, box-shadow 0.3s, background 0.4s, border-color 0.4s;
+            border: 2px solid transparent;
         }
         .qr-box:hover { transform: scale(1.02); box-shadow: 0 0 70px rgba(255,255,255,0.3); }
 
-        #overlayText { margin-top: 15px; font-size: 60px; font-family: 'Courier New', monospace; font-weight: bold; color: #000; letter-spacing: 2px; }
-        .qr-overlay-footer { padding: 10px 0 18px; text-align: center; cursor: default; z-index: 1; }
-        #hint { color: #888; font-size: 18px; }
-        #spaceHint { margin-top: 8px; color: #4ade80; font-size: 14px; }
+        #overlayText {
+            margin-top: 15px; font-size: 60px; font-family: 'Courier New', monospace;
+            font-weight: bold; color: #000; letter-spacing: 2px;
+            transition: color 0.3s;
+        }
 
-        /* ═══════════════════════════════════════
-           HISTORY VIEWER (Z fioletowym designem)
-        ═══════════════════════════════════════ */
+        .qr-overlay-footer {
+            padding: 10px 0 18px; text-align: center; cursor: default; z-index: 1;
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+        }
+        #hint  { color: #888; font-size: 18px; transition: color 0.4s; }
+        #spaceHint { color: #4ade80; font-size: 14px; transition: color 0.4s; }
+
+        /* ── PRZYCISK MOTYWU ── */
+        #themeToggleBtn {
+            padding: 8px 20px; font-size: 13px; font-weight: 700; letter-spacing: 0.6px;
+            border: 1px solid rgba(255,255,255,0.2); border-radius: 30px;
+            background: rgba(30,30,30,0.85); color: #999; cursor: pointer;
+            transition: all 0.25s; display: flex; align-items: center; gap: 8px;
+        }
+        #themeToggleBtn:hover {
+            background: rgba(55,55,55,0.95); color: #fff; border-color: rgba(255,255,255,0.45);
+        }
+        #themeToggleBtn .dot {
+            width: 8px; height: 8px; border-radius: 50%; background: #555; transition: background 0.3s;
+        }
+
+        /* ═══════════════════════════════════════════════
+           MOTYW: GLOW (klasa theme-glow na #qrOverlay)
+        ════════════════════════════════════════════════ */
+        #qrOverlay.theme-glow {
+            background: radial-gradient(ellipse at 50% 30%,
+                rgba(20,8,55,0.98) 0%,
+                rgba(4,4,18,0.99) 65%);
+        }
+
+        /* Sidebar – glow */
+        #qrOverlay.theme-glow #qhSidebar {
+            background: linear-gradient(145deg, #0f172a 0%, #1a1040 55%, #0f172a 100%);
+            border: 1px solid rgba(139,92,246,0.38);
+            box-shadow:
+                0 0 50px rgba(99,102,241,0.22),
+                0 0 110px rgba(139,92,246,0.12),
+                inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+        #qrOverlay.theme-glow .qh-header {
+            color: #818cf8;
+            border-bottom-color: rgba(99,102,241,0.22);
+        }
+        #qrOverlay.theme-glow .qh-card {
+            background: rgba(15,23,42,0.95);
+            border-color: rgba(99,102,241,0.22);
+        }
+        #qrOverlay.theme-glow .qh-card:hover {
+            border-color: #7c3aed;
+            transform: scale(1.04);
+            box-shadow: 0 0 20px rgba(124,58,237,0.45), 0 0 40px rgba(99,102,241,0.2);
+        }
+        #qrOverlay.theme-glow .qh-card.active {
+            border-color: #7c3aed;
+            box-shadow: 0 0 20px rgba(124,58,237,0.45);
+        }
+        #qrOverlay.theme-glow .qh-card-code { color: #a5b4fc; }
+
+        /* Centralny QR box – glow */
+        #qrOverlay.theme-glow .qr-box {
+            background: linear-gradient(145deg, #0f172a 0%, #1a1040 55%, #0f172a 100%);
+            border: 2px solid rgba(139,92,246,0.5);
+            box-shadow:
+                0 0 80px rgba(99,102,241,0.55),
+                0 0 160px rgba(139,92,246,0.25),
+                inset 0 1px 0 rgba(255,255,255,0.07);
+        }
+        #qrOverlay.theme-glow .qr-box:hover {
+            box-shadow:
+                0 0 110px rgba(99,102,241,0.7),
+                0 0 200px rgba(139,92,246,0.35),
+                inset 0 1px 0 rgba(255,255,255,0.07);
+        }
+        #qrOverlay.theme-glow #bigQrCanvas { border-radius: 10px; }
+
+        /* Liczby pod QR – gradient glow */
+        #qrOverlay.theme-glow #overlayText {
+            background: linear-gradient(135deg, #a78bfa 0%, #818cf8 45%, #38bdf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 0 16px rgba(99,102,241,0.7));
+        }
+
+        /* Stopka – glow */
+        #qrOverlay.theme-glow #hint      { color: #6366f1; }
+        #qrOverlay.theme-glow #spaceHint { color: #a78bfa; }
+
+        /* Przycisk motywu – glow */
+        #qrOverlay.theme-glow #themeToggleBtn {
+            background: linear-gradient(135deg, rgba(124,58,237,0.28), rgba(37,99,235,0.28));
+            border-color: rgba(139,92,246,0.5);
+            color: #a5b4fc;
+            box-shadow: 0 4px 20px rgba(124,58,237,0.35);
+        }
+        #qrOverlay.theme-glow #themeToggleBtn:hover {
+            background: linear-gradient(135deg, rgba(124,58,237,0.48), rgba(37,99,235,0.48));
+            box-shadow: 0 6px 30px rgba(124,58,237,0.55);
+            color: #fff;
+        }
+        #qrOverlay.theme-glow #themeToggleBtn .dot {
+            background: radial-gradient(circle, #a78bfa, #6366f1);
+            box-shadow: 0 0 8px rgba(124,58,237,0.8);
+        }
+
+        /* ═══════════════════════════════════════════════
+           HISTORY VIEWER (zawsze fioletowy)
+        ════════════════════════════════════════════════ */
         #histViewer {
             position: fixed; inset: 0; z-index: 99999;
             display: flex; align-items: center; justify-content: center;
@@ -172,52 +297,53 @@
 
         .hv-bg {
             position: absolute; inset: 0; cursor: pointer;
-            background: radial-gradient(ellipse at 50% 30%, rgba(20, 8, 55, 0.98) 0%, rgba(4, 4, 18, 0.99) 65%);
+            background: radial-gradient(ellipse at 50% 30%, rgba(20,8,55,0.98) 0%, rgba(4,4,18,0.99) 65%);
         }
-
         .hv-wrap {
             position: relative; z-index: 1; display: flex; align-items: center; gap: 24px;
             background: linear-gradient(145deg, #0f172a 0%, #1a1040 55%, #0f172a 100%);
             border: 1px solid rgba(139,92,246,0.35); border-radius: 30px; padding: 50px 44px;
-            box-shadow: 0 0 80px rgba(99,102,241,0.28), 0 0 180px rgba(139,92,246,0.14), inset 0 1px 0 rgba(255,255,255,0.07);
+            box-shadow:
+                0 0 80px rgba(99,102,241,0.28),
+                0 0 180px rgba(139,92,246,0.14),
+                inset 0 1px 0 rgba(255,255,255,0.07);
         }
-
         .hv-center {
-            position: relative; display: flex; flex-direction: column; align-items: center; text-align: center;
-            max-width: 90vw; max-height: 85vh;
+            position: relative; display: flex; flex-direction: column; align-items: center;
+            text-align: center; max-width: 90vw; max-height: 85vh;
         }
-
-        /* Canvas z QR kodem z borderem */
         #hvCanvas {
             max-width: 420px; max-height: 55vh; border-radius: 14px;
-            border: 2px solid rgba(139,92,246,0.4); box-shadow: 0 0 50px rgba(99,102,241,0.35); display: block;
+            border: 2px solid rgba(139,92,246,0.4);
+            box-shadow: 0 0 50px rgba(99,102,241,0.35); display: block;
         }
-
         .hv-code-wrap {
-            margin-top: 24px; background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 35%, #2563eb 70%, #0891b2 100%);
+            margin-top: 24px;
+            background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 35%, #2563eb 70%, #0891b2 100%);
             border-radius: 20px; padding: 18px 44px;
             box-shadow: 0 8px 40px rgba(124,58,237,0.55), 0 0 80px rgba(37,99,235,0.25);
         }
-
         #hvCode {
             font-size: 46px; font-family: 'Courier New', monospace; font-weight: bold;
             color: #fff; letter-spacing: 8px; text-shadow: 0 2px 18px rgba(0,0,0,0.5); margin: 0;
         }
-
         #hvCounter { margin-top: 12px; font-size: 13px; color: #6366f1; letter-spacing: 1px; }
 
         .hv-nav {
             background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.35);
             color: #a5b4fc; font-size: 46px; padding: 10px 18px; border-radius: 12px;
-            cursor: pointer; transition: background 0.15s, border-color 0.15s; user-select: none; line-height: 1; flex-shrink: 0;
+            cursor: pointer; transition: background 0.15s, border-color 0.15s;
+            user-select: none; line-height: 1; flex-shrink: 0;
         }
         .hv-nav:hover:not(:disabled) { background: rgba(99,102,241,0.28); border-color: rgba(99,102,241,0.55); }
         .hv-nav:disabled { opacity: 0.12; cursor: default; }
 
         #hvClose {
-            position: absolute; top: -48px; right: 0; background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.35);
+            position: absolute; top: -48px; right: 0;
+            background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.35);
             color: #a5b4fc; font-size: 14px; width: 36px; height: 36px; border-radius: 50%;
-            cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: background 0.15s;
         }
         #hvClose:hover { background: rgba(99,102,241,0.3); }
 
@@ -230,7 +356,8 @@
             border: 1px solid rgba(96,165,250,0.35); box-shadow: 0 6px 18px rgba(37,99,235,0.25);
         }
         #windowNameDisplay {
-            font-size: 12px; background: rgba(22,163,74,0.2); color: #86efac; border: 1px solid rgba(34,197,94,0.35);
+            font-size: 12px; background: rgba(22,163,74,0.2); color: #86efac;
+            border: 1px solid rgba(34,197,94,0.35);
             max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
     </style>
@@ -276,8 +403,8 @@
     <h1 id="startTitle">MAX QR READER</h1>
     <p  id="startSubtitle">Wybierz źródło obrazu</p>
     <button id="captureBtn" class="btn-big btn-blue" onclick="startCapture()">📸 PRZECHWYĆ OKNO</button>
-    <button id="fileBtn" class="btn-big btn-blue" style="background:#4b5563" onclick="document.getElementById('fileIn').click()">📂 OTWÓRZ PLIK</button>
-    <button id="cardsBtn" class="btn-big btn-green" onclick="window.location.href='https://worklaf.github.io/MOWI/QR_Cards.html'">🃏 KARTY QR</button>
+    <button id="fileBtn"    class="btn-big btn-blue" style="background:#4b5563" onclick="document.getElementById('fileIn').click()">📂 OTWÓRZ PLIK</button>
+    <button id="cardsBtn"   class="btn-big btn-green" onclick="window.location.href='https://worklaf.github.io/MOWI/QR_Cards.html'">🃏 KARTY QR</button>
     <input type="file" id="fileIn" hidden onchange="handleFile(event)">
 </div>
 
@@ -286,7 +413,7 @@
     <span id="coordsDisplay">x: — | y: — | w: — | h: —</span>
     <span id="windowNameDisplay" style="display:none;">—</span>
     <button id="clearCoordsBtn" class="btn-ghost">🗑️ RESET</button>
-    <button id="resetBtn" class="btn-small" onclick="location.reload()">🔄 RESET</button>
+    <button id="resetBtn"       class="btn-small" onclick="location.reload()">🔄 RESET</button>
 </div>
 
 <div class="canvas-container">
@@ -318,25 +445,34 @@
         </div>
 
     </div>
+
     <div class="qr-overlay-footer">
         <div id="hint">Kliknij dowolne miejsce, aby zamknąć</div>
         <div id="spaceHint">Naciśnij SPACJĘ dla kolejnego zrzutu</div>
+        <!-- ── PRZYCISK MOTYWU ── -->
+        <button id="themeToggleBtn" onclick="event.stopPropagation(); toggleOverlayTheme();">
+            <span class="dot"></span>
+            <span id="themeBtnLabel">✨ Glow OFF</span>
+        </button>
     </div>
 </div>
 
 <canvas id="hiddenPreview"></canvas>
 
 <script>
+/* ══════════════════════════════════════════════
+   ELEMENTY DOM
+══════════════════════════════════════════════ */
 const mainCanvas    = document.getElementById('mainCanvas');
 const ctx           = mainCanvas.getContext('2d');
 const previewCanvas = document.getElementById('hiddenPreview');
 const pCtx          = previewCanvas.getContext('2d', { willReadFrequently: true });
 const captureVideo  = document.getElementById('captureVideo');
 
-let activeStream = null, savedStreamId = null;
-let isDrawing = false, startX, startY, imgDataSnapshot;
-let storedRegion = null, lastWindowName = null;
-let isCapturing = false, isProcessing = false, isVideoMode = false;
+let activeStream  = null;
+let isDrawing     = false, startX, startY, imgDataSnapshot;
+let storedRegion  = null, lastWindowName = null;
+let isCapturing   = false, isProcessing = false, isVideoMode = false;
 
 const startScreen       = document.getElementById('startScreen');
 const workControls      = document.getElementById('workControls');
@@ -361,44 +497,101 @@ const windowNameDisplay = document.getElementById('windowNameDisplay');
 const htmlEl            = document.documentElement;
 const qhSidebar         = document.getElementById('qhSidebar');
 const qhList            = document.getElementById('qhList');
+const qrOverlay         = document.getElementById('qrOverlay');
+const themeToggleBtn    = document.getElementById('themeToggleBtn');
+const themeBtnLabel     = document.getElementById('themeBtnLabel');
 
 const HARDCODED_THRESHOLD = 210;
 const STORAGE_KEY         = 'maxqr_savedRegion';
 const STORAGE_KEY_WINDOW  = 'maxqr_savedWindow';
 const STORAGE_KEY_MODE    = 'maxqr_videoMode';
+const STORAGE_KEY_THEME   = 'maxqr_glowTheme';
 
+/* ══════════════════════════════════════════════
+   MOTYW GLOW
+══════════════════════════════════════════════ */
+let isGlowTheme = false;
+
+function initTheme() {
+    isGlowTheme = localStorage.getItem(STORAGE_KEY_THEME) === 'true';
+    applyTheme();
+}
+
+function toggleOverlayTheme() {
+    isGlowTheme = !isGlowTheme;
+    localStorage.setItem(STORAGE_KEY_THEME, isGlowTheme);
+    applyTheme();
+}
+
+function applyTheme() {
+    if (isGlowTheme) {
+        qrOverlay.classList.add('theme-glow');
+        themeBtnLabel.textContent = '✨ Glow ON';
+        themeToggleBtn.querySelector('.dot').style.background =
+            'radial-gradient(circle, #a78bfa, #6366f1)';
+        themeToggleBtn.querySelector('.dot').style.boxShadow =
+            '0 0 8px rgba(124,58,237,0.8)';
+    } else {
+        qrOverlay.classList.remove('theme-glow');
+        themeBtnLabel.textContent = '✨ Glow OFF';
+        themeToggleBtn.querySelector('.dot').style.background = '#555';
+        themeToggleBtn.querySelector('.dot').style.boxShadow = 'none';
+    }
+}
+
+/* ══════════════════════════════════════════════
+   TŁUMACZENIA
+══════════════════════════════════════════════ */
 const translations = {
     pl: {
-        startTitle:'MAX QR READER', startSubtitle:'Wybierz źródło obrazu', captureWindowBtn:'📸 PRZECHWYĆ OKNO', openFileBtn:'📂 OTWÓRZ PLIK', cardsBtn:'🃏 KARTY QR', resetBtn:'🔄 RESET', statusReady:'Zaznacz obszar', statusProcessing:'⚡ Przetwarzanie...', statusDone:'Gotowe!', statusFail:'Nic nie znaleziono.', overlayHint:'Kliknij dowolne miejsce, aby zamknąć', overlayReady:'Gotowy', statusAutoInit:'Automatyczne przetwarzanie...', statusAutoError:'Zapisany obszar poza kadrem.', statusCoordsCleared:'Współrzędne wyzerowane.', clearCoordsBtn:'🗑️ RESET', spaceHint:'Naciśnij SPACJĘ dla kolejnego zrzutu', captureBtnText:'NOWY ZRZUT', statusSelectNew:'⚠️ Wybierz okno ponownie',
+        startTitle:'MAX QR READER', startSubtitle:'Wybierz źródło obrazu',
+        captureWindowBtn:'📸 PRZECHWYĆ OKNO', openFileBtn:'📂 OTWÓRZ PLIK',
+        cardsBtn:'🃏 KARTY QR', resetBtn:'🔄 RESET',
+        statusReady:'Zaznacz obszar', statusProcessing:'⚡ Przetwarzanie...',
+        statusDone:'Gotowe!', statusFail:'Nic nie znaleziono.',
+        overlayHint:'Kliknij dowolne miejsce, aby zamknąć',
+        statusAutoInit:'Automatyczne przetwarzanie...',
+        statusAutoError:'Zapisany obszar poza kadrem.',
+        statusCoordsCleared:'Współrzędne wyzerowane.',
+        clearCoordsBtn:'🗑️ RESET',
+        spaceHint:'Naciśnij SPACJĘ dla kolejnego zrzutu',
+        captureBtnText:'NOWY ZRZUT',
+        statusSelectNew:'⚠️ Wybierz okno ponownie',
     },
-    uk: { /* pominięte w locie JS dla zwięzłości, działało u Ciebie :) */ },
-    en: { /* ... */ }
+    uk: {
+        startTitle:'MAX QR READER', startSubtitle:'Оберіть джерело зображення',
+        captureWindowBtn:'📸 ЗАХОПИТИ ВІКНО', openFileBtn:'📂 ВІДКРИТИ ФАЙЛ',
+        cardsBtn:'🃏 QR КАРТКИ', resetBtn:'🔄 СКИНУТИ',
+        statusReady:'Виділіть область', statusProcessing:'⚡ Обробка...',
+        statusDone:'Готово!', statusFail:'Нічого не знайдено.',
+        overlayHint:'Натисніть будь-де, щоб закрити',
+        statusAutoInit:'Автоматична обробка...',
+        statusAutoError:'Збережена область поза кадром.',
+        statusCoordsCleared:'Координати скинуто.',
+        clearCoordsBtn:'🗑️ СКИНУТИ',
+        spaceHint:'Натисніть ПРОБІЛ для нового зображення',
+        captureBtnText:'НОВИЙ ЗНІМОК',
+        statusSelectNew:'⚠️ Оберіть вікно знову',
+    },
+    en: {
+        startTitle:'MAX QR READER', startSubtitle:'Choose image source',
+        captureWindowBtn:'📸 CAPTURE WINDOW', openFileBtn:'📂 OPEN FILE',
+        cardsBtn:'🃏 QR CARDS', resetBtn:'🔄 RESET',
+        statusReady:'Select area', statusProcessing:'⚡ Processing...',
+        statusDone:'Done!', statusFail:'Nothing found.',
+        overlayHint:'Click anywhere to close',
+        statusAutoInit:'Auto processing...', statusAutoError:'Saved area out of frame.',
+        statusCoordsCleared:'Coordinates cleared.',
+        clearCoordsBtn:'🗑️ RESET',
+        spaceHint:'Press SPACE for next capture',
+        captureBtnText:'NEW CAPTURE',
+        statusSelectNew:'⚠️ Select window again',
+    }
 };
 const ocrLangMap = { pl:'pol', uk:'ukr', en:'eng' };
-let currentLang = langSelect.value || 'pl';
+let currentLang    = langSelect.value || 'pl';
 let currentStatusKey = 'statusReady';
 
-// Mode
-function initMode() {
-    isVideoMode = localStorage.getItem(STORAGE_KEY_MODE) === 'true';
-    modeToggle.checked = isVideoMode; updateModeUI();
-}
-function updateModeUI() {
-    modeLabelOn.className  = isVideoMode ? 'mode-label on'  : 'mode-label off';
-    modeLabelOff.className = isVideoMode ? 'mode-label off' : 'mode-label on';
-}
-modeToggle.addEventListener('change', () => {
-    isVideoMode = modeToggle.checked;
-    localStorage.setItem(STORAGE_KEY_MODE, isVideoMode);
-    updateModeUI();
-    if (!isVideoMode && activeStream) stopVideoStream();
-});
-function stopVideoStream() {
-    if (activeStream) { activeStream.getTracks().forEach(t => t.stop()); activeStream = null; }
-    captureVideo.srcObject = null;
-}
-
-// Translate
 function t(k) { return (translations[currentLang]||{})[k] || (translations['pl'][k] || k); }
 function refreshStatus() { statusText.innerText = t(currentStatusKey); }
 function setStatus(k) { currentStatusKey = k; refreshStatus(); }
@@ -425,7 +618,31 @@ langSelect.addEventListener('change', () => {
     if (o && o.dataset.flag) currentFlag.className = o.dataset.flag;
 })();
 
-// Region
+/* ══════════════════════════════════════════════
+   TRYB WIDEO
+══════════════════════════════════════════════ */
+function initMode() {
+    isVideoMode = localStorage.getItem(STORAGE_KEY_MODE) === 'true';
+    modeToggle.checked = isVideoMode; updateModeUI();
+}
+function updateModeUI() {
+    modeLabelOn.className  = isVideoMode ? 'mode-label on'  : 'mode-label off';
+    modeLabelOff.className = isVideoMode ? 'mode-label off' : 'mode-label on';
+}
+modeToggle.addEventListener('change', () => {
+    isVideoMode = modeToggle.checked;
+    localStorage.setItem(STORAGE_KEY_MODE, isVideoMode);
+    updateModeUI();
+    if (!isVideoMode && activeStream) stopVideoStream();
+});
+function stopVideoStream() {
+    if (activeStream) { activeStream.getTracks().forEach(t => t.stop()); activeStream = null; }
+    captureVideo.srcObject = null;
+}
+
+/* ══════════════════════════════════════════════
+   REGION STORAGE
+══════════════════════════════════════════════ */
 function loadStoredRegion() {
     try {
         const r = JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
@@ -443,10 +660,14 @@ function clearStoredRegion() {
     updateCoordsDisplay(null); clearStoredWindow(); setStatus('statusCoordsCleared');
 }
 function updateCoordsDisplay(r) {
-    coordsDisplay.textContent = r ? `x: ${r.x} | y: ${r.y} | w: ${r.w} | h: ${r.h}` : 'x: — | y: — | w: — | h: —';
+    coordsDisplay.textContent = r
+        ? `x: ${r.x} | y: ${r.y} | w: ${r.w} | h: ${r.h}`
+        : 'x: — | y: — | w: — | h: —';
 }
 
-// Window Name
+/* ══════════════════════════════════════════════
+   WINDOW NAME STORAGE
+══════════════════════════════════════════════ */
 function clearStoredWindow() {
     lastWindowName = null; localStorage.removeItem(STORAGE_KEY_WINDOW);
     windowNameDisplay.style.display = 'none';
@@ -459,16 +680,18 @@ function loadStoredWindow() {
     const w = localStorage.getItem(STORAGE_KEY_WINDOW);
     if (w) { lastWindowName = w; windowNameDisplay.textContent = `🖥 ${w}`; windowNameDisplay.style.display = 'inline-block'; }
 }
-
 clearCoordsBtn.addEventListener('click', clearStoredRegion);
 
-// Canvas draw
+/* ══════════════════════════════════════════════
+   CANVAS – ZAZNACZANIE OBSZARU
+══════════════════════════════════════════════ */
 mainCanvas.addEventListener('mousedown', e => {
     if (!activeStream && !mainCanvas.dataset.hasImage) return;
     isDrawing = true;
     const rect = mainCanvas.getBoundingClientRect();
     const sx = mainCanvas.width / rect.width, sy = mainCanvas.height / rect.height;
-    startX = (e.clientX - rect.left) * sx; startY = (e.clientY - rect.top)  * sy;
+    startX = (e.clientX - rect.left) * sx;
+    startY = (e.clientY - rect.top)  * sy;
     imgDataSnapshot = ctx.getImageData(0, 0, mainCanvas.width, mainCanvas.height);
 });
 mainCanvas.addEventListener('mousemove', e => {
@@ -493,23 +716,20 @@ mainCanvas.addEventListener('mouseup', async e => {
     await processRegion({ x: rx, y: ry, w: rw, h: rh });
 });
 
-// Capture
+/* ══════════════════════════════════════════════
+   PRZECHWYTYWANIE EKRANU
+══════════════════════════════════════════════ */
 async function startCapture() {
     try {
         let captureController;
-        // Fix dla przeskakiwania ekranu po wyborze okna: używamy CaptureController (obsługiwany m.in. w najnowszym Chrome/Edge)
         if ('CaptureController' in window) {
             captureController = new CaptureController();
             captureController.setFocusBehavior("no-focus-change");
         }
-
-        const options = {
-            video: { cursor: 'never', displaySurface: 'window' }, audio: false
-        };
+        const options = { video: { cursor: 'never', displaySurface: 'window' }, audio: false };
         if (captureController) options.controller = captureController;
 
         activeStream = await navigator.mediaDevices.getDisplayMedia(options);
-        
         const track = activeStream.getVideoTracks()[0];
         saveStoredWindow(track.label || '');
         captureVideo.srcObject = activeStream;
@@ -518,14 +738,11 @@ async function startCapture() {
         mainCanvas.height = captureVideo.videoHeight;
         captureVideo.play();
         drawVideoFrame();
-        
-        startScreen.style.display = 'none';
+        startScreen.style.display  = 'none';
         workControls.style.display = 'flex';
         setStatus('statusReady');
         loadStoredRegion();
-        
         if (storedRegion) autoRunSavedRegion();
-        
         activeStream.getVideoTracks()[0].addEventListener('ended', () => {
             stopVideoStream(); setStatus('statusSelectNew');
         });
@@ -540,13 +757,10 @@ function drawVideoFrame() {
 
 async function doQuickCapture() {
     if (isCapturing || isProcessing) return;
-    // Zamknij okna
     closeHistViewer();
     qrOverlay.style.display = 'none';
-
     if (activeStream && storedRegion) { await processRegion(storedRegion); return; }
     if (activeStream) { setStatus('statusReady'); return; }
-    
     await startCapture();
     if (activeStream && storedRegion) await processRegion(storedRegion);
 }
@@ -554,7 +768,9 @@ async function doQuickCapture() {
 async function autoRunSavedRegion() {
     if (!storedRegion) return;
     const R = storedRegion;
-    if (R.x + R.w > mainCanvas.width || R.y + R.h > mainCanvas.height) { setStatus('statusAutoError'); storedRegion = null; return; }
+    if (R.x + R.w > mainCanvas.width || R.y + R.h > mainCanvas.height) {
+        setStatus('statusAutoError'); storedRegion = null; return;
+    }
     setStatus('statusAutoInit');
     await processRegion(R);
 }
@@ -573,16 +789,20 @@ function handleFile(e) {
     img.src = url;
 }
 
-// OCR Processing
+/* ══════════════════════════════════════════════
+   OCR
+══════════════════════════════════════════════ */
 async function processRegion(r) {
-    if (isProcessing) return; isProcessing = true; setStatus('statusProcessing');
+    if (isProcessing) return;
+    isProcessing = true; setStatus('statusProcessing');
     if (activeStream && captureVideo.readyState >= 2) ctx.drawImage(captureVideo, 0, 0);
     previewCanvas.width = r.w; previewCanvas.height = r.h;
     pCtx.drawImage(mainCanvas, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
     const raw = pCtx.getImageData(0, 0, r.w, r.h);
     pCtx.putImageData(toBlackWhite(raw, HARDCODED_THRESHOLD), 0, 0);
     try {
-        const result = await Tesseract.recognize(previewCanvas, ocrLangMap[currentLang] || 'eng', { tessedit_char_whitelist: '0123456789' });
+        const result = await Tesseract.recognize(previewCanvas, ocrLangMap[currentLang] || 'eng',
+            { tessedit_char_whitelist: '0123456789' });
         const digits = (result.data.text || '').replace(/\D/g, '').trim();
         if (digits.length >= 4) { setStatus('statusDone'); showOverlay(digits); }
         else { setStatus('statusFail'); }
@@ -599,9 +819,9 @@ function toBlackWhite(imgData, threshold) {
     return new ImageData(d, imgData.width, imgData.height);
 }
 
-// ═══════════════════════════════════
-// HISTORY SIDEBAR
-// ═══════════════════════════════════
+/* ══════════════════════════════════════════════
+   HISTORIA – SIDEBAR
+══════════════════════════════════════════════ */
 const scansHistory = [];
 
 function addToHistory(code) {
@@ -614,22 +834,15 @@ function renderSidebar() {
     qhList.innerHTML = '';
     const toShow = scansHistory.slice(1);
     if (!toShow.length) { qhSidebar.style.display = 'none'; return; }
-
     toShow.forEach((code, i) => {
         const realIdx = i + 1;
         const card = document.createElement('div');
-        card.className = 'qh-card';
-        card.dataset.idx = realIdx;
-
+        card.className = 'qh-card'; card.dataset.idx = realIdx;
         const cvs = document.createElement('canvas');
-        new QRious({ element: cvs, value: code, size: 130, background: '#fff', foreground: '#000' });
-        const img = document.createElement('img');
-        img.src = cvs.toDataURL();
-
+        new QRious({ element: cvs, value: code, size: 130, background:'#fff', foreground:'#000' });
+        const img = document.createElement('img'); img.src = cvs.toDataURL();
         const label = document.createElement('div');
-        label.className = 'qh-card-code';
-        label.textContent = code;
-
+        label.className = 'qh-card-code'; label.textContent = code;
         card.appendChild(img); card.appendChild(label);
         card.addEventListener('click', e => { e.stopPropagation(); openHistViewer(realIdx); });
         qhList.appendChild(card);
@@ -638,15 +851,16 @@ function renderSidebar() {
 }
 
 function highlightSidebarCard(idx) {
-    document.querySelectorAll('.qh-card').forEach(c => { c.classList.toggle('active', parseInt(c.dataset.idx) === idx); });
+    document.querySelectorAll('.qh-card').forEach(c => {
+        c.classList.toggle('active', parseInt(c.dataset.idx) === idx);
+    });
 }
 
-// ═══════════════════════════════════
-// QR OVERLAY (Central)
-// ═══════════════════════════════════
+/* ══════════════════════════════════════════════
+   QR OVERLAY (centralny)
+══════════════════════════════════════════════ */
 const bigQrCanvas  = document.getElementById('bigQrCanvas');
 const overlayTextEl = document.getElementById('overlayText');
-const qrOverlay     = document.getElementById('qrOverlay');
 
 function showOverlay(code) {
     overlayTextEl.textContent = code;
@@ -661,9 +875,9 @@ function closeOverlay() {
     setStatus('statusReady');
 }
 
-// ═══════════════════════════════════
-// HISTORY VIEWER (Modal)
-// ═══════════════════════════════════
+/* ══════════════════════════════════════════════
+   HISTORY VIEWER (modal)
+══════════════════════════════════════════════ */
 const histViewer = document.getElementById('histViewer');
 const hvCanvas   = document.getElementById('hvCanvas');
 const hvCode     = document.getElementById('hvCode');
@@ -672,7 +886,6 @@ const hvPrev     = document.getElementById('hvPrev');
 const hvNext     = document.getElementById('hvNext');
 const hvClose    = document.getElementById('hvClose');
 const hvBg       = document.getElementById('hvBg');
-
 let hvIndex = 0;
 
 function openHistViewer(idx) {
@@ -681,30 +894,28 @@ function openHistViewer(idx) {
     renderHistViewer();
     histViewer.classList.remove('hidden');
 }
-
 function closeHistViewer() {
     histViewer.classList.add('hidden');
     highlightSidebarCard(-1);
 }
-
 function renderHistViewer() {
     const code = scansHistory[hvIndex];
     hvCode.textContent = code;
-    // Zamiast img.src jak wcześniej, malujemy bezpośrednio na canvas za pomocą QRious
     new QRious({ element: hvCanvas, value: code, size: 300, background:'#fff', foreground:'#000' });
     hvCounter.textContent = `${hvIndex + 1} / ${scansHistory.length}`;
     hvPrev.disabled = hvIndex <= 0;
     hvNext.disabled = hvIndex >= scansHistory.length - 1;
     highlightSidebarCard(hvIndex);
 }
-
 hvPrev.addEventListener('click', e => { e.stopPropagation(); if (hvIndex > 0) { hvIndex--; renderHistViewer(); } });
 hvNext.addEventListener('click', e => { e.stopPropagation(); if (hvIndex < scansHistory.length - 1) { hvIndex++; renderHistViewer(); } });
 hvClose.addEventListener('click', e => { e.stopPropagation(); closeHistViewer(); });
 hvBg.addEventListener('click', closeHistViewer);
 document.querySelector('.hv-wrap').addEventListener('click', e => e.stopPropagation());
 
-// Keyboard
+/* ══════════════════════════════════════════════
+   KLAWIATURA
+══════════════════════════════════════════════ */
 document.addEventListener('keydown', e => {
     if (!histViewer.classList.contains('hidden')) {
         if (e.key === 'ArrowLeft')  { e.preventDefault(); if (hvIndex > 0) { hvIndex--; renderHistViewer(); } }
@@ -718,7 +929,14 @@ document.addEventListener('keydown', e => {
     }
 });
 
-initMode(); loadStoredRegion(); loadStoredWindow(); applyTranslations();
+/* ══════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════ */
+initMode();
+initTheme();
+loadStoredRegion();
+loadStoredWindow();
+applyTranslations();
 </script>
 </body>
 </html>
