@@ -20,25 +20,71 @@
 
         #modeSwitcher {
             position: absolute; top: 20px; left: 20px;
-            background: rgba(31,31,31,0.9); padding: 10px 16px;
+            background: rgba(31,31,31,0.9); padding: 10px 14px;
             border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-            display: flex; align-items: center; gap: 10px; z-index: 150; font-size: 14px;
+            display: flex; align-items: center; gap: 8px; z-index: 150; font-size: 14px;
         }
-        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+        /* Hover эффекты для контейнеров текста */
+        #statusContainer:hover {
+            background: linear-gradient(145deg, #334155 0%, #475569 50%, #334155 100%);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.2);
+            transform: translateY(-1px);
+            border-color: rgba(148,163,184,0.4);
+        }
+        #coordsContainer:hover {
+            background: linear-gradient(145deg, #334155 0%, #475569 50%, #334155 100%);
+            box-shadow: 0 3px 12px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.2);
+            transform: translateY(-1px);
+            border-color: rgba(148,163,184,0.4);
+        }
+        /* Hover эффекты для QUICK MULTI тумблера */
+        #quickModeSwitcher:hover {
+            background: linear-gradient(145deg, #334155 0%, #475569 50%, #334155 100%);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.2);
+            transform: translateY(-1px);
+            border-color: rgba(148,163,184,0.4);
+        }
+        .switch { 
+            position: relative; display: inline-block; width: 54px; height: 28px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider {
             position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #dc2626; transition: .4s; border-radius: 34px;
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); 
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+            border-radius: 34px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
         }
         .slider:before {
-            position: absolute; content: ""; height: 18px; width: 18px;
-            left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%;
+            position: absolute; content: ""; height: 20px; width: 20px;
+            left: 4px; bottom: 4px; 
+            background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%); 
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.5);
         }
-        input:checked + .slider { background-color: #16a34a; }
-        input:checked + .slider:before { transform: translateX(24px); }
-        .mode-label { font-weight: 600; font-size: 13px; }
-        .mode-label.on  { color: #4ade80; }
-        .mode-label.off { color: #f87171; }
+        input:checked + .slider { 
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), 0 0 12px rgba(34,197,94,0.3);
+        }
+        input:checked + .slider:before { 
+            transform: translateX(26px); 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.5);
+        }
+        .mode-label { 
+            font-weight: 700; font-size: 15px; 
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+        .mode-label.on  { 
+            color: #4ade80; 
+            filter: drop-shadow(0 0 8px rgba(74,222,128,0.4));
+        }
+        .mode-label.off { 
+            color: #f87171; 
+            filter: drop-shadow(0 0 8px rgba(248,113,113,0.4));
+        }
 
         #languageSwitcher {
             position: absolute; top: 20px; left: 200px;
@@ -521,7 +567,7 @@
         <input type="checkbox" id="modeToggle">
         <span class="slider"></span>
     </label>
-    <span id="modeLabelOn" class="mode-label on">🔴</span>
+    <span id="modeLabelOn" class="mode-label on">📹</span>
 </div>
 
 <div id="languageSwitcher">
@@ -537,15 +583,6 @@
     <h1 id="startTitle">MAX QR READER</h1>
     <p  id="startSubtitle">Wybierz źródło obrazu</p>
     
-    <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
-        <span style="color:#888; font-size:14px;">SINGLE MODE</span>
-        <label class="switch">
-            <input type="checkbox" id="multiModeToggle">
-            <span class="slider"></span>
-        </label>
-        <span style="color:#4ade80; font-size:14px;">MULTI MODE</span>
-    </div>
-    
     <button id="captureBtn" class="btn-big btn-blue" onclick="if(typeof startCapture === 'function') startCapture()">📸 PRZECHWYĆ OKNO</button>
     <button id="fileBtn"    class="btn-big btn-blue" style="background:#4b5563" onclick="document.getElementById('fileIn').click()">📂 OTWÓRZ PLIK</button>
     <button id="cardsBtn"   class="btn-big btn-green" onclick="window.location.href='https://worklaf.github.io/MOWI/QR_Cards.html'">🃏 KARTY QR</button>
@@ -554,28 +591,29 @@
 
 <div id="workControls">
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:5px;">
-        <span id="modeIndicator" style="color:#888; font-size:12px; font-weight:bold;">SINGLE MODE</span>
-        <label class="switch" style="scale:0.8;" id="workModeSwitchContainer">
-            <input type="checkbox" id="workModeToggle">
-            <span class="slider"></span>
-        </label>
-        <span style="color:#4ade80; font-size:12px; font-weight:bold;">MULTI MODE</span>
+        <!-- Убираем рабочий тумблер, оставляем только QUICK MULTI -->
     </div>
     <div style="display:flex; align-items:center; gap:10px;">
-        <span id="statusText" style="font-weight:bold;text-shadow:1px 1px 2px black;">Zaznacz obszar</span>
-        <span id="coordsDisplay">x: — | y: — | w: — | h: —</span>
+        <div id="statusContainer" style="background: linear-gradient(145deg, #1e293b 0%, #334155 50%, #1e293b 100%); padding: 8px 12px; border-radius: 10px; box-shadow: 0 3px 12px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1); display: flex; align-items: center; gap: 8px; border: 1px solid rgba(148,163,184,0.2); transition: all 0.3s ease;">
+            <span id="statusText" style="font-weight:700; font-size:12px; text-shadow: 0 1px 2px rgba(0,0,0,0.5); color: #e2e8f0;">Zaznacz obszar</span>
+        </div>
+        <div id="coordsContainer" style="background: linear-gradient(145deg, #1e293b 0%, #334155 50%, #1e293b 100%); padding: 6px 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1); display: flex; align-items: center; gap: 6px; border: 1px solid rgba(148,163,184,0.2); transition: all 0.3s ease;">
+            <span id="coordsDisplay" style="font-family: 'JetBrains Mono', 'Courier New', monospace; font-size:11px; font-weight:600; text-shadow: 0 1px 2px rgba(0,0,0,0.5); color: #cbd5f1;">x: — | y: — | w: — | h: —</span>
+        </div>
         <span id="windowNameDisplay" style="display:none;">—</span>
         <button id="clearCoordsBtn" class="btn-ghost">🗑️ RESET</button>
         <button id="resetBtn"       class="btn-small" onclick="location.reload()">🔄 RESET</button>
     </div>
     <!-- Дополнительный тумблер в той же строке -->
     <div style="display:flex; align-items:center; gap:8px; margin-top:3px;">
-        <span style="color:#fbbf24; font-size:11px; font-weight:bold;">⚡ QUICK MULTI:</span>
-        <label class="switch" style="scale:0.7;">
-            <input type="checkbox" id="quickMultiToggle">
-            <span class="slider"></span>
-        </label>
-        <span id="quickModeStatus" style="color:#888; font-size:11px;">SINGLE</span>
+        <div id="quickModeSwitcher" style="background: linear-gradient(145deg, #1e293b 0%, #334155 50%, #1e293b 100%); padding: 6px 10px; border-radius: 10px; box-shadow: 0 3px 12px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1); display: flex; align-items: center; gap: 6px; border: 1px solid rgba(148,163,184,0.2); transition: all 0.3s ease;">
+            <span style="color:#fbbf24; font-size:10px; font-weight:700; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">⚡ QUICK MULTI:</span>
+            <label class="switch" style="scale:0.6;">
+                <input type="checkbox" id="quickMultiToggle">
+                <span class="slider"></span>
+            </label>
+            <span id="quickModeStatus" style="color:#888; font-size:10px; font-weight:700; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">SINGLE</span>
+        </div>
     </div>
 </div>
 
@@ -587,6 +625,16 @@
 <!-- ── QR Overlay ── -->
 <div id="qrOverlay" onclick="closeOverlay()">
     <div class="qr-overlay-body">
+
+        <!-- Тумблер SINGLE/MULTI MODE -->
+        <div id="overlayModeSwitcher" style="position: absolute; top: 20px; left: 20px; background: rgba(31,31,31,0.9); padding: 10px 16px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); display: flex; align-items: center; gap: 10px; z-index: 150; font-size: 14px;">
+            <span style="color:#f87171; font-size:13px; font-weight:600;">SINGLE</span>
+            <label class="switch">
+                <input type="checkbox" id="overlayModeToggle">
+                <span class="slider"></span>
+            </label>
+            <span style="color:#4ade80; font-size:13px; font-weight:600;">MULTI</span>
+        </div>
 
         <!-- Przełącznik paska historii -->
         <button id="historyToggleBtn" onclick="event.stopPropagation(); toggleHistorySidebar();">📋</button>
@@ -649,6 +697,8 @@ const captureVideo  = document.getElementById('captureVideo');
 let activeStream  = null;
 let isDrawing     = false, startX, startY, imgDataSnapshot;
 let storedRegion  = null, lastWindowName = null;
+let storedSingleRegion = null; // Отдельное сохранение для SINGLE MODE
+let storedMultiRegion = null;  // Отдельное сохранение для MULTI MODE
 let isCapturing   = false, isProcessing = false, isVideoMode = false;
 let isHistoryVisible = true;
 let isMultiMode   = false;
@@ -684,11 +734,12 @@ const qrOverlay         = document.getElementById('qrOverlay');
 const themeToggleBtn    = document.getElementById('themeToggleBtn');
 const themeBtnLabel     = document.getElementById('themeBtnLabel');
 const historyToggleBtn  = document.getElementById('historyToggleBtn');
-const multiModeToggle   = document.getElementById('multiModeToggle');
+// const multiModeToggle   = document.getElementById('multiModeToggle'); // УДАЛЕН, НЕ ИСПОЛЬЗУЕТСЯ
 const workModeToggle    = document.getElementById('workModeToggle');
 const modeIndicator     = document.getElementById('modeIndicator');
 const quickMultiToggle  = document.getElementById('quickMultiToggle');
 const quickModeStatus   = document.getElementById('quickModeStatus');
+const overlayModeToggle = document.getElementById('overlayModeToggle');
 
 const HARDCODED_THRESHOLD = 210;
 const STORAGE_KEY         = 'maxqr_savedRegion';
@@ -698,6 +749,8 @@ const STORAGE_KEY_THEME   = 'maxqr_glowTheme';
 const STORAGE_KEY_HISTORY = 'maxqr_historyVisible';
 const STORAGE_KEY_MULTI   = 'maxqr_multiMode';
 const STORAGE_KEY_MULTI_REGIONS = 'maxqr_multiRegions';
+const STORAGE_KEY_SINGLE_REGION = 'maxqr_singleRegion'; // Для SINGLE MODE
+const STORAGE_KEY_MULTI_REGION = 'maxqr_multiRegion';  // Для MULTI MODE
 
 /* ══════════════════════════════════════════════
    MULTI MODE INITIALIZATION
@@ -705,8 +758,9 @@ const STORAGE_KEY_MULTI_REGIONS = 'maxqr_multiRegions';
 function initMultiMode() {
     console.log('🚀 Инициализация мультирежима...');
     isMultiMode = localStorage.getItem(STORAGE_KEY_MULTI) === 'true';
-    multiModeToggle.checked = isMultiMode;
-    console.log('📊 Загружено состояние мультирежима:', isMultiMode);
+    
+    // Главный тумблер удален, пропускаем его инициализацию
+    console.log('🔍 Главный тумблер удален, используем только быстрые тумблеры');
     
     if (isMultiMode) {
         loadMultiRegions();
@@ -714,50 +768,14 @@ function initMultiMode() {
     }
     
     // Добавляем логи при загрузке страницы
-    console.log('🔍 Проверка тумблера:', multiModeToggle);
-    console.log('🔍 ID тумблера:', multiModeToggle.id);
-    console.log('🔍 Тумблер существует:', !!multiModeToggle);
-
-    // Проверяем что элемент найден
-    if (!multiModeToggle) {
-        console.error('❌ Тумблер не найден!');
-    } else {
-        console.log('✅ Тумблер найден, добавляем обработчик...');
-        
-        multiModeToggle.addEventListener('change', () => {
-            console.log('🔄 Тумблер переключен!');
-            isMultiMode = multiModeToggle.checked;
-            console.log('🔄 Тумблер переключен:', isMultiMode ? 'MULTI MODE' : 'SINGLE MODE');
-            localStorage.setItem(STORAGE_KEY_MULTI, isMultiMode);
-            
-            if (isMultiMode) {
-                loadMultiRegions();
-                statusText.textContent = 'MULTI: Выделите всю область с кодами';
-                console.log('✅ MULTI MODE активирован');
-            } else {
-                statusText.textContent = 'SINGLE: Выделите область';
-                console.log('✅ SINGLE MODE активирован');
-            }
-            updateWorkModeToggle();    // Обновляем рабочий тумблер
-        });
-        
-        console.log('✅ Обработчик добавлен');
-        
-        // Добавляем дополнительную проверку через onclick
-        multiModeToggle.addEventListener('click', () => {
-            console.log('🖱️ Клик по тумблеру!');
-        });
-        
-        // Проверяем состояние каждую секунду для отладки
-        setInterval(() => {
-            if (multiModeToggle.checked !== isMultiMode) {
-                console.log('⚠️ Состояние тумблера изменилось без события!');
-                isMultiMode = multiModeToggle.checked;
-                console.log('🔄 Тумблер переключен:', isMultiMode ? 'MULTI MODE' : 'SINGLE MODE');
-                updateWorkModeToggle();
-            }
-        }, 1000);
-    }
+    console.log('🔍 Проверка быстрых тумблеров:');
+    console.log('🔍 Быстрый тумблер:', quickMultiToggle);
+    console.log('🔍 Тумблер в overlay:', overlayModeToggle);
+    console.log('🔍 Быстрый тумблер существует:', !!quickMultiToggle);
+    console.log('🔍 Тумблер в overlay существует:', !!overlayModeToggle);
+    
+    // Обновляем быстрые тумблеры при инициализации
+    updateWorkModeToggle();
     
     console.log('✅ Инициализация мультирежима завершена');
 }
@@ -783,16 +801,18 @@ function saveMultiRegions() {
 }
 
 function updateWorkModeToggle() {
-    if (workModeToggle) {
-        workModeToggle.checked = isMultiMode;
-        if (modeIndicator) {
-            modeIndicator.textContent = isMultiMode ? 'MULTI MODE' : 'SINGLE MODE';
-            modeIndicator.style.color = isMultiMode ? '#4ade80' : '#888';
-        }
-        console.log('🔄 Рабочий тумблер обновлен:', isMultiMode ? 'MULTI' : 'SINGLE');
+    // При переключении режима загружаем соответствующие координаты
+    if (isMultiMode) {
+        // Переключаемся на MULTI MODE
+        storedRegion = storedMultiRegion;
+    } else {
+        // Переключаемся на SINGLE MODE
+        storedRegion = storedSingleRegion;
     }
     
-    // Обновляем быстрый тумблер
+    updateCoordsDisplay(storedRegion);
+    
+    // Рабочий тумблер удален, обновляем только быстрый
     if (quickMultiToggle) {
         quickMultiToggle.checked = isMultiMode;
         if (quickModeStatus) {
@@ -801,38 +821,18 @@ function updateWorkModeToggle() {
         }
         console.log('⚡ Быстрый тумблер обновлен:', isMultiMode ? 'MULTI' : 'SINGLE');
     }
+    
+    // Обновляем тумблер в overlay
+    if (overlayModeToggle) {
+        overlayModeToggle.checked = isMultiMode;
+        console.log('🎯 Тумблер в overlay обновлен:', isMultiMode ? 'MULTI' : 'SINGLE');
+    }
 }
 
 let isGlowTheme = false;
 
 function initTheme() {
-    // Добавляем обработчик для рабочего тумблера
-    if (workModeToggle) {
-        console.log('✅ Рабочий тумблер найден, добавляю обработчик...');
-        workModeToggle.addEventListener('change', () => {
-            console.log('🔄 Рабочий тумблер переключен!');
-            isMultiMode = workModeToggle.checked;
-            localStorage.setItem(STORAGE_KEY_MULTI, isMultiMode);
-            
-            if (isMultiMode) {
-                loadMultiRegions();
-                statusText.textContent = 'MULTI: Выделите всю область с кодами';
-                console.log('✅ MULTI MODE активирован (рабочий)');
-            } else {
-                statusText.textContent = 'SINGLE: Выделите область';
-                console.log('✅ SINGLE MODE активирован (рабочий)');
-            }
-            
-            // Синхронизируем с главным тумблером
-            if (multiModeToggle) {
-                multiModeToggle.checked = isMultiMode;
-            }
-            // Обновляем быстрый тумблер
-            updateWorkModeToggle();
-        });
-    } else {
-        console.error('❌ Рабочий тумблер не найден!');
-    }
+    // Рабочий тумблер удален, пропускаем его инициализацию
 
     // Добавляем обработчик для быстрого тумблера
     if (quickMultiToggle) {
@@ -844,10 +844,9 @@ function initTheme() {
             
             if (isMultiMode) {
                 loadMultiRegions();
-                statusText.textContent = 'MULTI: Выделите всю область с кодами';
+                setStatus('statusMultiReady');
                 console.log('✅ MULTI MODE активирован (быстрый)');
             } else {
-                statusText.textContent = 'SINGLE: Выделите область';
                 console.log('✅ SINGLE MODE активирован (быстрый)');
             }
             
@@ -869,6 +868,29 @@ function initTheme() {
         });
     } else {
         console.error('❌ Быстрый тумблер не найден!');
+    }
+
+    // Добавляем обработчик для тумблера в overlay
+    if (overlayModeToggle) {
+        console.log('✅ Тумблер в overlay найден, добавляю обработчик...');
+        overlayModeToggle.checked = isMultiMode;
+        overlayModeToggle.addEventListener('change', () => {
+            console.log('🔄 Тумблер в overlay переключен!');
+            isMultiMode = overlayModeToggle.checked;
+            localStorage.setItem(STORAGE_KEY_MULTI, isMultiMode);
+            
+            if (isMultiMode) {
+                loadMultiRegions();
+                setStatus('statusMultiReady');
+                console.log('✅ MULTI MODE активирован (overlay)');
+            } else {
+                setStatus('statusSingleReady');
+                console.log('✅ SINGLE MODE активирован (overlay)');
+            }
+            
+            // Синхронизируем все остальные тумблеры
+            updateWorkModeToggle();
+        });
     }
 
     isGlowTheme = localStorage.getItem(STORAGE_KEY_THEME) === 'true';
@@ -939,6 +961,9 @@ const translations = {
         cardsBtn:'🃏 KARTY QR', resetBtn:'🔄 RESET',
         statusReady:'Zaznacz obszar', statusProcessing:'⚡ Przetwarzanie...',
         statusDone:'Gotowe!', statusFail:'Nic nie znaleziono.',
+        statusSingleReady:'SINGLE: Zaznacz obszar',
+        statusMultiReady:'MULTI: Zaznacz całą obszar z kodami',
+        statusMultiNotFound:'MULTI: Kody nie znaleziono',
         overlayHint:'Kliknij dowolne miejsce, aby zamknąć',
         statusAutoInit:'Automatyczne przetwarzanie...',
         statusAutoError:'Zapisany obszar poza kadrem.',
@@ -954,6 +979,9 @@ const translations = {
         cardsBtn:'🃏 QR КАРТКИ', resetBtn:'🔄 СКИНУТИ',
         statusReady:'Виділіть область', statusProcessing:'⚡ Обробка...',
         statusDone:'Готово!', statusFail:'Нічого не знайдено.',
+        statusSingleReady:'SINGLE: Виділіть область',
+        statusMultiReady:'MULTI: Виділіть всю область з кодами',
+        statusMultiNotFound:'MULTI: Коди не знайдено',
         overlayHint:'Натисніть будь-де, щоб закрити',
         statusAutoInit:'Автоматична обробка...',
         statusAutoError:'Збережена область поза кадром.',
@@ -969,6 +997,9 @@ const translations = {
         cardsBtn:'🃏 QR CARDS', resetBtn:'🔄 RESET',
         statusReady:'Select area', statusProcessing:'⚡ Processing...',
         statusDone:'Done!', statusFail:'Nothing found.',
+        statusSingleReady:'SINGLE: Select area',
+        statusMultiReady:'MULTI: Select entire area with codes',
+        statusMultiNotFound:'MULTI: Codes not found',
         overlayHint:'Click anywhere to close',
         statusAutoInit:'Auto processing...', statusAutoError:'Saved area out of frame.',
         statusCoordsCleared:'Coordinates cleared.',
@@ -1013,7 +1044,9 @@ langSelect.addEventListener('change', () => {
 ══════════════════════════════════════════════ */
 function initMode() {
     isVideoMode = localStorage.getItem(STORAGE_KEY_MODE) === 'true';
-    modeToggle.checked = isVideoMode; updateModeUI();
+    modeToggle.checked = isVideoMode; 
+    updateModeUI();
+    console.log('📹 Загружен режим:', isVideoMode ? 'ВИДЕО' : 'СКРИНШОТ');
 }
 function updateModeUI() {
     modeLabelOn.className  = isVideoMode ? 'mode-label on'  : 'mode-label off';
@@ -1023,6 +1056,7 @@ modeToggle.addEventListener('change', () => {
     isVideoMode = modeToggle.checked;
     localStorage.setItem(STORAGE_KEY_MODE, isVideoMode);
     updateModeUI();
+    console.log('📹 Режим изменен на:', isVideoMode ? 'ВИДЕО' : 'СКРИНШОТ');
     if (!isVideoMode && activeStream) stopVideoStream();
 });
 function stopVideoStream() {
@@ -1035,19 +1069,69 @@ function stopVideoStream() {
 ══════════════════════════════════════════════ */
 function loadStoredRegion() {
     try {
-        const r = JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
+        // Пробуем загрузить старый ключ для совместимости
+        let r = JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
+        
+        // Если старый ключ пустой, пробуем новые раздельные ключи
+        if (!r) {
+            const singleR = JSON.parse(localStorage.getItem(STORAGE_KEY_SINGLE_REGION)||'null');
+            const multiR = JSON.parse(localStorage.getItem(STORAGE_KEY_MULTI_REGION)||'null');
+            
+            if (isMultiMode && multiR) {
+                r = multiR;
+            } else if (!isMultiMode && singleR) {
+                r = singleR;
+            }
+        }
+        
         storedRegion = (r && isFinite(r.x) && isFinite(r.y) && isFinite(r.w) && isFinite(r.h)) ? r : null;
-    } catch { storedRegion = null; }
+        
+        // Обновляем раздельные переменные для совместимости
+        if (isMultiMode) {
+            storedMultiRegion = storedRegion;
+        } else {
+            storedSingleRegion = storedRegion;
+        }
+    } catch { 
+        storedRegion = null;
+        storedSingleRegion = null;
+        storedMultiRegion = null;
+    }
     updateCoordsDisplay(storedRegion);
 }
 function storeRegion(r) {
-    storedRegion = { x:Math.round(r.x), y:Math.round(r.y), w:Math.round(r.w), h:Math.round(r.h) };
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(storedRegion)); } catch {}
+    const region = { x:Math.round(r.x), y:Math.round(r.y), w:Math.round(r.w), h:Math.round(r.h) };
+    
+    // Сохраняем в соответствующее хранилище и в старый ключ для совместимости
+    if (isMultiMode) {
+        storedMultiRegion = region;
+        try { localStorage.setItem(STORAGE_KEY_MULTI_REGION, JSON.stringify(region)); } catch {}
+    } else {
+        storedSingleRegion = region;
+        try { localStorage.setItem(STORAGE_KEY_SINGLE_REGION, JSON.stringify(region)); } catch {}
+    }
+    
+    // Также сохраняем в старый ключ для обратной совместимости
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(region)); } catch {}
+    
+    // Обновляем общую переменную
+    storedRegion = region;
     updateCoordsDisplay(storedRegion);
 }
 function clearStoredRegion() {
-    storedRegion = null; localStorage.removeItem(STORAGE_KEY);
-    updateCoordsDisplay(null); clearStoredWindow(); setStatus('statusCoordsCleared');
+    // Очищаем все сохраненные области
+    storedRegion = null;
+    storedSingleRegion = null;
+    storedMultiRegion = null;
+    
+    // Очищаем все ключи
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(STORAGE_KEY_SINGLE_REGION);
+    localStorage.removeItem(STORAGE_KEY_MULTI_REGION);
+    
+    updateCoordsDisplay(null); 
+    clearStoredWindow(); 
+    setStatus('statusCoordsCleared');
 }
 function updateCoordsDisplay(r) {
     coordsDisplay.textContent = r ? `x: ${r.x} | y: ${r.y} | w: ${r.w} | h: ${r.h}` : 'x: — | y: — | w: — | h: —';
@@ -1180,7 +1264,7 @@ async function processMultiRegionAsLines(region) {
     console.log('📝 Найдено строк:', lines.length);
     
     if (lines.length === 0) {
-        setStatus('MULTI: Коды не найдены');
+        setStatus('statusMultiNotFound');
         return;
     }
     
@@ -1203,7 +1287,7 @@ async function processMultiRegionAsLines(region) {
     if (multiCodes.length > 0) {
         showMultiQrOverlay();
     } else {
-        setStatus('MULTI: Коды не найдены');
+        setStatus('statusMultiNotFound');
     }
 }
 
@@ -2191,8 +2275,18 @@ async function startCapture() {
         setStatus('statusReady');
         loadStoredRegion();
         initMultiMode(); // Инициализация мультирежима
-        updateWorkModeToggle(); // Обновляем рабочий тумблер
-        if (storedRegion) autoRunSavedRegion();
+        updateWorkModeToggle(); // Обновляем быстрый тумблер
+        
+        // Автоматический запуск если есть сохраненная область для текущего режима
+        if (storedRegion) {
+            console.log('🚀 Автоматический запуск обработки сохраненной области...');
+            // Запускаем сразу без задержки
+            if (isMultiMode) {
+                processMultiRegionAsLines(storedRegion);
+            } else {
+                autoRunSavedRegion();
+            }
+        }
         activeStream.getVideoTracks()[0].addEventListener('ended', () => {
             stopVideoStream(); setStatus('statusSelectNew');
         });
