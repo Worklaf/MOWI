@@ -92,8 +92,15 @@
         .canvas-container {
             width: 100%; height: 100%; overflow: auto; background: #000;
             display: flex; justify-content: center; align-items: center;
+            position: relative;
         }
-        #mainCanvas { box-shadow: 0 0 50px #000; cursor: crosshair; }
+        #mainCanvas { 
+            box-shadow: 0 0 50px #000; 
+            cursor: crosshair;
+        }
+        #mainCanvas.drawing {
+            cursor: none !important;
+        }
 
         /* ═══════════════════════════════════════════════
            QR OVERLAY — NORMALNY MOTYW (domyślny)
@@ -188,17 +195,26 @@
         #captureBtnOverlay:active { transform: translateX(-50%) scale(0.98); }
 
         .qr-box {
-            background: white; padding: 20px; border-radius: 15px; text-align: center;
+            background: white; padding: 16px; border-radius: 15px; text-align: center;
             box-shadow: 0 0 50px rgba(255,255,255,0.2); cursor: zoom-in;
             transition: transform 0.15s, box-shadow 0.3s, background 0.4s, border-color 0.4s;
             border: 2px solid transparent;
         }
         .qr-box:hover { transform: scale(1.02); box-shadow: 0 0 70px rgba(255,255,255,0.3); }
+        
+        #bigQrCanvas {
+            /* Убираем фиксированные размеры как в QR2.html */
+            border-radius: 0;
+        }
 
         #overlayText {
-            margin-top: 15px; font-size: 60px; font-family: 'Courier New', monospace;
-            font-weight: bold; color: #000; letter-spacing: 2px;
-            transition: color 0.3s;
+            /* Точные стили как в QR2.html */
+            margin-top: 15px;
+            font-size: 60px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #000;
+            letter-spacing: 2px;
         }
 
         .qr-overlay-footer {
@@ -347,10 +363,138 @@
             background: rgba(15,23,42,0.8); padding: 8px 12px; border-radius: 8px; color: #cbd5f5;
             border: 1px solid rgba(96,165,250,0.35); box-shadow: 0 6px 18px rgba(37,99,235,0.25);
         }
-        #windowNameDisplay {
-            font-size: 12px; background: rgba(22,163,74,0.2); color: #86efac;
-            border: 1px solid rgba(34,197,94,0.35);
-            max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        /* ═══════════════════════════════════════════════
+           MULTI QR OVERLAY - УЛУЧШЕННЫЙ
+        ════════════════════════════════════════════════ */
+        #multiQrOverlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.95); z-index: 99999;
+            flex-direction: column; align-items: center;
+            justify-content: center; cursor: pointer;
+        }
+        .multi-qr-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 10px; /* Маленькие отступы */
+            width: 100%; /* УМЕНЬШАЕМ ширину */
+            max-width: 1400px; /* УМЕНЬШАЕМ максимальную ширину */
+            max-height: 85vh;
+            padding: 20px; /* Уменьшаем отступы */
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            border-radius: 25px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1);
+            overflow: hidden;
+        }
+        .multi-qr-item {
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, #e2e8f0 100%); /* Красивый градиентный фон */
+            padding: 15px; /* УМЕНЬШАЕМ с 25px до 15px */
+            border-radius: 25px;
+            text-align: center; cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1);
+            border: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+            /* Прямоугольная форма */
+            aspect-ratio: 3/2; /* Пропорция 3:2 */
+            min-height: 200px;
+        }
+        .multi-qr-item:hover {
+            transform: scale(1.03) translateY(-2px); /* Умеренный эффект */
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3), 0 0 0 2px rgba(74,222,128,0.6);
+            border-color: #4ade80;
+            background: linear-gradient(145deg, #ffffff 0%, #f0fdf4 50%, #dcfce7 100%);
+        }
+        .multi-qr-item canvas {
+            width: auto; height: auto; /* Квадратный QR код */
+            max-width: 95%; /* УВЕЛИЧИВАЕМ ширину */
+            max-height: 75%; /* УВЕЛИЧИВАЕМ высоту */
+            border-radius: 20px; /* УВЕЛИЧИВАЕМ радиус */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: all 0.4s ease;
+            margin-bottom: 10px; /* УВЕЛИЧИВАЕМ отступ для текста */
+        }
+        .multi-qr-item .code-text {
+            position: relative; /* Не абсолютное позиционирование */
+            bottom: auto;
+            left: auto;
+            transform: none;
+            margin-top: 15px; /* УВЕЛИЧИВАЕМ отступ еще ниже */
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%); /* ЧЕРНЫЙ фон */
+            padding: 10px 18px; /* УВЕЛИЧИВАЕМ отступы */
+            border-radius: 20px; /* УВЕЛИЧИВАЕМ радиус */
+            font-size: 16px; font-weight: bold;
+            color: #ffffff; /* БЕЛЫЙ текст */
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.8px;
+            white-space: nowrap; /* Текст в одну строку */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1);
+            z-index: 10;
+            transition: all 0.4s ease;
+        }
+        .multi-qr-item .index-badge {
+            position: absolute; top: 15px; left: 15px;
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            color: white;
+            font-size: 14px; font-weight: bold;
+            padding: 8px 12px;
+            border-radius: 25px;
+            box-shadow: 0 6px 20px rgba(74,222,128,0.5), 0 0 0 2px rgba(255,255,255,0.2);
+            z-index: 15;
+            transition: all 0.4s ease;
+        }
+        .multi-qr-show-all {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white; border: none;
+            border-radius: 30px;
+            padding: 12px 24px;
+            font-size: 16px; font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(34,197,94,0.4);
+            z-index: 1000;
+        }
+        .multi-qr-show-all:hover {
+            transform: translateX(-50%) scale(1.05);
+            box-shadow: 0 12px 35px rgba(34,197,94,0.6);
+            background: linear-gradient(135deg, #16a34a, #15803d);
+        }
+        .multi-qr-nav {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background: rgba(255,255,255,0.9); border: none;
+            border-radius: 50%; width: 50px; height: 50px;
+            font-size: 24px; cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+        .multi-qr-nav:hover {
+            background: white; transform: translateY(-50%) scale(1.1);
+        }
+        .multi-qr-nav.prev { left: 20px; }
+        .multi-qr-nav.next { right: 20px; }
+        .multi-qr-nav:disabled {
+            opacity: 0.3; cursor: not-allowed;
+        }
+        .multi-qr-page {
+            position: absolute; top: 20px; right: 20px;
+            background: rgba(255,255,255,0.9); padding: 8px 15px;
+            border-radius: 20px; font-size: 14px; font-weight: bold;
+            color: #000;
+        }
+        .multi-qr-close {
+            position: absolute; top: 20px; left: 20px;
+            background: rgba(255,255,255,0.9); border: none;
+            border-radius: 50%; width: 40px; height: 40px;
+            font-size: 18px; cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .multi-qr-close:hover {
+            background: white; transform: scale(1.1);
         }
     </style>
 </head>
@@ -392,18 +536,47 @@
 <div id="startScreen">
     <h1 id="startTitle">MAX QR READER</h1>
     <p  id="startSubtitle">Wybierz źródło obrazu</p>
-    <button id="captureBtn" class="btn-big btn-blue" onclick="startCapture()">📸 PRZECHWYĆ OKNO</button>
+    
+    <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
+        <span style="color:#888; font-size:14px;">SINGLE MODE</span>
+        <label class="switch">
+            <input type="checkbox" id="multiModeToggle">
+            <span class="slider"></span>
+        </label>
+        <span style="color:#4ade80; font-size:14px;">MULTI MODE</span>
+    </div>
+    
+    <button id="captureBtn" class="btn-big btn-blue" onclick="if(typeof startCapture === 'function') startCapture()">📸 PRZECHWYĆ OKNO</button>
     <button id="fileBtn"    class="btn-big btn-blue" style="background:#4b5563" onclick="document.getElementById('fileIn').click()">📂 OTWÓRZ PLIK</button>
     <button id="cardsBtn"   class="btn-big btn-green" onclick="window.location.href='https://worklaf.github.io/MOWI/QR_Cards.html'">🃏 KARTY QR</button>
     <input type="file" id="fileIn" hidden onchange="handleFile(event)">
 </div>
 
 <div id="workControls">
-    <span id="statusText" style="font-weight:bold;text-shadow:1px 1px 2px black;">Zaznacz obszar</span>
-    <span id="coordsDisplay">x: — | y: — | w: — | h: —</span>
-    <span id="windowNameDisplay" style="display:none;">—</span>
-    <button id="clearCoordsBtn" class="btn-ghost">🗑️ RESET</button>
-    <button id="resetBtn"       class="btn-small" onclick="location.reload()">🔄 RESET</button>
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:5px;">
+        <span id="modeIndicator" style="color:#888; font-size:12px; font-weight:bold;">SINGLE MODE</span>
+        <label class="switch" style="scale:0.8;" id="workModeSwitchContainer">
+            <input type="checkbox" id="workModeToggle">
+            <span class="slider"></span>
+        </label>
+        <span style="color:#4ade80; font-size:12px; font-weight:bold;">MULTI MODE</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px;">
+        <span id="statusText" style="font-weight:bold;text-shadow:1px 1px 2px black;">Zaznacz obszar</span>
+        <span id="coordsDisplay">x: — | y: — | w: — | h: —</span>
+        <span id="windowNameDisplay" style="display:none;">—</span>
+        <button id="clearCoordsBtn" class="btn-ghost">🗑️ RESET</button>
+        <button id="resetBtn"       class="btn-small" onclick="location.reload()">🔄 RESET</button>
+    </div>
+    <!-- Дополнительный тумблер в той же строке -->
+    <div style="display:flex; align-items:center; gap:8px; margin-top:3px;">
+        <span style="color:#fbbf24; font-size:11px; font-weight:bold;">⚡ QUICK MULTI:</span>
+        <label class="switch" style="scale:0.7;">
+            <input type="checkbox" id="quickMultiToggle">
+            <span class="slider"></span>
+        </label>
+        <span id="quickModeStatus" style="color:#888; font-size:11px;">SINGLE</span>
+    </div>
 </div>
 
 <div class="canvas-container">
@@ -451,6 +624,16 @@
     </div>
 </div>
 
+<!-- ── MULTI QR Overlay ── -->
+<div id="multiQrOverlay" onclick="closeMultiQrOverlay()">
+    <button class="multi-qr-close" onclick="event.stopPropagation(); closeMultiQrOverlay()">✕</button>
+    <div class="multi-qr-page" id="multiPageInfo">1/1</div>
+    <button class="multi-qr-nav prev" id="multiPrev" onclick="event.stopPropagation(); navigateMultiPage(-1)">&#8249;</button>
+    <button class="multi-qr-nav next" id="multiNext" onclick="event.stopPropagation(); navigateMultiPage(1)">&#8250;</button>
+    
+    <div class="multi-qr-container" id="multiQrContainer"></div>
+</div>
+
 <canvas id="hiddenPreview"></canvas>
 
 <script>
@@ -468,6 +651,11 @@ let isDrawing     = false, startX, startY, imgDataSnapshot;
 let storedRegion  = null, lastWindowName = null;
 let isCapturing   = false, isProcessing = false, isVideoMode = false;
 let isHistoryVisible = true;
+let isMultiMode   = false;
+let multiRegions  = [];
+let multiCodes    = [];
+let currentMultiPage = 0;
+const ITEMS_PER_PAGE = 12;
 
 const startScreen       = document.getElementById('startScreen');
 const workControls      = document.getElementById('workControls');
@@ -496,6 +684,11 @@ const qrOverlay         = document.getElementById('qrOverlay');
 const themeToggleBtn    = document.getElementById('themeToggleBtn');
 const themeBtnLabel     = document.getElementById('themeBtnLabel');
 const historyToggleBtn  = document.getElementById('historyToggleBtn');
+const multiModeToggle   = document.getElementById('multiModeToggle');
+const workModeToggle    = document.getElementById('workModeToggle');
+const modeIndicator     = document.getElementById('modeIndicator');
+const quickMultiToggle  = document.getElementById('quickMultiToggle');
+const quickModeStatus   = document.getElementById('quickModeStatus');
 
 const HARDCODED_THRESHOLD = 210;
 const STORAGE_KEY         = 'maxqr_savedRegion';
@@ -503,13 +696,181 @@ const STORAGE_KEY_WINDOW  = 'maxqr_savedWindow';
 const STORAGE_KEY_MODE    = 'maxqr_videoMode';
 const STORAGE_KEY_THEME   = 'maxqr_glowTheme';
 const STORAGE_KEY_HISTORY = 'maxqr_historyVisible';
+const STORAGE_KEY_MULTI   = 'maxqr_multiMode';
+const STORAGE_KEY_MULTI_REGIONS = 'maxqr_multiRegions';
 
 /* ══════════════════════════════════════════════
-   MOTYW GLOW
+   MULTI MODE INITIALIZATION
 ══════════════════════════════════════════════ */
+function initMultiMode() {
+    console.log('🚀 Инициализация мультирежима...');
+    isMultiMode = localStorage.getItem(STORAGE_KEY_MULTI) === 'true';
+    multiModeToggle.checked = isMultiMode;
+    console.log('📊 Загружено состояние мультирежима:', isMultiMode);
+    
+    if (isMultiMode) {
+        loadMultiRegions();
+        console.log('📁 MULTI MODE: загружены сохраненные области');
+    }
+    
+    // Добавляем логи при загрузке страницы
+    console.log('🔍 Проверка тумблера:', multiModeToggle);
+    console.log('🔍 ID тумблера:', multiModeToggle.id);
+    console.log('🔍 Тумблер существует:', !!multiModeToggle);
+
+    // Проверяем что элемент найден
+    if (!multiModeToggle) {
+        console.error('❌ Тумблер не найден!');
+    } else {
+        console.log('✅ Тумблер найден, добавляем обработчик...');
+        
+        multiModeToggle.addEventListener('change', () => {
+            console.log('🔄 Тумблер переключен!');
+            isMultiMode = multiModeToggle.checked;
+            console.log('🔄 Тумблер переключен:', isMultiMode ? 'MULTI MODE' : 'SINGLE MODE');
+            localStorage.setItem(STORAGE_KEY_MULTI, isMultiMode);
+            
+            if (isMultiMode) {
+                loadMultiRegions();
+                statusText.textContent = 'MULTI: Выделите всю область с кодами';
+                console.log('✅ MULTI MODE активирован');
+            } else {
+                statusText.textContent = 'SINGLE: Выделите область';
+                console.log('✅ SINGLE MODE активирован');
+            }
+            updateWorkModeToggle();    // Обновляем рабочий тумблер
+        });
+        
+        console.log('✅ Обработчик добавлен');
+        
+        // Добавляем дополнительную проверку через onclick
+        multiModeToggle.addEventListener('click', () => {
+            console.log('🖱️ Клик по тумблеру!');
+        });
+        
+        // Проверяем состояние каждую секунду для отладки
+        setInterval(() => {
+            if (multiModeToggle.checked !== isMultiMode) {
+                console.log('⚠️ Состояние тумблера изменилось без события!');
+                isMultiMode = multiModeToggle.checked;
+                console.log('🔄 Тумблер переключен:', isMultiMode ? 'MULTI MODE' : 'SINGLE MODE');
+                updateWorkModeToggle();
+            }
+        }, 1000);
+    }
+    
+    console.log('✅ Инициализация мультирежима завершена');
+}
+
+function loadMultiRegions() {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY_MULTI_REGIONS);
+        if (saved) {
+            multiRegions = JSON.parse(saved);
+        }
+    } catch (err) {
+        console.warn('Failed to load multi regions:', err);
+        multiRegions = [];
+    }
+}
+
+function saveMultiRegions() {
+    try {
+        localStorage.setItem(STORAGE_KEY_MULTI_REGIONS, JSON.stringify(multiRegions));
+    } catch (err) {
+        console.warn('Failed to save multi regions:', err);
+    }
+}
+
+function updateWorkModeToggle() {
+    if (workModeToggle) {
+        workModeToggle.checked = isMultiMode;
+        if (modeIndicator) {
+            modeIndicator.textContent = isMultiMode ? 'MULTI MODE' : 'SINGLE MODE';
+            modeIndicator.style.color = isMultiMode ? '#4ade80' : '#888';
+        }
+        console.log('🔄 Рабочий тумблер обновлен:', isMultiMode ? 'MULTI' : 'SINGLE');
+    }
+    
+    // Обновляем быстрый тумблер
+    if (quickMultiToggle) {
+        quickMultiToggle.checked = isMultiMode;
+        if (quickModeStatus) {
+            quickModeStatus.textContent = isMultiMode ? 'MULTI' : 'SINGLE';
+            quickModeStatus.style.color = isMultiMode ? '#4ade80' : '#888';
+        }
+        console.log('⚡ Быстрый тумблер обновлен:', isMultiMode ? 'MULTI' : 'SINGLE');
+    }
+}
+
 let isGlowTheme = false;
 
 function initTheme() {
+    // Добавляем обработчик для рабочего тумблера
+    if (workModeToggle) {
+        console.log('✅ Рабочий тумблер найден, добавляю обработчик...');
+        workModeToggle.addEventListener('change', () => {
+            console.log('🔄 Рабочий тумблер переключен!');
+            isMultiMode = workModeToggle.checked;
+            localStorage.setItem(STORAGE_KEY_MULTI, isMultiMode);
+            
+            if (isMultiMode) {
+                loadMultiRegions();
+                statusText.textContent = 'MULTI: Выделите всю область с кодами';
+                console.log('✅ MULTI MODE активирован (рабочий)');
+            } else {
+                statusText.textContent = 'SINGLE: Выделите область';
+                console.log('✅ SINGLE MODE активирован (рабочий)');
+            }
+            
+            // Синхронизируем с главным тумблером
+            if (multiModeToggle) {
+                multiModeToggle.checked = isMultiMode;
+            }
+            // Обновляем быстрый тумблер
+            updateWorkModeToggle();
+        });
+    } else {
+        console.error('❌ Рабочий тумблер не найден!');
+    }
+
+    // Добавляем обработчик для быстрого тумблера
+    if (quickMultiToggle) {
+        console.log('⚡ Быстрый тумблер найден, добавляю обработчик...');
+        quickMultiToggle.addEventListener('change', () => {
+            console.log('⚡ Быстрый тумблер переключен!');
+            isMultiMode = quickMultiToggle.checked;
+            localStorage.setItem(STORAGE_KEY_MULTI, isMultiMode);
+            
+            if (isMultiMode) {
+                loadMultiRegions();
+                statusText.textContent = 'MULTI: Выделите всю область с кодами';
+                console.log('✅ MULTI MODE активирован (быстрый)');
+            } else {
+                statusText.textContent = 'SINGLE: Выделите область';
+                console.log('✅ SINGLE MODE активирован (быстрый)');
+            }
+            
+            // Синхронизируем все тумблеры
+            if (multiModeToggle) {
+                multiModeToggle.checked = isMultiMode;
+            }
+            if (workModeToggle) {
+                workModeToggle.checked = isMultiMode;
+            }
+            if (modeIndicator) {
+                modeIndicator.textContent = isMultiMode ? 'MULTI MODE' : 'SINGLE MODE';
+                modeIndicator.style.color = isMultiMode ? '#4ade80' : '#888';
+            }
+            if (quickModeStatus) {
+                quickModeStatus.textContent = isMultiMode ? 'MULTI' : 'SINGLE';
+                quickModeStatus.style.color = isMultiMode ? '#4ade80' : '#888';
+            }
+        });
+    } else {
+        console.error('❌ Быстрый тумблер не найден!');
+    }
+
     isGlowTheme = localStorage.getItem(STORAGE_KEY_THEME) === 'true';
     applyTheme();
 }
@@ -713,35 +1074,1095 @@ clearCoordsBtn.addEventListener('click', clearStoredRegion);
    CANVAS – ZAZNACZANIE OBSZARU
 ══════════════════════════════════════════════ */
 mainCanvas.addEventListener('mousedown', e => {
-    if (!activeStream && !mainCanvas.dataset.hasImage) return;
-    isDrawing = true;
+    if (!mainCanvas.width || !mainCanvas.height) return;
     const rect = mainCanvas.getBoundingClientRect();
-    const sx = mainCanvas.width / rect.width, sy = mainCanvas.height / rect.height;
-    startX = (e.clientX - rect.left) * sx;
-    startY = (e.clientY - rect.top)  * sy;
-    imgDataSnapshot = ctx.getImageData(0, 0, mainCanvas.width, mainCanvas.height);
+    const scaleX = mainCanvas.width / rect.width; 
+    const scaleY = mainCanvas.height / rect.height;
+    
+    startX = (e.clientX - rect.left) * scaleX;
+    startY = (e.clientY - rect.top) * scaleY;
+    isDrawing = true;
+    mainCanvas.classList.add('drawing');
+    imgDataSnapshot = ctx.getImageData(0,0, mainCanvas.width, mainCanvas.height);
 });
 mainCanvas.addEventListener('mousemove', e => {
-    if (!isDrawing) return;
+    if(!isDrawing) return;
     const rect = mainCanvas.getBoundingClientRect();
-    const sx = mainCanvas.width / rect.width, sy = mainCanvas.height / rect.height;
-    const mx = (e.clientX - rect.left) * sx, my = (e.clientY - rect.top) * sy;
+    const scaleX = mainCanvas.width / rect.width;
+    const scaleY = mainCanvas.height / rect.height;
+    
+    const currentX = (e.clientX - rect.left) * scaleX;
+    const currentY = (e.clientY - rect.top) * scaleY;
+    
     ctx.putImageData(imgDataSnapshot, 0, 0);
-    ctx.strokeStyle = '#00ff88'; ctx.lineWidth = 2;
-    ctx.strokeRect(startX, startY, mx - startX, my - startY);
+    ctx.strokeStyle = '#facc15';
+    ctx.lineWidth = 5;
+    ctx.strokeRect(startX, startY, currentX - startX, currentY - startY);
 });
 mainCanvas.addEventListener('mouseup', async e => {
-    if (!isDrawing) return;
+    if(!isDrawing) return;
     isDrawing = false;
+    mainCanvas.classList.remove('drawing');
+    
+    // Добавляем лог для проверки режима
+    console.log('🔍 Выделение завершено. Текущий режим:', isMultiMode ? 'MULTI' : 'SINGLE');
+    
     const rect = mainCanvas.getBoundingClientRect();
-    const sx = mainCanvas.width / rect.width, sy = mainCanvas.height / rect.height;
-    const ex = (e.clientX - rect.left) * sx, ey = (e.clientY - rect.top) * sy;
-    const rx = Math.min(startX, ex), ry = Math.min(startY, ey);
-    const rw = Math.abs(ex - startX), rh = Math.abs(ey - startY);
-    if (rw < 5 || rh < 5) return;
-    storeRegion({ x: rx, y: ry, w: rw, h: rh });
-    await processRegion({ x: rx, y: ry, w: rw, h: rh });
+    const scaleX = mainCanvas.width / rect.width;
+    const scaleY = mainCanvas.height / rect.height;
+    
+    const endX = (e.clientX - rect.left) * scaleX;
+    const endY = (e.clientY - rect.top) * scaleY;
+    
+    const w = Math.abs(endX - startX);
+    const h = Math.abs(endY - startY);
+    
+    if (w > 5 && h > 5) {
+        const region = { x: Math.min(startX, endX), y: Math.min(startY, endY), w, h };
+        
+        console.log('📊 Выделенная область:', region);
+        
+        if (isMultiMode) {
+            // MULTI MODE: сохраняем одну большую область и обрабатываем сразу
+            console.log('✅ Запускаю MULTI MODE обработку...');
+            multiRegions = [region]; // Сохраняем как одну область
+            saveMultiRegions();
+            setStatus('MULTI: Обработка строк...');
+            await processMultiRegionAsLines(region);
+        } else {
+            // SINGLE MODE: обрабатываем одну область
+            console.log('✅ Запускаю SINGLE MODE обработку...');
+            storeRegion(region);
+            setStatus('statusProcessing');
+            await processRegion(region);
+        }
+    }
 });
+
+mainCanvas.addEventListener('mouseleave', () => {
+    if (isDrawing) {
+        isDrawing = false;
+        mainCanvas.classList.remove('drawing');
+        ctx.putImageData(imgDataSnapshot, 0, 0);
+    }
+});
+
+// Обработчик ESC для завершения мультирежима
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isMultiMode && multiRegions.length > 0) {
+        closeMultiQrOverlay();
+    }
+});
+
+async function processMultiRegionAsLines(region) {
+    console.log('🔍 MULTI MODE: Начинаю обработку области', region);
+    multiCodes = [];
+    
+    // Берем оригинальное изображение
+    const sourceCanvas = document.createElement('canvas');
+    const sourceCtx = sourceCanvas.getContext('2d');
+    sourceCanvas.width = mainCanvas.width;
+    sourceCanvas.height = mainCanvas.height;
+    sourceCtx.drawImage(mainCanvas, 0, 0);
+    
+    // Создаем временный canvas для выделенной области
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
+    tempCanvas.width = region.w;
+    tempCanvas.height = region.h;
+    tempCtx.drawImage(sourceCanvas, region.x, region.y, region.w, region.h, 0, 0, region.w, region.h);
+    
+    console.log('📊 Изображение скопировано, размер:', region.w, 'x', region.h);
+    
+    // Анализ строк для крупных QR кодов
+    const imageData = tempCtx.getImageData(0, 0, region.w, region.h);
+    const lines = await findVerticalLinesForLargeCodes(tempCanvas, imageData);
+    console.log('📝 Найдено строк:', lines.length);
+    
+    if (lines.length === 0) {
+        setStatus('MULTI: Коды не найдены');
+        return;
+    }
+    
+    // Создаем одно изображение со всеми строками для быстрой OCR
+    const allLinesCanvas = createAllLinesCanvas(sourceCanvas, region, lines);
+    
+    // Запускаем один OCR для всех строк
+    const allCodes = await processAllLinesOCR(allLinesCanvas);
+    
+    // Фильтруем и сохраняем хорошие коды
+    for (const code of allCodes) {
+        if (code && code.length >= 4) {
+            multiCodes.push(code);
+            console.log(`✅ Добавлен код: ${code}`);
+        }
+    }
+    
+    console.log('🎉 Итого найдено кодов:', multiCodes.length, multiCodes);
+    
+    if (multiCodes.length > 0) {
+        showMultiQrOverlay();
+    } else {
+        setStatus('MULTI: Коды не найдены');
+    }
+}
+
+async function findVerticalLinesOptimal(canvas, imageData) {
+    const lines = [];
+    const width = canvas.width;
+    const height = canvas.height;
+    const data = imageData.data;
+    
+    console.log('🔍 Анализирую строки без ограничений...');
+    
+    // Подсчет черных пикселей
+    const rowCounts = new Array(height).fill(0);
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const idx = (y * width + x) * 4;
+            if (data[idx] === 0) rowCounts[y]++;
+        }
+    }
+    
+    // Находим все строки с черными пикселями
+    let inLine = false;
+    let lineStart = 0;
+    
+    for (let y = 0; y < height; y++) {
+        const hasPixels = rowCounts[y] >= 1; // Минимум 1 пиксель
+        
+        if (hasPixels && !inLine) {
+            // Начало строки
+            inLine = true;
+            lineStart = y;
+        } else if (!hasPixels && inLine) {
+            // Конец строки
+            inLine = false;
+            const lineHeight = y - lineStart;
+            
+            if (lineHeight >= 5 && lineHeight <= 100) { // Минимум 5px высота
+                // Находим границы текста в строке
+                const refinedLine = refineLineBounds(data, width, height, lineStart, y - 1);
+                lines.push(refinedLine);
+                console.log(`✅ Найдена строка: Y=${lineStart}-${y-1}, высота=${lineHeight}, пикселей=${rowCounts.slice(lineStart, y).reduce((a,b) => a+b, 0)}`);
+            }
+        }
+    }
+    
+    // Обрабатываем последнюю строку
+    if (inLine) {
+        const lineHeight = height - lineStart;
+        if (lineHeight >= 5 && lineHeight <= 100) { // Минимум 5px
+            const refinedLine = refineLineBounds(data, width, height, lineStart, height - 1);
+            lines.push(refinedLine);
+            console.log(`✅ Найдена последняя строка: Y=${lineStart}-${height-1}, высота=${lineHeight}, пикселей=${rowCounts.slice(lineStart, height).reduce((a,b) => a+b, 0)}`);
+        }
+    }
+    
+    console.log(`📊 Итого найдено строк: ${lines.length}`);
+    return lines;
+}
+
+async function findVerticalLinesForLargeCodes(canvas, imageData) {
+    const lines = [];
+    const width = canvas.width;
+    const height = canvas.height;
+    const data = imageData.data;
+    
+    console.log('🔍 Анализирую крупные QR коды...');
+    
+    // Подсчет черных пикселей
+    const rowCounts = new Array(height).fill(0);
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const idx = (y * width + x) * 4;
+            if (data[idx] === 0) rowCounts[y]++;
+        }
+    }
+    
+    // Логируем первые строки для анализа
+    console.log('📊 Анализ пикселей (первые 50 строк):');
+    for (let y = 0; y < Math.min(height, 50); y++) {
+        if (rowCounts[y] > 0) {
+            console.log(`  Строка ${y}: ${rowCounts[y]} пикселей`);
+        }
+    }
+    
+    // Находим пики с очень низким порогом для крупных кодов
+    const peaks = [];
+    for (let y = 0; y < height; y++) {
+        if (rowCounts[y] >= 1) { // Минимум 1 пиксель
+            peaks.push(y);
+        }
+    }
+    
+    console.log(`📊 Найдено пиков: ${peaks.length}`);
+    
+    if (peaks.length < 2) {
+        console.log('❌ Слишком мало пиков');
+        return lines;
+    }
+    
+    // Группируем пики в строки
+    let inLine = false;
+    let lineStart = 0;
+    
+    for (let i = 0; i < peaks.length; i++) {
+        const currentPeak = peaks[i];
+        
+        if (!inLine) {
+            // Начало новой строки
+            inLine = true;
+            lineStart = currentPeak;
+        } else {
+            // Проверяем разрыв между пиками
+            const gap = currentPeak - peaks[i-1];
+            if (gap > 15) { // Большой разрыв - новая строка
+                // Сохраняем предыдущую строку
+                const lineHeight = peaks[i-1] - lineStart + 10; // +10 для захвата
+                if (lineHeight >= 15 && lineHeight <= 80) {
+                    lines.push({
+                        x: 0,
+                        y: Math.max(0, lineStart - 5),
+                        width: width,
+                        height: Math.min(height - lineStart, lineHeight + 10)
+                    });
+                    console.log(`✅ Добавлена строка: Y=${lineStart}-${peaks[i-1] + 10}, высота=${lineHeight + 10}`);
+                }
+                
+                // Начинаем новую строку
+                lineStart = currentPeak;
+            }
+        }
+    }
+    
+    // Добавляем последнюю строку
+    if (inLine && peaks.length > 0) {
+        const lastPeak = peaks[peaks.length - 1];
+        const lineHeight = lastPeak - lineStart + 10;
+        if (lineHeight >= 15 && lineHeight <= 80) {
+            lines.push({
+                x: 0,
+                y: Math.max(0, lineStart - 5),
+                width: width,
+                height: Math.min(height - lineStart, lineHeight + 10)
+            });
+            console.log(`✅ Добавлена последняя строка: Y=${lineStart}-${lastPeak + 10}, высота=${lineHeight + 10}`);
+        }
+    }
+    
+    console.log(`📊 Итого найдено строк: ${lines.length}`);
+    return lines;
+}
+
+async function findVerticalLinesFast(canvas, imageData) {
+    const lines = [];
+    const width = canvas.width;
+    const height = canvas.height;
+    const data = imageData.data;
+    
+    // Быстрый подсчет черных пикселей
+    const rowCounts = new Array(height).fill(0);
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const idx = (y * width + x) * 4;
+            if (data[idx] === 0) rowCounts[y]++;
+        }
+    }
+    
+    // Находим пики с более низким порогом
+    const peaks = [];
+    for (let y = 0; y < height; y++) {
+        if (rowCounts[y] >= 5) {
+            peaks.push(y);
+            console.log(`📍 Пик найден: строка ${y}, пикселей: ${rowCounts[y]}`);
+        }
+    }
+    
+    if (peaks.length < 2) return lines;
+    
+    const avgGap = Math.round((peaks[peaks.length-1] - peaks[0]) / (peaks.length - 1));
+    const lineCount = Math.min(24, Math.floor(height / avgGap));
+    
+    for (let i = 0; i < lineCount; i++) {
+        const centerY = peaks[0] + (i * avgGap);
+        const startY = Math.max(0, centerY - 10);
+        const endY = Math.min(height - 1, centerY + 10);
+        
+        let totalPixels = 0;
+        for (let y = startY; y <= endY; y++) {
+            totalPixels += rowCounts[y];
+        }
+        
+        if (totalPixels >= 3) { // Снижаем до 3 пикселей для мелких кодов
+            lines.push({
+                x: 0,
+                y: startY,
+                width: width,
+                height: endY - startY + 1
+            });
+            console.log(`✅ Строка добавлена: Y=${startY}-${endY}, пикселей: ${totalPixels}`);
+        } else {
+            console.log(`❌ Строка отфильтрована: Y=${startY}-${endY}, пикселей: ${totalPixels}`);
+        }
+    }
+    
+    return lines;
+}
+
+function createAllLinesCanvas(sourceCanvas, region, lines) {
+    const allLinesCanvas = document.createElement('canvas');
+    const allLinesCtx = allLinesCanvas.getContext('2d');
+    
+    // Создаем вертикальное расположение строк с увеличенными отступами
+    const lineHeight = 30; // Увеличиваем высоту строки
+    const spacing = 15; // Увеличиваем отступы
+    allLinesCanvas.width = region.w;
+    allLinesCanvas.height = lines.length * (lineHeight + spacing);
+    
+    // Белый фон
+    allLinesCtx.fillStyle = 'white';
+    allLinesCtx.fillRect(0, 0, allLinesCanvas.width, allLinesCanvas.height);
+    
+    // Копируем каждую строку
+    lines.forEach((line, index) => {
+        const y = index * (lineHeight + spacing);
+        allLinesCtx.drawImage(
+            sourceCanvas,
+            region.x + line.x, region.y + line.y, line.width, line.height,
+            0, y, line.width, lineHeight
+        );
+    });
+    
+    return allLinesCanvas;
+}
+
+async function processAllLinesOCR(allLinesCanvas) {
+    try {
+        const ocrLang = ocrLangMap[currentLang] || 'pol';
+        const result = await Tesseract.recognize(
+            allLinesCanvas,
+            ocrLang,
+            { tessedit_char_whitelist: '0123456789' }
+        );
+        
+        // Разделяем результат на строки
+        const lines = result.data.text.split('\n').map(line => line.replace(/\D/g, '').trim()).filter(code => code.length >= 4);
+        console.log('🔍 OCR все строки:', lines);
+        
+        return lines;
+    } catch (err) {
+        console.error('❌ OCR ошибка:', err);
+        return [];
+    }
+}
+
+function findVerticalLines(canvas, imageData) {
+    const lines = [];
+    const width = canvas.width;
+    const height = canvas.height;
+    const data = imageData.data;
+    
+    console.log('🔍 Анализирую вертикальные строки...');
+    
+    // Ищем строки по вертикальным проекциям
+    const rowCounts = new Array(height).fill(0);
+    
+    // Считаем черные пиксели в каждой строке
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const idx = (y * width + x) * 4;
+            if (data[idx] === 0) { // Черный пиксель
+                rowCounts[y]++;
+            }
+        }
+    }
+    
+    console.log('📊 Анализ черных пикселей по строкам (первые 50):');
+    for (let y = 0; y < Math.min(height, 50); y++) {
+        if (rowCounts[y] > 0) {
+            console.log(`  Строка ${y}: ${rowCounts[y]} черных пикселей`);
+        }
+    }
+    
+    // Новый подход: ищем пики черных пикселей и делим на равные интервалы
+    const peaks = [];
+    for (let y = 0; y < height; y++) {
+        if (rowCounts[y] >= 5) { // Минимум 5 пикселей для пика
+            peaks.push(y);
+        }
+    }
+    
+    console.log(`📊 Найдено пиков: ${peaks.length}`);
+    
+    if (peaks.length < 2) {
+        console.log('❌ Слишком мало пиков для анализа');
+        return lines;
+    }
+    
+    // Определяем средний интервал между пиками
+    let totalGap = 0;
+    let gapCount = 0;
+    for (let i = 1; i < peaks.length; i++) {
+        const gap = peaks[i] - peaks[i-1];
+        if (gap > 5 && gap < 100) { // Разумные интервалы
+            totalGap += gap;
+            gapCount++;
+        }
+    }
+    
+    const avgGap = gapCount > 0 ? Math.round(totalGap / gapCount) : 25;
+    console.log(`📏 Средний интервал между строками: ${avgGap} пикселей`);
+    
+    // Создаем строки на основе пиков и среднего интервала
+    const firstY = peaks[0];
+    const lineCount = Math.min(24, Math.floor(height / avgGap)); // Максимум 24 строки
+    
+    for (let i = 0; i < lineCount; i++) {
+        const centerY = firstY + (i * avgGap);
+        const startY = Math.max(0, centerY - 10);
+        const endY = Math.min(height - 1, centerY + 10);
+        
+        console.log(`📝 Строка ${i+1}: центр Y=${centerY}, диапазон ${startY}-${endY}`);
+        
+        // Проверяем что в этой области есть черные пиксели
+        let totalPixels = 0;
+        for (let y = startY; y <= endY; y++) {
+            totalPixels += rowCounts[y];
+        }
+            
+        // Фильтруем по качеству - минимум 10 черных пикселей
+        if (totalPixels >= 10) {
+            const refinedLine = refineLineBounds(data, width, height, startY, endY);
+            lines.push(refinedLine);
+            console.log(`✅ Добавлена строка:`, refinedLine);
+        } else {
+            console.log(`❌ Группа ${i+1} отфильтрована: мало пикселей (${totalPixels})`);
+        }
+    }
+        
+    console.log(`📊 Итого добавлено строк: ${lines.length}`);
+        
+    return lines;
+}
+
+function isValidCode(code) {
+    // Проверка на реалистичные QR коды
+    if (!code || typeof code !== 'string') return false;
+    
+    // Убираем лишние нули в начале если код слишком длинный
+    const cleanCode = code.replace(/^0+/, '');
+    
+    // Проверяем что код состоит только из цифр
+    if (!/^\d+$/.test(cleanCode)) return false;
+    
+    // Проверяем длину (4-16 символов после очистки)
+    if (cleanCode.length < 4 || cleanCode.length > 16) return false;
+    
+    // Проверяем что это не все одинаковые цифры
+    if (/^(\d)\1+$/.test(cleanCode)) return false;
+    
+    console.log(`🔍 Валидация кода: ${code} -> ${cleanCode} ✅`);
+    return true;
+}
+
+function refineLineBounds(data, width, height, startY, endY) {
+    // Находим фактические границы текста в строке
+    let minX = width;
+    let maxX = 0;
+    let actualStartY = endY;
+    let actualEndY = startY;
+    
+    for (let y = startY; y <= endY; y++) {
+        let hasTextInRow = false;
+        
+        for (let x = 0; x < width; x++) {
+            const idx = (y * width + x) * 4;
+            if (data[idx] === 0) { // Черный пиксель
+                minX = Math.min(minX, x);
+                maxX = Math.max(maxX, x);
+                hasTextInRow = true;
+                actualStartY = Math.min(actualStartY, y);
+                actualEndY = Math.max(actualEndY, y);
+            }
+        }
+    }
+    
+    // Добавляем небольшие отступы
+    minX = Math.max(0, minX - 5);
+    maxX = Math.min(width - 1, maxX + 5);
+    actualStartY = Math.max(0, actualStartY - 2);
+    actualEndY = Math.min(height - 1, actualEndY + 2);
+    
+    return {
+        x: minX,
+        y: actualStartY,
+        width: maxX - minX + 1,
+        height: actualEndY - actualStartY + 1
+    };
+}
+
+async function findTextLines(canvas, imageData) {
+    const lines = [];
+    const width = canvas.width;
+    const height = canvas.height;
+    const data = imageData.data;
+    
+    // Ищем строки по горизонтальным проекциям
+    const rowCounts = new Array(height).fill(0);
+    
+    // Считаем черные пиксели в каждой строке
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const idx = (y * width + x) * 4;
+            if (data[idx] === 0) { // Черный пиксель
+                rowCounts[y]++;
+            }
+        }
+    }
+    
+    console.log('📊 Анализ строк:', rowCounts.slice(0, 50)); // Первые 50 строк для отладки
+    
+    // Находим интервалы с текстом
+    let inLine = false;
+    let lineStart = 0;
+    
+    for (let y = 0; y < height; y++) {
+        const hasText = rowCounts[y] > 10; // Минимум 10 черных пикселей в строке
+        
+        if (hasText && !inLine) {
+            // Начало строки
+            inLine = true;
+            lineStart = y;
+        } else if (!hasText && inLine) {
+            // Конец строки
+            inLine = false;
+            const lineHeight = y - lineStart;
+            
+            if (lineHeight >= 15 && lineHeight <= 60) { // Разумная высота строки
+                lines.push({
+                    x: 0,
+                    y: lineStart,
+                    width: width,
+                    height: lineHeight
+                });
+                console.log(`📝 Найдена строка: y=${lineStart}, h=${lineHeight}`);
+            }
+        }
+    }
+    
+    // Обрабатываем последнюю строку если она не закончилась
+    if (inLine) {
+        const lineHeight = height - lineStart;
+        if (lineHeight >= 15 && lineHeight <= 60) {
+            lines.push({
+                x: 0,
+                y: lineStart,
+                width: width,
+                height: lineHeight
+            });
+            console.log(`📝 Найдена последняя строка: y=${lineStart}, h=${lineHeight}`);
+        }
+    }
+    
+    return lines;
+}
+
+async function processCanvasForCode(canvas) {
+    console.log('🔍 Обработка canvas:', canvas.width, 'x', canvas.height);
+    
+    try {
+        const ocrLang = ocrLangMap[currentLang] || 'pol';
+        console.log('🔍 Запускаю OCR с языком:', ocrLang);
+        
+        // Используем простой и надежный подход как в QR2
+        const result = await Tesseract.recognize(
+            canvas,
+            ocrLang,
+            { 
+                tessedit_char_whitelist: '0123456789'
+            }
+        );
+        
+        console.log('🔍 OCR текст:', result.data.text);
+        console.log('🔍 OCR уверенность:', result.data.confidence);
+        
+        const cleanText = result.data.text.replace(/\D/g, '').trim();
+        console.log('🔍 Очищенный текст:', cleanText);
+        
+        return cleanText.length > 0 ? cleanText : null;
+    } catch (err) {
+        console.error('❌ OCR ошибка:', err);
+        return null;
+    }
+}
+
+function showMultiQrOverlay() {
+    currentMultiPage = 0;
+    renderMultiPage();
+    document.getElementById('multiQrOverlay').style.display = 'flex';
+    setStatus('MULTI: Готово!');
+}
+
+function closeMultiQrOverlay() {
+    document.getElementById('multiQrOverlay').style.display = 'none';
+    // Не очищаем коды и области - они могут понадобиться снова
+    // multiRegions = [];
+    // multiCodes = [];
+    // saveMultiRegions();
+    setStatus('MULTI: Готово!');
+}
+
+function renderMultiPage() {
+    const container = document.getElementById('multiQrContainer');
+    container.innerHTML = '';
+    
+    const startIndex = currentMultiPage * ITEMS_PER_PAGE;
+    const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, multiCodes.length);
+    
+    for (let i = startIndex; i < endIndex; i++) {
+        const code = multiCodes[i];
+        const item = createMultiQrItem(code, i);
+        container.appendChild(item);
+    }
+    
+    // Обновляем информацию о странице
+    const totalPages = Math.ceil(multiCodes.length / ITEMS_PER_PAGE);
+    document.getElementById('multiPageInfo').textContent = `${currentMultiPage + 1}/${totalPages}`;
+    
+    // Обновляем состояние кнопок навигации
+    document.getElementById('multiPrev').disabled = currentMultiPage === 0;
+    document.getElementById('multiNext').disabled = currentMultiPage >= totalPages - 1;
+}
+
+function createMultiQrItem(code, index) {
+    const item = document.createElement('div');
+    item.className = 'multi-qr-item';
+    item.onclick = (e) => {
+        e.stopPropagation();
+        openSingleQrViewer(code);
+    };
+    
+    // Добавляем индекс
+    const indexBadge = document.createElement('div');
+    indexBadge.className = 'index-badge';
+    indexBadge.textContent = index + 1;
+    item.appendChild(indexBadge);
+    
+    const canvas = document.createElement('canvas');
+    new QRious({
+        element: canvas,
+        value: code,
+        size: 500 // Увеличиваем размер для больших прямоугольных QR
+    });
+    
+    const codeText = document.createElement('div');
+    codeText.className = 'code-text';
+    codeText.textContent = code;
+    
+    item.appendChild(canvas);
+    item.appendChild(codeText);
+    
+    return item;
+}
+
+function navigateMultiPage(direction) {
+    const totalPages = Math.ceil(multiCodes.length / ITEMS_PER_PAGE);
+    const newPage = currentMultiPage + direction;
+    
+    if (newPage >= 0 && newPage < totalPages) {
+        currentMultiPage = newPage;
+        renderMultiPage();
+    }
+}
+
+function openSingleQrViewer(code) {
+    // Создаем новое независимое окно для просмотра QR кодов
+    createIndependentQrViewer(code);
+}
+
+function createIndependentQrViewer(initialCode) {
+    // Находим индекс начального кода
+    const currentIndex = multiCodes.indexOf(initialCode);
+    
+    // Создаем контейнер для независимого окна
+    const viewerContainer = document.createElement('div');
+    viewerContainer.id = 'independentQrViewer';
+    viewerContainer.style.cssText = `
+        position: fixed; inset: 0; z-index: 200000;
+        background: rgba(0,0,0,0.95);
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer;
+    `;
+    
+    // Создаем внутренний контейнер
+    const innerContainer = document.createElement('div');
+    innerContainer.style.cssText = `
+        position: relative; display: flex; flex-direction: column; align-items: center;
+        cursor: default;
+        padding: 40px;
+    `;
+    innerContainer.onclick = (e) => e.stopPropagation();
+    
+    // Кнопка закрытия
+    const closeBtn = document.createElement('button');
+    closeBtn.style.cssText = `
+        position: absolute; top: 20px; right: 20px;
+        background: rgba(255,255,255,0.9); border: none;
+        border-radius: 50%; width: 40px; height: 40px;
+        font-size: 18px; cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        z-index: 10;
+    `;
+    closeBtn.textContent = '✕';
+    closeBtn.onmouseenter = () => {
+        closeBtn.style.background = 'white';
+        closeBtn.style.transform = 'scale(1.1)';
+    };
+    closeBtn.onmouseleave = () => {
+        closeBtn.style.background = 'rgba(255,255,255,0.9)';
+        closeBtn.style.transform = 'scale(1)';
+    };
+    closeBtn.onclick = () => closeIndependentViewer();
+    
+    // Информация о текущем коде
+    const counterInfo = document.createElement('div');
+    counterInfo.style.cssText = `
+        position: absolute; top: 20px; left: 20px;
+        background: rgba(255,255,255,0.9); padding: 8px 15px;
+        border-radius: 20px; font-size: 14px; font-weight: bold;
+        color: #000;
+    `;
+    
+    // Кнопки навигации
+    const prevBtn = document.createElement('button');
+    prevBtn.style.cssText = `
+        position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
+        background: rgba(255,255,255,0.9); border: none;
+        border-radius: 50%; width: 50px; height: 50px;
+        font-size: 24px; cursor: pointer; transition: all 0.2s;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    `;
+    prevBtn.textContent = '‹';
+    prevBtn.onclick = (e) => {
+        e.stopPropagation();
+        navigateIndependent(-1);
+    };
+    prevBtn.onmouseenter = () => {
+        prevBtn.style.background = 'white';
+        prevBtn.style.transform = 'translateY(-50%) scale(1.1)';
+    };
+    prevBtn.onmouseleave = () => {
+        prevBtn.style.background = 'rgba(255,255,255,0.9)';
+        prevBtn.style.transform = 'translateY(-50%) scale(1)';
+    };
+    
+    const nextBtn = document.createElement('button');
+    nextBtn.style.cssText = `
+        position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
+        background: rgba(255,255,255,0.9); border: none;
+        border-radius: 50%; width: 50px; height: 50px;
+        font-size: 24px; cursor: pointer; transition: all 0.2s;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    `;
+    nextBtn.textContent = '›';
+    nextBtn.onclick = (e) => {
+        e.stopPropagation();
+        navigateIndependent(1);
+    };
+    nextBtn.onmouseenter = () => {
+        nextBtn.style.background = 'white';
+        nextBtn.style.transform = 'translateY(-50%) scale(1.1)';
+    };
+    nextBtn.onmouseleave = () => {
+        nextBtn.style.background = 'rgba(255,255,255,0.9)';
+        nextBtn.style.transform = 'translateY(-50%) scale(1)';
+    };
+    
+    // QR код контейнер
+    const qrBox = document.createElement('div');
+    qrBox.style.cssText = `
+        background: white; padding: 20px; border-radius: 15px; text-align: center;
+        box-shadow: 0 0 50px rgba(255,255,255,0.2);
+    `;
+    
+    const qrCanvas = document.createElement('canvas');
+    qrCanvas.id = 'independentQrCanvas';
+    
+    const codeText = document.createElement('div');
+    codeText.id = 'independentCodeText';
+    codeText.style.cssText = `
+        margin-top: 15px;
+        font-size: 60px;
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        color: #000;
+        letter-spacing: 2px;
+    `;
+    
+    // Собираем все вместе
+    qrBox.appendChild(qrCanvas);
+    qrBox.appendChild(codeText);
+    innerContainer.appendChild(closeBtn);
+    innerContainer.appendChild(counterInfo);
+    innerContainer.appendChild(prevBtn);
+    innerContainer.appendChild(nextBtn);
+    innerContainer.appendChild(qrBox);
+    viewerContainer.appendChild(innerContainer);
+    
+    // Добавляем на страницу
+    document.body.appendChild(viewerContainer);
+    
+    // Функции для работы с окном
+    let currentIdx = currentIndex;
+    
+    function updateViewer() {
+        const code = multiCodes[currentIdx];
+        new QRious({
+            element: qrCanvas,
+            value: code,
+            size: 400
+        });
+        codeText.textContent = code;
+        counterInfo.textContent = `${currentIdx + 1}/${multiCodes.length}`;
+        
+        // Обновляем состояние кнопок
+        prevBtn.disabled = currentIdx === 0;
+        nextBtn.disabled = currentIdx === multiCodes.length - 1;
+        prevBtn.style.opacity = prevBtn.disabled ? '0.3' : '1';
+        nextBtn.style.opacity = nextBtn.disabled ? '0.3' : '1';
+    }
+    
+    function navigateIndependent(direction) {
+        const newIdx = currentIdx + direction;
+        if (newIdx >= 0 && newIdx < multiCodes.length) {
+            currentIdx = newIdx;
+            updateViewer();
+        }
+    }
+    
+    function closeIndependentViewer() {
+        document.body.removeChild(viewerContainer);
+    }
+    
+    // Закрытие при клике вне области
+    viewerContainer.onclick = closeIndependentViewer;
+    
+    // Закрытие по ESC
+    const escHandler = (e) => {
+        if (e.key === 'Escape') {
+            closeIndependentViewer();
+            document.removeEventListener('keydown', escHandler);
+        }
+    };
+    document.addEventListener('keydown', escHandler);
+    
+    // Навигация стрелками
+    const arrowHandler = (e) => {
+        if (e.key === 'ArrowLeft') {
+            navigateIndependent(-1);
+        } else if (e.key === 'ArrowRight') {
+            navigateIndependent(1);
+        }
+    };
+    document.addEventListener('keydown', arrowHandler);
+    
+    // Удаляем обработчики при закрытии
+    const originalClose = closeIndependentViewer;
+    closeIndependentViewer = () => {
+        document.removeEventListener('keydown', escHandler);
+        document.removeEventListener('keydown', arrowHandler);
+        originalClose();
+    };
+    
+    // Инициализация
+    updateViewer();
+}
+
+// Используем стандартную функцию закрытия как в QR2.html
+function closeOverlay() {
+    const qrOverlay = document.getElementById('qrOverlay');
+    qrOverlay.style.display = 'none';
+    // Возвращаем нормальный z-index
+    qrOverlay.style.zIndex = '99999';
+    
+    // Если мультиоверлей был открыт, показываем его снова
+    const multiOverlay = document.getElementById('multiQrOverlay');
+    if (multiOverlay && multiCodes.length > 0) {
+        multiOverlay.style.display = 'flex';
+        setStatus('MULTI: Готово!');
+    }
+}
+
+function showAllCodesViewer() {
+    // Показываем все коды как в QR_Cards.html
+    const container = document.createElement('div');
+    container.style.cssText = `
+        position: fixed; inset: 0; z-index: 99999;
+        background: rgba(0,0,0,0.95);
+        display: flex; align-items: center; justify-content: center;
+        overflow-y: auto;
+        padding: 40px;
+    `;
+    
+    const grid = document.createElement('div');
+    grid.style.cssText = `
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Увеличиваем минимальный размер */
+        gap: 30px; /* Увеличиваем отступы */
+        max-width: 1400px; /* Увеличиваем максимальную ширину */
+        width: 100%;
+    `;
+    
+    multiCodes.forEach((code, index) => {
+        const item = document.createElement('div');
+        item.style.cssText = `
+            background: white; padding: 25px; border-radius: 20px;
+            text-align: center; cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.4);
+            border: 4px solid transparent;
+            position: relative;
+            overflow: hidden;
+            /* Прямоугольная форма */
+            aspect-ratio: 3/2; /* Пропорция 3:2 (горизонтальный прямоугольник) */
+        `;
+        
+        item.onclick = () => {
+            // При клике показываем одиночный просмотр
+            openSingleQrViewer(code);
+        };
+        
+        item.onmouseenter = () => {
+            item.style.transform = 'scale(1.08) translateY(-8px)';
+            item.style.boxShadow = '0 20px 50px rgba(0,0,0,0.6)';
+            item.style.borderColor = '#4ade80';
+            item.style.background = 'linear-gradient(145deg, #ffffff 0%, #f0fdf4 100%)';
+        };
+        
+        item.onmouseleave = () => {
+            item.style.transform = 'scale(1)';
+            item.style.boxShadow = '0 12px 35px rgba(0,0,0,0.4)';
+            item.style.borderColor = 'transparent';
+            item.style.background = 'white';
+        };
+        
+        // Индекс
+        const indexBadge = document.createElement('div');
+        indexBadge.style.cssText = `
+            position: absolute; top: 10px; left: 10px;
+            background: #4ade80; color: white;
+            font-size: 14px; font-weight: bold;
+            padding: 6px 10px; border-radius: 25px;
+            box-shadow: 0 3px 12px rgba(74,222,128,0.5);
+        `;
+        indexBadge.textContent = index + 1;
+        item.appendChild(indexBadge);
+        
+        // QR код
+        const canvas = document.createElement('canvas');
+        new QRious({
+            element: canvas,
+            value: code,
+            size: 300 /* Увеличиваем размер */
+        });
+        canvas.style.cssText = `
+            width: 100%; height: 100%; 
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        `;
+        item.appendChild(canvas);
+        
+        // Текст кода
+        const codeText = document.createElement('div');
+        codeText.style.cssText = `
+            margin-top: 15px; font-size: 18px; font-weight: bold;
+            color: #000; font-family: 'Courier New', monospace;
+            letter-spacing: 1.2px;
+            word-break: break-all;
+            line-height: 1.3;
+        `;
+        codeText.textContent = code;
+        item.appendChild(codeText);
+        
+        grid.appendChild(item);
+    });
+    
+    // Кнопка закрытия
+    const closeBtn = document.createElement('button');
+    closeBtn.style.cssText = `
+        position: fixed; top: 30px; right: 30px;
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        color: white; border: none;
+        border-radius: 50%; width: 60px; height: 60px;
+        font-size: 20px; cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 25px rgba(34,197,94,0.4);
+        z-index: 1000;
+    `;
+    closeBtn.textContent = '✕';
+    closeBtn.onclick = () => {
+        document.body.removeChild(container);
+    };
+    
+    container.appendChild(grid);
+    container.appendChild(closeBtn);
+    document.body.appendChild(container);
+    
+    // Закрытие при клике вне области
+    container.onclick = (e) => {
+        if (e.target === container) {
+            document.body.removeChild(container);
+        }
+    };
+}
+
+// Добавляем обработчики клавиш для навигации
+document.addEventListener('keydown', (e) => {
+    if (document.getElementById('multiQrOverlay').style.display === 'flex') {
+        if (e.key === 'ArrowLeft') {
+            navigateMultiPage(-1);
+        } else if (e.key === 'ArrowRight') {
+            navigateMultiPage(1);
+        } else if (e.key === 'Escape') {
+            closeMultiQrOverlay();
+        }
+    }
+});
+
+async function processRegionForCode(region) {
+    const SCALE = 3; 
+    previewCanvas.width = region.w * SCALE;
+    previewCanvas.height = region.h * SCALE;
+    
+    pCtx.imageSmoothingEnabled = true;
+    pCtx.drawImage(mainCanvas, region.x, region.y, region.w, region.h, 0, 0, previewCanvas.width, previewCanvas.height);
+    
+    const imageData = pCtx.getImageData(0, 0, previewCanvas.width, previewCanvas.height);
+    const data = imageData.data;
+    for (let i = 0; i < data.length; i += 4) {
+        const brightness = (data[i] + data[i+1] + data[i+2]) / 3;
+        const val = brightness < HARDCODED_THRESHOLD ? 0 : 255;
+        data[i] = val; data[i+1] = val; data[i+2] = val;
+    }
+    pCtx.putImageData(imageData, 0, 0);
+
+    try {
+        const ocrLang = ocrLangMap[currentLang] || 'pol';
+        const result = await Tesseract.recognize(
+            previewCanvas,
+            ocrLang,
+            { tessedit_char_whitelist: '0123456789' }
+        );
+        
+        const cleanText = result.data.text.replace(/\D/g, '').trim();
+        return cleanText.length > 0 ? cleanText : null;
+    } catch (err) {
+        console.error(err);
+        return null;
+    }
+}
 
 /* ══════════════════════════════════════════════
    PRZECHWYTYWANIE EKRANU
@@ -753,7 +2174,7 @@ async function startCapture() {
             captureController = new CaptureController();
             captureController.setFocusBehavior("no-focus-change");
         }
-        const options = { video: { cursor: 'never', displaySurface: 'window' }, audio: false };
+        const options = { video: { cursor: 'always', displaySurface: 'window' }, audio: false };
         if (captureController) options.controller = captureController;
 
         activeStream = await navigator.mediaDevices.getDisplayMedia(options);
@@ -769,6 +2190,8 @@ async function startCapture() {
         workControls.style.display = 'flex';
         setStatus('statusReady');
         loadStoredRegion();
+        initMultiMode(); // Инициализация мультирежима
+        updateWorkModeToggle(); // Обновляем рабочий тумблер
         if (storedRegion) autoRunSavedRegion();
         activeStream.getVideoTracks()[0].addEventListener('ended', () => {
             stopVideoStream(); setStatus('statusSelectNew');
@@ -778,7 +2201,11 @@ async function startCapture() {
 
 function drawVideoFrame() {
     if (!activeStream) return;
-    if (captureVideo.readyState >= 2) ctx.drawImage(captureVideo, 0, 0);
+    if (captureVideo.readyState >= 2) {
+        if (!isDrawing) {
+            ctx.drawImage(captureVideo, 0, 0);
+        }
+    }
     requestAnimationFrame(drawVideoFrame);
 }
 
@@ -894,7 +2321,7 @@ const overlayTextEl = document.getElementById('overlayText');
 
 function showOverlay(code) {
     overlayTextEl.textContent = code;
-    new QRious({ element: bigQrCanvas, value: code, size: 280, background:'#fff', foreground:'#000' });
+    new QRious({ element: bigQrCanvas, value: code, size: 400, background:'#fff', foreground:'#000' });
     addToHistory(code);
     qrOverlay.style.display = 'flex';
 }
