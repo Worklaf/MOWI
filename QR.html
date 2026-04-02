@@ -602,7 +602,9 @@
         </div>
         <span id="windowNameDisplay" style="display:none;">—</span>
         <button id="clearCoordsBtn" class="btn-ghost">🗑️ RESET</button>
-        <button id="resetBtn"       class="btn-small" onclick="location.reload()">🔄 RESET</button>
+        <button id="clearSingleCoordsBtn" class="btn-ghost" style="background:#dc2626;">🗑️ SINGLE</button>
+        <button id="clearMultiCoordsBtn" class="btn-ghost" style="background:#16a34a;">🗑️ MULTI</button>
+        <button id="resetBtn" class="btn-small" onclick="location.reload()">🔄 RESET</button>
     </div>
     <!-- Дополнительный тумблер в той же строке -->
     <div style="display:flex; align-items:center; gap:8px; margin-top:3px;">
@@ -726,6 +728,8 @@ const spaceHintEl       = document.getElementById('spaceHint');
 const captureBtnText    = document.getElementById('captureBtnText');
 const coordsDisplay     = document.getElementById('coordsDisplay');
 const clearCoordsBtn    = document.getElementById('clearCoordsBtn');
+const clearSingleCoordsBtn = document.getElementById('clearSingleCoordsBtn');
+const clearMultiCoordsBtn = document.getElementById('clearMultiCoordsBtn');
 const windowNameDisplay = document.getElementById('windowNameDisplay');
 const htmlEl            = document.documentElement;
 const qhSidebar         = document.getElementById('qhSidebar');
@@ -757,7 +761,10 @@ const STORAGE_KEY_MULTI_REGION = 'maxqr_multiRegion';  // Для MULTI MODE
 ══════════════════════════════════════════════ */
 function initMultiMode() {
     console.log('🚀 Инициализация мультирежима...');
-    isMultiMode = localStorage.getItem(STORAGE_KEY_MULTI) === 'true';
+    // Всегда SINGLE MODE по умолчанию при загрузке страницы
+    isMultiMode = false;
+    localStorage.setItem(STORAGE_KEY_MULTI, false);
+    console.log('📊 Принудительно установлен SINGLE MODE при загрузке');
     
     // Главный тумблер удален, пропускаем его инициализацию
     console.log('🔍 Главный тумблер удален, используем только быстрые тумблеры');
@@ -765,6 +772,8 @@ function initMultiMode() {
     if (isMultiMode) {
         loadMultiRegions();
         console.log('📁 MULTI MODE: загружены сохраненные области');
+    } else {
+        console.log('📁 SINGLE MODE: режим по умолчанию (принудительно)');
     }
     
     // Добавляем логи при загрузке страницы
@@ -776,6 +785,17 @@ function initMultiMode() {
     
     // Обновляем быстрые тумблеры при инициализации
     updateWorkModeToggle();
+    
+    // Устанавливаем состояние тумблеров из localStorage
+    if (quickMultiToggle) {
+        quickMultiToggle.checked = isMultiMode;
+    }
+    if (overlayModeToggle) {
+        overlayModeToggle.checked = isMultiMode;
+    }
+    
+    // Загружаем сохраненные координаты после установки состояния
+    loadStoredRegion();
     
     console.log('✅ Инициализация мультирежима завершена');
 }
@@ -801,18 +821,44 @@ function saveMultiRegions() {
 }
 
 function updateWorkModeToggle() {
-    // При переключении режима загружаем соответствующие координаты
+    // При переключении режима обновляем активные координаты
+    console.log('🔄 Переключение режима:', isMultiMode ? 'MULTI' : 'SINGLE');
+    
+    // Обновляем активные координаты
     if (isMultiMode) {
-        // Переключаемся на MULTI MODE
         storedRegion = storedMultiRegion;
+        console.log('📊 Активные координаты (MULTI):', storedMultiRegion);
     } else {
-        // Переключаемся на SINGLE MODE
         storedRegion = storedSingleRegion;
+        console.log('📊 Активные координаты (SINGLE):', storedSingleRegion);
     }
     
     updateCoordsDisplay(storedRegion);
     
-    // Рабочий тумблер удален, обновляем только быстрый
+    // Перерисовываем canvas с сохраненными координатами
+    if (isMultiMode && storedMultiRegion) {
+        // MULTI MODE: рисуем сохраненную MULTI область
+        console.log('🎯 Перерисовываю MULTI область:', storedMultiRegion);
+        ctx.strokeStyle = '#facc15';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([5, 5]);
+        ctx.strokeRect(storedMultiRegion.x, storedMultiRegion.y, storedMultiRegion.w, storedMultiRegion.h);
+    } else if (!isMultiMode && storedSingleRegion) {
+        // SINGLE MODE: рисуем сохраненную SINGLE область
+        console.log('🎯 Перерисовываю SINGLE область:', storedSingleRegion);
+        ctx.strokeStyle = '#4ade80';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([]);
+        ctx.strokeRect(storedSingleRegion.x, storedSingleRegion.y, storedSingleRegion.w, storedSingleRegion.h);
+    } else {
+        // Нет сохраненных координат - очищаем canvas
+        console.log('🎯 Нет сохраненных координат для текущего режима');
+        if (activeStream && captureVideo.readyState >= 2) {
+            ctx.drawImage(captureVideo, 0, 0);
+        }
+    }
+    
+    // Обновляем быстрые тумблеры
     if (quickMultiToggle) {
         quickMultiToggle.checked = isMultiMode;
         if (quickModeStatus) {
@@ -826,6 +872,19 @@ function updateWorkModeToggle() {
     if (overlayModeToggle) {
         overlayModeToggle.checked = isMultiMode;
         console.log('🎯 Тумблер в overlay обновлен:', isMultiMode ? 'MULTI' : 'SINGLE');
+    }
+    
+    // Автоматически генерируем QR коды только при ручном переключении
+    if (isMultiMode && storedMultiRegion && window.manualModeSwitch) {
+        console.log('🚀 Автоматическая генерация MULTI QR кодов...');
+        console.log('📊 Использую MULTI координаты:', storedMultiRegion);
+        setTimeout(() => processMultiRegionAsLines(storedMultiRegion), 300);
+    } else if (!isMultiMode && storedSingleRegion && window.manualModeSwitch) {
+        console.log('🚀 Автоматическая генерация SINGLE QR кода...');
+        console.log('📊 Использую SINGLE координаты:', storedSingleRegion);
+        setTimeout(() => processRegion(storedSingleRegion), 300);
+    } else {
+        console.log('🎯 Нет сохраненных координат для текущего режима или автоматическая инициализация');
     }
 }
 
@@ -841,36 +900,28 @@ function initTheme() {
             console.log('⚡ Быстрый тумблер переключен!');
             isMultiMode = quickMultiToggle.checked;
             localStorage.setItem(STORAGE_KEY_MULTI, isMultiMode);
+            window.manualModeSwitch = true; // Устанавливаем флаг ручного переключения
             
             if (isMultiMode) {
                 loadMultiRegions();
+                // Если MULTI координат нет, используем SINGLE как базовые
+                if (!storedMultiRegion && storedSingleRegion) {
+                    console.log('📊 Используем SINGLE координаты как базовые для MULTI');
+                    storedMultiRegion = storedSingleRegion;
+                    localStorage.setItem(STORAGE_KEY_MULTI_REGION, JSON.stringify(storedMultiRegion));
+                }
                 setStatus('statusMultiReady');
                 console.log('✅ MULTI MODE активирован (быстрый)');
             } else {
                 console.log('✅ SINGLE MODE активирован (быстрый)');
             }
             
-            // Синхронизируем все тумблеры
-            if (multiModeToggle) {
-                multiModeToggle.checked = isMultiMode;
-            }
-            if (workModeToggle) {
-                workModeToggle.checked = isMultiMode;
-            }
-            if (modeIndicator) {
-                modeIndicator.textContent = isMultiMode ? 'MULTI MODE' : 'SINGLE MODE';
-                modeIndicator.style.color = isMultiMode ? '#4ade80' : '#888';
-            }
-            if (quickModeStatus) {
-                quickModeStatus.textContent = isMultiMode ? 'MULTI' : 'SINGLE';
-                quickModeStatus.style.color = isMultiMode ? '#4ade80' : '#888';
-            }
+            // Синхронизируем все остальные тумблеры
+            updateWorkModeToggle();
+            
+            // Сбрасываем флаг через небольшую задержку
+            setTimeout(() => { window.manualModeSwitch = false; }, 1000);
         });
-    } else {
-        console.error('❌ Быстрый тумблер не найден!');
-    }
-
-    // Добавляем обработчик для тумблера в overlay
     if (overlayModeToggle) {
         console.log('✅ Тумблер в overlay найден, добавляю обработчик...');
         overlayModeToggle.checked = isMultiMode;
@@ -878,9 +929,19 @@ function initTheme() {
             console.log('🔄 Тумблер в overlay переключен!');
             isMultiMode = overlayModeToggle.checked;
             localStorage.setItem(STORAGE_KEY_MULTI, isMultiMode);
+            window.manualModeSwitch = true; // Устанавливаем флаг ручного переключения
+            
+            // Закрываем overlay при переключении режима
+            closeOverlay();
             
             if (isMultiMode) {
                 loadMultiRegions();
+                // Если MULTI координат нет, используем SINGLE как базовые
+                if (!storedMultiRegion && storedSingleRegion) {
+                    console.log('📊 Используем SINGLE координаты как базовые для MULTI');
+                    storedMultiRegion = storedSingleRegion;
+                    localStorage.setItem(STORAGE_KEY_MULTI_REGION, JSON.stringify(storedMultiRegion));
+                }
                 setStatus('statusMultiReady');
                 console.log('✅ MULTI MODE активирован (overlay)');
             } else {
@@ -890,11 +951,15 @@ function initTheme() {
             
             // Синхронизируем все остальные тумблеры
             updateWorkModeToggle();
+            
+            // Сбрасываем флаг через небольшую задержку
+            setTimeout(() => { window.manualModeSwitch = false; }, 1000);
         });
     }
 
     isGlowTheme = localStorage.getItem(STORAGE_KEY_THEME) === 'true';
     applyTheme();
+}
 }
 
 function toggleOverlayTheme() {
@@ -1088,9 +1153,11 @@ function loadStoredRegion() {
         
         // Обновляем раздельные переменные для совместимости
         if (isMultiMode) {
-            storedMultiRegion = storedRegion;
+            storedMultiRegion = r; // Загружаем MULTI координаты
+            storedRegion = storedMultiRegion;
         } else {
-            storedSingleRegion = storedRegion;
+            storedSingleRegion = r; // Загружаем SINGLE координаты
+            storedRegion = storedSingleRegion;
         }
     } catch { 
         storedRegion = null;
@@ -1133,6 +1200,24 @@ function clearStoredRegion() {
     clearStoredWindow(); 
     setStatus('statusCoordsCleared');
 }
+
+function clearSingleRegion() {
+    // Очищаем только SINGLE MODE координаты
+    storedSingleRegion = null;
+    storedRegion = isMultiMode ? storedMultiRegion : null; // Обновляем общую переменную
+    localStorage.removeItem(STORAGE_KEY_SINGLE_REGION);
+    updateCoordsDisplay(storedRegion);
+    setStatus('SINGLE координаты очищены');
+}
+
+function clearMultiRegion() {
+    // Очищаем только MULTI MODE координаты
+    storedMultiRegion = null;
+    storedRegion = isMultiMode ? null : storedSingleRegion; // Обновляем общую переменную
+    localStorage.removeItem(STORAGE_KEY_MULTI_REGION);
+    updateCoordsDisplay(storedRegion);
+    setStatus('MULTI координаты очищены');
+}
 function updateCoordsDisplay(r) {
     coordsDisplay.textContent = r ? `x: ${r.x} | y: ${r.y} | w: ${r.w} | h: ${r.h}` : 'x: — | y: — | w: — | h: —';
 }
@@ -1153,6 +1238,9 @@ function loadStoredWindow() {
     if (w) { lastWindowName = w; windowNameDisplay.textContent = `🖥 ${w}`; windowNameDisplay.style.display = 'inline-block'; }
 }
 clearCoordsBtn.addEventListener('click', clearStoredRegion);
+clearSingleCoordsBtn.addEventListener('click', clearSingleRegion);
+clearMultiCoordsBtn.addEventListener('click', clearMultiRegion);
+resetBtn.addEventListener('click', () => location.reload());
 
 /* ══════════════════════════════════════════════
    CANVAS – ZAZNACZANIE OBSZARU
@@ -1188,6 +1276,12 @@ mainCanvas.addEventListener('mouseup', async e => {
     isDrawing = false;
     mainCanvas.classList.remove('drawing');
     
+    // Проверяем если это автоматический запуск (не ручное выделение)
+    if (e.detail === 'autoRun') {
+        console.log('🚀 Автоматический запуск, пропускаем обработку выделения');
+        return;
+    }
+    
     // Добавляем лог для проверки режима
     console.log('🔍 Выделение завершено. Текущий режим:', isMultiMode ? 'MULTI' : 'SINGLE');
     
@@ -1211,6 +1305,11 @@ mainCanvas.addEventListener('mouseup', async e => {
             console.log('✅ Запускаю MULTI MODE обработку...');
             multiRegions = [region]; // Сохраняем как одну область
             saveMultiRegions();
+            
+            // Сохраняем в storedMultiRegion для будущих переключений
+            storedMultiRegion = region;
+            localStorage.setItem(STORAGE_KEY_MULTI_REGION, JSON.stringify(region));
+            
             setStatus('MULTI: Обработка строк...');
             await processMultiRegionAsLines(region);
         } else {
@@ -2320,6 +2419,17 @@ async function autoRunSavedRegion() {
         setStatus('statusAutoError'); storedRegion = null; return;
     }
     setStatus('statusAutoInit');
+    
+    // Создаем специальное событие для автоматического запуска
+    const mouseUpEvent = new MouseEvent('mouseup', {
+        bubbles: true,
+        cancelable: true,
+        detail: 'autoRun' // Маркер автоматического запуска
+    });
+    
+    // Отправляем событие на canvas
+    mainCanvas.dispatchEvent(mouseUpEvent);
+    
     await processRegion(R);
 }
 
@@ -2488,9 +2598,10 @@ document.addEventListener('keydown', e => {
 initMode();
 initTheme();
 initHistoryState();
-loadStoredRegion();
+loadStoredRegion(); // Загружаем координаты ПЕРЕД инициализацией режима
 loadStoredWindow();
 applyTranslations();
+initMultiMode(); // Затем инициализируем режим и обновляем координаты
 </script>
 </body>
 </html>
