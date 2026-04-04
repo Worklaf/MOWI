@@ -116,13 +116,31 @@
         .btn-big {
             padding: 15px 30px; font-size: 18px; cursor: pointer;
             border: none; border-radius: 8px; font-weight: bold; color: white;
-            transition: transform 0.1s; display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: transform 0.1s; display: flex; align-items: center; justify-content: flex-start; gap: 10px;
+            width: 100%;
+            text-align: left;
         }
         .btn-big:active { transform: scale(0.98); }
         .btn-blue  { background: #2563eb; }
         .btn-blue:hover  { background: #1d4ed8; }
         .btn-green { background: #16a34a; }
         .btn-green:hover { background: #15803d; }
+        .btn-orange {
+          background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+          border: 1px solid rgba(249,115,22,0.3);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: flex-start;
+          gap: 12px;
+          position: relative;
+        }
+        .btn-orange:hover {
+          background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+          transform: translateY(-1px);
+          box-shadow: 0 6px 16px rgba(249,115,22,0.4);
+        }
+        
 
         #workControls {
             position: absolute; top: 20px; right: 20px; display: none; z-index: 50; gap: 10px; align-items: center;
@@ -424,8 +442,8 @@
             grid-template-rows: repeat(3, 1fr);
             gap: 10px; /* Маленькие отступы */
             width: 100%; /* УМЕНЬШАЕМ ширину */
-            max-width: 1400px; /* УМЕНЬШАЕМ максимальную ширину */
-            max-height: 85vh;
+            max-width: 1500px; /* УМЕНЬШАЕМ максимальную ширину */
+            max-height: 87vh;
             padding: 20px; /* Уменьшаем отступы */
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             border-radius: 25px;
@@ -454,42 +472,43 @@
         }
         .multi-qr-item canvas {
             width: auto; height: auto; /* Квадратный QR код */
-            max-width: 95%; /* УВЕЛИЧИВАЕМ ширину */
-            max-height: 75%; /* УВЕЛИЧИВАЕМ высоту */
-            border-radius: 20px; /* УВЕЛИЧИВАЕМ радиус */
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 95%; /* УМЕНЬШАЕМ ширину */
+            max-height: 75%; /* УМЕНЬШАЕМ высоту */
+            border-radius: 20px; /* УМЕНЬШАЕМ радиус */
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
             transition: all 0.4s ease;
-            margin-bottom: 10px; /* УВЕЛИЧИВАЕМ отступ для текста */
+            margin-bottom: 1px; /* МИНИМАЛЬНЫЙ отступ для цифрового кода */
         }
         .multi-qr-item .code-text {
             position: relative; /* Не абсолютное позиционирование */
             bottom: auto;
             left: auto;
             transform: none;
-            margin-top: 10px; /* УВЕЛИЧИВАЕМ отступ еще ниже */
+            margin-top: 1px; /* МИНИМАЛЬНЫЙ отступ от QR кода */
             background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%); /* ЧЕРНЫЙ фон */
-            padding: 10px 18px; /* УВЕЛИЧИВАЕМ отступы */
-            border-radius: 20px; /* УВЕЛИЧИВАЕМ радиус */
-            font-size: 16px; font-weight: bold;
+            padding: 6px 12px; /* УМЕНЬШАЕМ отступы */
+            border-radius: 15px; /* УМЕНЬШАЕМ радиус */
+            font-size: 14px; /* УМЕНЬШАЕМ шрифт */
+            font-weight: bold;
             color: #ffffff; /* БЕЛЫЙ текст */
             font-family: 'Courier New', monospace;
-            letter-spacing: 0.8px;
+            letter-spacing: 0.6px;
             white-space: nowrap; /* Текст в одну строку */
             overflow: hidden;
             text-overflow: ellipsis;
-            line-height: 1.2;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1);
+            line-height: 1.1;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1);
             z-index: 10;
             transition: all 0.4s ease;
         }
         .multi-qr-item .index-badge {
-            position: absolute; top: 15px; left: 15px;
+            position: absolute; top: 8px; left: 8px;
             background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
             color: white;
-            font-size: 14px; font-weight: bold;
-            padding: 8px 12px;
-            border-radius: 25px;
-            box-shadow: 0 6px 20px rgba(74,222,128,0.5), 0 0 0 2px rgba(255,255,255,0.2);
+            font-size: 12px; font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(74,222,128,0.5), 0 0 0 2px rgba(255,255,255,0.2);
             z-index: 15;
             transition: all 0.4s ease;
         }
@@ -542,6 +561,279 @@
         .multi-qr-close:hover {
             background: white; transform: scale(1.1);
         }
+        
+        @keyframes gentlePulse {
+            0%, 100% { opacity: 0.05; transform: scale(1); }
+            50% { opacity: 0.12; transform: scale(1.02); }
+        }
+        
+        @keyframes neonGlow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+        
+        @keyframes neonPulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes matrixScroll {
+            from { transform: translateY(0); }
+            to { transform: translateY(50px); }
+        }
+        
+        @keyframes matrixFlicker {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+        
+        @keyframes wave {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        @keyframes bubble {
+            0% { transform: translateY(0px) scale(1); opacity: 0.6; }
+            50% { transform: translateY(-20px) scale(1.1); opacity: 0.8; }
+            100% { transform: translateY(-40px) scale(0.8); opacity: 0; }
+        }
+        
+        @keyframes flicker {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+        
+        @keyframes spark {
+            0% { transform: translateY(0px) scale(1); opacity: 1; }
+            100% { transform: translateY(-30px) scale(0.5); opacity: 0; }
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+        
+        @keyframes orbit {
+            from { transform: rotate(0deg) translateX(30px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(30px) rotate(-360deg); }
+        }
+        
+        @keyframes nebulaPulse {
+            0%, 100% { opacity: 0.1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(1.1); }
+        }
+        
+        @keyframes auroraWave {
+            0%, 100% { transform: translateY(0px); opacity: 0.3; }
+            50% { transform: translateY(20px); opacity: 0.8; }
+        }
+        
+        @keyframes auroraParticle {
+            0% { transform: translateY(0px) scale(1); opacity: 0; }
+            50% { transform: translateY(-30px) scale(1.5); opacity: 1; }
+            100% { transform: translateY(-60px) scale(0.5); opacity: 0; }
+        }
+        
+        @keyframes crystalShift {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes rainbowShine {
+            0%, 100% { opacity: 0.2; transform: scaleX(0.5); }
+            50% { opacity: 0.8; transform: scaleX(1); }
+        }
+        
+        @keyframes goldFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.6; }
+            50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
+        }
+        
+        @keyframes lavaBubble {
+            0%, 100% { transform: scale(1); opacity: 0.4; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+        }
+        
+        @keyframes ashRise {
+            0% { transform: translateY(0px) scale(1); opacity: 0.8; }
+            100% { transform: translateY(-100px) scale(0.5); opacity: 0; }
+        }
+        
+        @keyframes rockFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(90deg); }
+        }
+        
+        @keyframes volcanoGlow {
+            0%, 100% { opacity: 0.1; }
+            50% { opacity: 0.3; }
+        }
+        
+        @keyframes holoScan {
+            0%, 100% { transform: translateX(-100%); opacity: 0.3; }
+            50% { transform: translateX(100%); opacity: 0.8; }
+        }
+        
+        @keyframes holoFloat {
+            0%, 100% { transform: translateY(0px) scale(1); opacity: 0.6; }
+            50% { transform: translateY(-20px) scale(1.5); opacity: 1; }
+        }
+        
+        @keyframes toxicDrop {
+            0% { transform: translateY(0px); opacity: 0; }
+            50% { transform: translateY(200px); opacity: 1; }
+            100% { transform: translateY(400px); opacity: 0; }
+        }
+        
+        @keyframes toxicPulse {
+            0%, 100% { opacity: 0.05; transform: scale(1); }
+            50% { opacity: 0.15; transform: scale(1.1); }
+        }
+        
+        @keyframes plasmaPulse {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.3); }
+        }
+        
+        @keyframes plasmaLightning {
+            0%, 100% { opacity: 0.2; height: 30%; }
+            50% { opacity: 1; height: 35%; }
+        }
+        
+        @keyframes glitchFlicker {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 0.8; }
+        }
+        
+        @keyframes glitchText {
+            0%, 100% { transform: translateX(-50%) skew(0deg); opacity: 0.8; }
+            25% { transform: translateX(-52%) skew(-2deg); opacity: 1; }
+            50% { transform: translateX(-48%) skew(2deg); opacity: 0.6; }
+            75% { transform: translateX(-51%) skew(-1deg); opacity: 1; }
+        }
+        
+        @keyframes vaporRise {
+            0% { transform: translateY(0px) scale(1); opacity: 0; }
+            50% { transform: translateY(-100px) scale(1.2); opacity: 0.6; }
+            100% { transform: translateY(-200px) scale(0.8); opacity: 0; }
+        }
+        
+        @keyframes pastelPulse {
+            0%, 100% { opacity: 0.1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(1.2); }
+        }
+        
+        @keyframes gearRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes steamFlow {
+            from { transform: translateX(0); }
+            to { transform: translateX(50px); }
+        }
+        
+        @keyframes cyberGrid {
+            from { transform: translate(0, 0); }
+            to { transform: translate(20px, 20px); }
+        }
+        
+        @keyframes cyberBlink {
+            0%, 100% { opacity: 0.3; transform: scaleY(1); }
+            50% { opacity: 1; transform: scaleY(0.2); }
+        }
+        
+        @keyframes ufoBeam {
+            0%, 100% { opacity: 0.2; transform: rotate(0deg); }
+            50% { opacity: 0.8; transform: rotate(180deg); }
+        }
+        
+        @keyframes alienFlicker {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        
+        @keyframes whiteGlow {
+            0%, 100% { opacity: 0.4; transform: scaleX(0.8); }
+            50% { opacity: 0.8; transform: scaleX(1); }
+        }
+        
+        @keyframes sideLight {
+            0%, 100% { opacity: 0.3; transform: translateY(-50%) scaleY(0.8); }
+            50% { opacity: 0.8; transform: translateY(-50%) scaleY(1.2); }
+        }
+        
+        @keyframes floatParticle {
+            0%, 100% { transform: translateY(0px) scale(1); opacity: 0.3; }
+            25% { transform: translateY(-10px) scale(1.1); opacity: 0.6; }
+            50% { transform: translateY(-20px) scale(0.9); opacity: 0.8; }
+            75% { transform: translateY(-10px) scale(1.1); opacity: 0.6; }
+        }
+        
+        @keyframes premiumGlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        @keyframes premiumSideLight {
+            0%, 100% { opacity: 0.3; transform: translateY(-50%) scaleY(0.8); }
+            50% { opacity: 1; transform: translateY(-50%) scaleY(1.3); }
+        }
+        
+        @keyframes premiumParticle {
+            0%, 100% { transform: translateY(0px) translateX(0px) scale(1); opacity: 0.4; }
+            25% { transform: translateY(-15px) translateX(5px) scale(1.2); opacity: 0.7; }
+            50% { transform: translateY(-30px) translateX(-5px) scale(0.8); opacity: 1; }
+            75% { transform: translateY(-15px) translateX(3px) scale(1.1); opacity: 0.7; }
+        }
+        
+        @keyframes premiumText {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        @keyframes premiumBorder {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        @keyframes premiumBadge {
+            0%, 100% { background-position: 0% 50%; transform: scale(1); }
+            50% { background-position: 100% 50%; transform: scale(1.05); }
+        }
+        
+        @keyframes softNeonGlow {
+            0%, 100% { opacity: 0.6; box-shadow: inset 0 0 20px rgba(100, 200, 255, 0.05), 0 0 30px rgba(100, 200, 255, 0.08); }
+            50% { opacity: 1; box-shadow: inset 0 0 25px rgba(100, 200, 255, 0.08), 0 0 40px rgba(100, 200, 255, 0.12); }
+        }
+        
+        @keyframes softGlow {
+            0%, 100% { opacity: 0.4; transform: translateX(-50%) scaleX(0.8); }
+            50% { opacity: 0.8; transform: translateX(-50%) scaleX(1); }
+        }
+        
+        @keyframes softParticle {
+            0%, 100% { transform: translateY(0px) scale(1); opacity: 0.3; }
+            50% { transform: translateY(-15px) scale(1.2); opacity: 0.7; }
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
     </style>
 </head>
 <body>
@@ -562,12 +854,12 @@
 </div>
 
 <div id="modeSwitcher">
-    <span id="modeLabelOff" class="mode-label off">📺</span>
-    <label class="switch">
-        <input type="checkbox" id="modeToggle">
-        <span class="slider"></span>
+    <span id="modeLabelOff" class="mode-label off" style="opacity: 0.5; cursor: not-allowed;">📺</span>
+    <label class="switch" style="opacity: 0.5; cursor: not-allowed;">
+        <input type="checkbox" id="modeToggle" disabled checked style="cursor: not-allowed;">
+        <span class="slider" style="cursor: not-allowed;"></span>
     </label>
-    <span id="modeLabelOn" class="mode-label on">📹</span>
+    <span id="modeLabelOn" class="mode-label on" style="opacity: 0.5; cursor: not-allowed;">📹</span>
 </div>
 
 <div id="languageSwitcher">
@@ -583,9 +875,123 @@
     <h1 id="startTitle">MAX QR READER</h1>
     <p  id="startSubtitle">Wybierz źródło obrazu</p>
     
-    <button id="captureBtn" class="btn-big btn-blue" onclick="if(typeof startCapture === 'function') startCapture()">📸 PRZECHWYĆ OKNO</button>
-    <button id="fileBtn"    class="btn-big btn-blue" style="background:#4b5563" onclick="document.getElementById('fileIn').click()">📂 OTWÓRZ PLIK</button>
-    <button id="cardsBtn"   class="btn-big btn-green" onclick="window.location.href='https://worklaf.github.io/MOWI/QR_Cards.html'">🃏 KARTY QR</button>
+    <button id="captureBtn" class="btn-big btn-blue" style="position: relative; padding-left: 60px !important;" onclick="if(typeof startCapture === 'function') startCapture()">
+      📸 PRZECHWYĆ OKNO
+    </button>
+    <style>
+      #captureBtn::before {
+        content: '📷';
+        position: absolute;
+        left: var(--logo-position);
+        top: 50%;
+        transform: translateY(-50%);
+        width: 30px;
+        height: 30px;
+        background: radial-gradient(circle at 30% 0, #2563eb, transparent 55%),
+                    radial-gradient(circle at 70% 100%, #1d4ed8, transparent 55%),
+                    #020617;
+        border-radius: 14px;
+        border: 2px solid rgba(255,255,255,0.5);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff !important;
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.9) !important;
+        z-index: 1;
+      }
+    </style>
+    <button id="fileBtn"    class="btn-big btn-blue" style="background:#4b5563; position: relative; padding-left: 60px !important;" onclick="document.getElementById('fileIn').click()">
+      OTWÓRZ PLIK
+    </button>
+    <style>
+      #fileBtn::before {
+        content: '📁';
+        position: absolute;
+        left: var(--logo-position);
+        top: 50%;
+        transform: translateY(-50%);
+        width: 30px;
+        height: 30px;
+        background: radial-gradient(circle at 30% 0, #6b7280, transparent 55%),
+                    radial-gradient(circle at 70% 100%, #4b5563, transparent 55%),
+                    #020617;
+        border-radius: 14px;
+        border: 2px solid rgba(255,255,255,0.5);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff !important;
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.9) !important;
+        z-index: 1;
+      }
+    </style>
+    <button id="hotkeyBtn"  class="btn-big btn-orange" style="position: relative; padding-left: 60px !important;" onclick="window.location.href='https://worklaf.github.io/MOWI/hotkey-phrases.html'">
+      HOTKEY PHRASES
+    </button>
+    <style>
+      :root {
+        --logo-position: 12px; /* Можете изменить это значение для перемещения логотипа */
+      }
+      #hotkeyBtn::before {
+        content: 'HK';
+        position: absolute;
+        left: var(--logo-position);
+        top: 50%;
+        transform: translateY(-50%);
+        width: 30px;
+        height: 30px;
+        background: radial-gradient(circle at 30% 0, #f97316, transparent 55%),
+                    radial-gradient(circle at 70% 100%, #6366f1, transparent 55%),
+                    #020617;
+        border-radius: 14px;
+        border: 2px solid rgba(255,255,255,0.5);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff !important;
+        font-size: 15px !important;
+        font-weight: 600 !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.9) !important;
+        letter-spacing: 0.03em;
+        z-index: 1;
+      }
+      
+      </style>
+    <button id="cardsBtn"   class="btn-big btn-green" style="position: relative; padding-left: 60px !important;" onclick="window.location.href='https://worklaf.github.io/MOWI/QR_Cards.html'">
+      KARTY QR
+    </button>
+    <style>
+      #cardsBtn::before {
+        content: '⬡';
+        position: absolute;
+        left: var(--logo-position);
+        top: 50%;
+        transform: translateY(-50%);
+        width: 30px;
+        height: 30px;
+        background: radial-gradient(circle at 30% 0, #16a34a, transparent 55%),
+                    radial-gradient(circle at 70% 100%, #15803d, transparent 55%),
+                    #020617;
+        border-radius: 14px;
+        border: 2px solid rgba(255,255,255,0.5);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff !important;
+        font-size: 18px !important;
+        font-weight: 600 !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.9) !important;
+        z-index: 1;
+      }
+    </style>
     <input type="file" id="fileIn" hidden onchange="handleFile(event)">
 </div>
 
@@ -601,10 +1007,72 @@
             <span id="coordsDisplay" style="font-family: 'JetBrains Mono', 'Courier New', monospace; font-size:11px; font-weight:600; text-shadow: 0 1px 2px rgba(0,0,0,0.5); color: #cbd5f1;">x: — | y: — | w: — | h: —</span>
         </div>
         <span id="windowNameDisplay" style="display:none;">—</span>
-        <button id="clearCoordsBtn" class="btn-ghost">🗑️ RESET</button>
-        <button id="clearSingleCoordsBtn" class="btn-ghost" style="background:#dc2626;">🗑️ SINGLE</button>
-        <button id="clearMultiCoordsBtn" class="btn-ghost" style="background:#16a34a;">🗑️ MULTI</button>
-        <button id="resetBtn" class="btn-small" onclick="location.reload()">🔄 RESET</button>
+        <button id="clearCoordsBtn" class="btn-ghost" style="
+            background: linear-gradient(145deg, #1e293b 0%, #334155 50%, #1e293b 100%);
+            color: #f8fafc;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        ">🗑️ RESET</button>
+        <button id="clearSingleCoordsBtn" class="btn-ghost" style="
+            background: linear-gradient(145deg, #dc2626 0%, #b91c1c 50%, #dc2626 100%);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(220,38,38,0.4), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        ">🗑️ SINGLE</button>
+        <button id="clearMultiCoordsBtn" class="btn-ghost" style="
+            background: linear-gradient(145deg, #16a34a 0%, #15803d 50%, #16a34a 100%);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(22,163,74,0.4), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        ">🗑️ MULTI</button>
+        <button id="workTextRegionBtn" onclick="startTextRegionSelection()" style="
+            background: linear-gradient(145deg, #8b5cf6 0%, #7c3aed 50%, #8b5cf6 100%);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(139, 92, 246,0.4), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        ">🏷️ <span id="workTextBtnText">Партии</span></button>
+        <button id="resetBtn" class="btn-small" style="
+            background: linear-gradient(145deg, #dc2626 0%, #b91c1c 50%, #dc2626 100%);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(220,38,38,0.4), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        " onclick="location.reload()">🔄 RESET</button>
     </div>
     <!-- Дополнительный тумблер в той же строке -->
     <div style="display:flex; align-items:center; gap:8px; margin-top:3px;">
@@ -640,7 +1108,7 @@
 
         <!-- Przełącznik paska historii -->
         <button id="historyToggleBtn" onclick="event.stopPropagation(); toggleHistorySidebar();">📋</button>
-
+        
         <!-- SIDEBAR -->
         <div id="qhSidebar" onclick="event.stopPropagation()">
             <div class="qh-header">Historia</div>
@@ -653,6 +1121,18 @@
                 <button id="captureBtnOverlay" onclick="event.stopPropagation(); doQuickCapture();">
                     📸 <span id="captureBtnText">NOWY ZRZUT</span>
                 </button>
+                <div id="modeIndicator" style="
+                    position: absolute;
+                    top: -35px;
+                    right: 10px;
+                    padding: 4px 8px;
+                    border-radius: 12px;
+                    font-size: 12px;
+                    font-weight: bold;
+                    color: white;
+                    background: #22c55e;
+                    transition: all 0.3s;
+                ">SINGLE</div>
                 <div class="qr-box" onclick="if(scansHistory.length) openHistViewer(0)">
                     <canvas id="bigQrCanvas"></canvas>
                     <div id="overlayText">000000</div>
@@ -701,6 +1181,8 @@ let isDrawing     = false, startX, startY, imgDataSnapshot;
 let storedRegion  = null, lastWindowName = null;
 let storedSingleRegion = null; // Отдельное сохранение для SINGLE MODE
 let storedMultiRegion = null;  // Отдельное сохранение для MULTI MODE
+let storedTextRegion = null;   // Сохранение для текстовой области (названия партий)
+let partyNames = [];           // Массив для хранения названий партий
 let isCapturing   = false, isProcessing = false, isVideoMode = false;
 let isHistoryVisible = true;
 let isMultiMode   = false;
@@ -721,8 +1203,11 @@ const startTitleEl      = document.getElementById('startTitle');
 const startSubtitleEl   = document.getElementById('startSubtitle');
 const captureBtn        = document.getElementById('captureBtn');
 const fileBtn           = document.getElementById('fileBtn');
+const hotkeyBtn         = document.getElementById('hotkeyBtn');
 const cardsBtn          = document.getElementById('cardsBtn');
 const resetBtn          = document.getElementById('resetBtn');
+const textRegionBtn     = document.getElementById('textRegionBtn');
+const workTextRegionBtn = document.getElementById('workTextRegionBtn');
 const overlayHintEl     = document.getElementById('hint');
 const spaceHintEl       = document.getElementById('spaceHint');
 const captureBtnText    = document.getElementById('captureBtnText');
@@ -755,6 +1240,8 @@ const STORAGE_KEY_MULTI   = 'maxqr_multiMode';
 const STORAGE_KEY_MULTI_REGIONS = 'maxqr_multiRegions';
 const STORAGE_KEY_SINGLE_REGION = 'maxqr_singleRegion'; // Для SINGLE MODE
 const STORAGE_KEY_MULTI_REGION = 'maxqr_multiRegion';  // Для MULTI MODE
+const STORAGE_KEY_TEXT_REGION = 'maxqr_textRegion';    // Для текстовой области (названия партий)
+const STORAGE_KEY_PARTY_NAMES = 'maxqr_partyNames';      // Для массива названий партий
 
 /* ══════════════════════════════════════════════
    MULTI MODE INITIALIZATION
@@ -835,28 +1322,20 @@ function updateWorkModeToggle() {
     
     updateCoordsDisplay(storedRegion);
     
-    // Перерисовываем canvas с сохраненными координатами
-    if (isMultiMode && storedMultiRegion) {
-        // MULTI MODE: рисуем сохраненную MULTI область
-        console.log('🎯 Перерисовываю MULTI область:', storedMultiRegion);
-        ctx.strokeStyle = '#facc15';
-        ctx.lineWidth = 3;
-        ctx.setLineDash([5, 5]);
-        ctx.strokeRect(storedMultiRegion.x, storedMultiRegion.y, storedMultiRegion.w, storedMultiRegion.h);
-    } else if (!isMultiMode && storedSingleRegion) {
-        // SINGLE MODE: рисуем сохраненную SINGLE область
-        console.log('🎯 Перерисовываю SINGLE область:', storedSingleRegion);
-        ctx.strokeStyle = '#4ade80';
-        ctx.lineWidth = 2;
-        ctx.setLineDash([]);
-        ctx.strokeRect(storedSingleRegion.x, storedSingleRegion.y, storedSingleRegion.w, storedSingleRegion.h);
-    } else {
-        // Нет сохраненных координат - очищаем canvas
-        console.log('🎯 Нет сохраненных координат для текущего режима');
-        if (activeStream && captureVideo.readyState >= 2) {
-            ctx.drawImage(captureVideo, 0, 0);
+    // Обновляем индикатор режима
+    const modeIndicator = document.getElementById('modeIndicator');
+    if (modeIndicator) {
+        if (isMultiMode) {
+            modeIndicator.textContent = 'MULTI';
+            modeIndicator.style.background = '#ef4444';
+        } else {
+            modeIndicator.textContent = 'SINGLE';
+            modeIndicator.style.background = '#22c55e';
         }
     }
+    
+    // Перерисовываем canvas с рамками
+    redrawCanvasWithRegions();
     
     // Обновляем быстрые тумблеры
     if (quickMultiToggle) {
@@ -873,6 +1352,45 @@ function updateWorkModeToggle() {
         overlayModeToggle.checked = isMultiMode;
         console.log('🎯 Тумблер в overlay обновлен:', isMultiMode ? 'MULTI' : 'SINGLE');
     }
+    
+    // Кнопки текстовой области всегда видны и работают только с MULTI MODE
+    window.updateTextButtons = function() {
+        const buttonText = storedTextRegion ? t('partyBtnSaved') : t('partyBtn');
+        
+        // Основная кнопка в overlay - УДАЛЕНА, НЕ ОБНОВЛЯЕМ
+        // if (textRegionBtn) {
+        //     textRegionBtn.style.display = 'inline-block';
+        //     textRegionBtn.textContent = buttonText;
+        //     textRegionBtn.onclick = function(e) {
+        //         e.stopPropagation();
+        //         if (!isMultiMode) {
+        //             setStatus('Переключитесь в MULTI MODE для выделения текста партий');
+        //             return;
+        //         }
+        //         startTextRegionSelection();
+        //     };
+        // }
+        
+        // Кнопка в рабочей панели
+        if (workTextRegionBtn) {
+            const textSpan = document.getElementById('workTextBtnText');
+            if (textSpan) {
+                textSpan.textContent = buttonText.replace('🏷️ ', ''); // Убираем эмодзи
+            }
+            workTextRegionBtn.onclick = function() {
+                if (!isMultiMode) {
+                    setStatus(t('needMultiMode'));
+                    console.log(t('needMultiModeConsole'));
+                    return;
+                }
+                startTextRegionSelection();
+            };
+        }
+        
+        console.log('🔵 Кнопки текстовой области обновлены');
+    };
+    
+    window.updateTextButtons();
     
     // Автоматически генерируем QR коды только при ручном переключении
     if (isMultiMode && storedMultiRegion && window.manualModeSwitch) {
@@ -904,11 +1422,16 @@ function initTheme() {
             
             if (isMultiMode) {
                 loadMultiRegions();
-                // Если MULTI координат нет, используем SINGLE как базовые
-                if (!storedMultiRegion && storedSingleRegion) {
-                    console.log('📊 Используем SINGLE координаты как базовые для MULTI');
-                    storedMultiRegion = storedSingleRegion;
+                // Используем фиксированные рабочие координаты для MULTI MODE
+                if (!storedMultiRegion) {
+                    storedMultiRegion = {
+                        x: 540,
+                        y: 241,
+                        w: 220,
+                        h: 606
+                    };
                     localStorage.setItem(STORAGE_KEY_MULTI_REGION, JSON.stringify(storedMultiRegion));
+                    console.log('🎯 Установлены фиксированные координаты для MULTI MODE:', storedMultiRegion);
                 }
                 setStatus('statusMultiReady');
                 console.log('✅ MULTI MODE активирован (быстрый)');
@@ -936,11 +1459,16 @@ function initTheme() {
             
             if (isMultiMode) {
                 loadMultiRegions();
-                // Если MULTI координат нет, используем SINGLE как базовые
-                if (!storedMultiRegion && storedSingleRegion) {
-                    console.log('📊 Используем SINGLE координаты как базовые для MULTI');
-                    storedMultiRegion = storedSingleRegion;
+                // Используем фиксированные рабочие координаты для MULTI MODE
+                if (!storedMultiRegion) {
+                    storedMultiRegion = {
+                        x: 540,
+                        y: 241,
+                        w: 220,
+                        h: 606
+                    };
                     localStorage.setItem(STORAGE_KEY_MULTI_REGION, JSON.stringify(storedMultiRegion));
+                    console.log('🎯 Установлены фиксированные координаты для MULTI MODE:', storedMultiRegion);
                 }
                 setStatus('statusMultiReady');
                 console.log('✅ MULTI MODE активирован (overlay)');
@@ -1022,8 +1550,8 @@ function updateHistoryVisibility() {
 const translations = {
     pl: {
         startTitle:'MAX QR READER', startSubtitle:'Wybierz źródło obrazu',
-        captureWindowBtn:'📸 PRZECHWYĆ OKNO', openFileBtn:'📂 OTWÓRZ PLIK',
-        cardsBtn:'🃏 KARTY QR', resetBtn:'🔄 RESET',
+        captureWindowBtn:'PRZECHWYĆ OKNO', openFileBtn:'OTWÓRZ PLIK',
+        hotkeyBtn:'HOTKEY PHRASES', cardsBtn:'KARTY QR', resetBtn:'🔄 RESET',
         statusReady:'Zaznacz obszar', statusProcessing:'⚡ Przetwarzanie...',
         statusDone:'Gotowe!', statusFail:'Nic nie znaleziono.',
         statusSingleReady:'SINGLE: Zaznacz obszar',
@@ -1037,11 +1565,17 @@ const translations = {
         spaceHint:'Naciśnij SPACJĘ dla kolejnego zrzutu',
         captureBtnText:'NOWY ZRZUT',
         statusSelectNew:'⚠️ Wybierz okno ponownie',
+        // Новые переводы для кнопки партий
+        partyBtn:'🏷️ Partie',
+        partyBtnSaved:'🏷️ Partie (✓)',
+        needMultiMode:'Przełącz się w MULTI MODE aby zaznaczyć tekst partii',
+        needMultiModeConsole:'⚠️ Musisz przełączyć się w MULTI MODE do pracy z tekstem partii',
+        textAreaSaved:'Obszar tekstowy zapisany',
     },
     uk: {
         startTitle:'MAX QR READER', startSubtitle:'Оберіть джерело зображення',
-        captureWindowBtn:'📸 ЗАХОПИТИ ВІКНО', openFileBtn:'📂 ВІДКРИТИ ФАЙЛ',
-        cardsBtn:'🃏 QR КАРТКИ', resetBtn:'🔄 СКИНУТИ',
+        captureWindowBtn:'ЗАХОПИТИ ВІКНО', openFileBtn:'ВІДКРИТИ ФАЙЛ',
+        hotkeyBtn:'ФРАЗИ ГОРЯЧИХ КЛАВІШІВ', cardsBtn:'QR КАРТКИ', resetBtn:'🔄 СКИНУТИ',
         statusReady:'Виділіть область', statusProcessing:'⚡ Обробка...',
         statusDone:'Готово!', statusFail:'Нічого не знайдено.',
         statusSingleReady:'SINGLE: Виділіть область',
@@ -1055,11 +1589,17 @@ const translations = {
         spaceHint:'Натисніть ПРОБІЛ для нового зображення',
         captureBtnText:'НОВИЙ ЗНІМОК',
         statusSelectNew:'⚠️ Оберіть вікно знову',
+        // Нові переклади для кнопки партій
+        partyBtn:'🏷️ Партії',
+        partyBtnSaved:'🏷️ Партії (✓)',
+        needMultiMode:'Переключіться в MULTI MODE для виділення тексту партій',
+        needMultiModeConsole:'⚠️ Потрібно переключитися в MULTI MODE для роботи з текстом партій',
+        textAreaSaved:'Текстова область збережена',
     },
     en: {
         startTitle:'MAX QR READER', startSubtitle:'Choose image source',
-        captureWindowBtn:'📸 CAPTURE WINDOW', openFileBtn:'📂 OPEN FILE',
-        cardsBtn:'🃏 QR CARDS', resetBtn:'🔄 RESET',
+        captureWindowBtn:'CAPTURE WINDOW', openFileBtn:'OPEN FILE',
+        hotkeyBtn:'HOTKEY PHRASES', cardsBtn:'QR CARDS', resetBtn:'🔄 RESET',
         statusReady:'Select area', statusProcessing:'⚡ Processing...',
         statusDone:'Done!', statusFail:'Nothing found.',
         statusSingleReady:'SINGLE: Select area',
@@ -1072,6 +1612,12 @@ const translations = {
         spaceHint:'Press SPACE for next capture',
         captureBtnText:'NEW CAPTURE',
         statusSelectNew:'⚠️ Select window again',
+        // New translations for party button
+        partyBtn:'🏷️ Parties',
+        partyBtnSaved:'🏷️ Parties (✓)',
+        needMultiMode:'Switch to MULTI MODE to select party text',
+        needMultiModeConsole:'⚠️ You need to switch to MULTI MODE to work with party text',
+        textAreaSaved:'Text area saved',
     }
 };
 const ocrLangMap = { pl:'pol', uk:'ukr', en:'eng' };
@@ -1086,6 +1632,7 @@ function applyTranslations() {
     startSubtitleEl.innerText = t('startSubtitle');
     captureBtn.innerText      = t('captureWindowBtn');
     fileBtn.innerText         = t('openFileBtn');
+    hotkeyBtn.innerText       = t('hotkeyBtn');
     cardsBtn.innerText        = t('cardsBtn');
     resetBtn.innerText        = t('resetBtn');
     overlayHintEl.innerText   = t('overlayHint');
@@ -1116,7 +1663,319 @@ function initMode() {
 function updateModeUI() {
     modeLabelOn.className  = isVideoMode ? 'mode-label on'  : 'mode-label off';
     modeLabelOff.className = isVideoMode ? 'mode-label off' : 'mode-label on';
+    if (isVideoMode) {
+        startScreen.style.display = 'none';
+        workControls.style.display = 'flex';
+    } else {
+        startScreen.style.display = 'flex';
+        workControls.style.display = 'none';
+    }
 }
+
+function isRegionIntersecting(region1, region2) {
+    // Проверяем пересечение двух прямоугольников
+    return !(region1.x + region1.w <= region2.x || 
+             region2.x + region2.w <= region1.x || 
+             region1.y + region1.h <= region2.y || 
+             region2.y + region2.h <= region1.y);
+}
+
+function startTextRegionSelection() {
+    console.log('📝 Начинаю выделение текстовой области...');
+    setStatus('Выделите область с названиями партий');
+    
+    // Устанавливаем флаг что мы выделяем текстовую область
+    window.isSelectingTextRegion = true;
+    
+    // Блокируем другие элементы
+    qrOverlay.style.pointerEvents = 'none';
+    
+    // Начинаем выделение
+    isDrawing = true;
+    startX = startY = null;
+    
+    mainCanvas.onmousedown = function(e) {
+        if (!isDrawing) return;
+        const rect = mainCanvas.getBoundingClientRect();
+        startX = e.clientX - rect.left;
+        startY = e.clientY - rect.top;
+        // Проверяем что canvas готов перед созданием снимка
+        if (mainCanvas.width && mainCanvas.height) {
+            imgDataSnapshot = ctx.getImageData(0, 0, mainCanvas.width, mainCanvas.height);
+        }
+    };
+    
+    mainCanvas.onmousemove = function(e) {
+        if (!isDrawing || startX === null) return;
+        const rect = mainCanvas.getBoundingClientRect();
+        const currentX = e.clientX - rect.left;
+        const currentY = e.clientY - rect.top;
+        
+        // Восстанавливаем изображение только если есть снимок
+        if (imgDataSnapshot) {
+            ctx.putImageData(imgDataSnapshot, 0, 0);
+        }
+        ctx.strokeStyle = '#3b82f6';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.strokeRect(startX, startY, currentX - startX, currentY - startY);
+    };
+    
+    mainCanvas.onmouseup = function(e) {
+        if (!isDrawing || startX === null) return;
+        const rect = mainCanvas.getBoundingClientRect();
+        const endX = e.clientX - rect.left;
+        const endY = e.clientY - rect.top;
+        
+        const region = {
+            x: Math.min(startX, endX),
+            y: Math.min(startY, endY),
+            w: Math.abs(endX - startX),
+            h: Math.abs(endY - startY)
+        };
+        
+        if (region.w > 10 && region.h > 10) {
+            storedTextRegion = region;
+            localStorage.setItem(STORAGE_KEY_TEXT_REGION, JSON.stringify(region));
+            console.log('📝 Сохранена текстовая область:', region);
+            setStatus(t('textAreaSaved'));
+            
+            // Обновляем кнопку
+            if (textRegionBtn) {
+                textRegionBtn.textContent = t('partyBtnSaved');
+            }
+            
+            // Перерисовываем рамки
+            redrawCanvasWithRegions();
+        }
+        
+        // Сбрасываем состояние
+        isDrawing = false;
+        startX = startY = null;
+        mainCanvas.onmousedown = mainCanvas.onmousemove = mainCanvas.onmouseup = null;
+        qrOverlay.style.pointerEvents = 'auto';
+        redrawCanvasWithRegions();
+        
+        // Автоматически запускаем OCR для текстовой области
+        setTimeout(() => processTextRegion(region), 300);
+    };
+}
+
+async function processTextRegion(region) {
+    if (!region) return;
+    
+    console.log('📝 Начинаю OCR текстовой области:', region);
+    setStatus('Распознавание текста партий...');
+    
+    try {
+        // Создаем временный canvas для текстовой области
+        const textCanvas = document.createElement('canvas');
+        textCanvas.width = region.w;
+        textCanvas.height = region.h;
+        const textCtx = textCanvas.getContext('2d');
+        
+        // Копируем область текста
+        textCtx.drawImage(mainCanvas, region.x, region.y, region.w, region.h, 0, 0, region.w, region.h);
+        
+        // Получаем изображение для OCR
+        const imageData = textCtx.getImageData(0, 0, region.w, region.h);
+        
+        // Улучшаем контрастность для лучшего распознавания текста
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+            const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+            // Более агрессивная бинаризация
+            const enhanced = gray < 200 ? 0 : 255; // Порог 200 вместо 128
+            data[i] = enhanced;     // R
+            data[i + 1] = enhanced; // G
+            data[i + 2] = enhanced; // B
+        }
+        
+        textCtx.putImageData(imageData, 0, 0);
+        
+        // Увеличиваем изображение для лучшего OCR
+        const scaleFactor = 2.0;
+        const scaledCanvas = document.createElement('canvas');
+        scaledCanvas.width = Math.floor(region.w * scaleFactor);
+        scaledCanvas.height = Math.floor(region.h * scaleFactor);
+        const scaledCtx = scaledCanvas.getContext('2d');
+        scaledCtx.imageSmoothingEnabled = false;
+        scaledCtx.drawImage(textCanvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
+        
+        console.log('📝 Увеличил текстовую область в', scaleFactor, 'раз для OCR');
+        
+        // Выполняем OCR с расширенным whitelist для текста
+        const result = await Tesseract.recognize(scaledCanvas, ocrLangMap[currentLang] || 'eng', {
+            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя .-_/()[]',
+            tessedit_pagesegmode: '6' // Режим для распознавания текста как единых блоков
+        });
+        
+        // Обрабатываем распознанный текст
+        const text = result.data.text || '';
+        console.log('📝 Распознанный текст:', text);
+        console.log('📝 Уверенность OCR:', result.data.confidence);
+        
+        const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+        
+        // Фильтруем и очищаем названия партий
+        partyNames = lines
+            .map(name => name.trim())
+            .filter(name => {
+                // Убираем строки которые похожи на QR коды (только цифры)
+                if (/^\d+$/.test(name)) return false;
+                
+                // Убираем очень короткие и очень длинные строки
+                if (name.length < 2 || name.length > 50) return false;
+                
+                // Убираем строки с только символами пунктуации
+                if (/^[|\-\s\.:]+$/.test(name)) return false;
+                
+                // Убираем дубликаты и очень похожие строки
+                return true;
+            })
+            .map(name => {
+                // Очищаем от лишних символов в начале и конце
+                return name.replace(/^[|\-\s\.:]+|[|\-\s\.:]+$/g, '').trim();
+            })
+            .filter(name => name.length > 0)
+            // Убираем дубликаты и очень похожие строки
+            .filter((name, index, arr) => {
+                // Проверяем на точные дубликаты
+                const exactDuplicate = arr.indexOf(name) !== index;
+                if (exactDuplicate) return false;
+                
+                // Проверяем на очень похожие строки (более 80% совпадения)
+                for (let i = 0; i < index; i++) {
+                    const similarity = calculateSimilarity(name, arr[i]);
+                    if (similarity > 0.8) return false; // 80% похожесть
+                }
+                
+                return true;
+            });
+        
+        // Функция для расчета похожести строк
+        function calculateSimilarity(str1, str2) {
+            const longer = str1.length > str2.length ? str1 : str2;
+            const shorter = str1.length > str2.length ? str2 : str1;
+            
+            if (longer.length === 0) return 1.0;
+            
+            const editDistance = levenshteinDistance(longer, shorter);
+            return (longer.length - editDistance) / longer.length;
+        }
+        
+        // Функция для расчета расстояния Левенштейна
+        function levenshteinDistance(str1, str2) {
+            const matrix = [];
+            
+            for (let i = 0; i <= str2.length; i++) {
+                matrix[i] = [i];
+            }
+            
+            for (let j = 0; j <= str1.length; j++) {
+                matrix[0][j] = j;
+            }
+            
+            for (let i = 1; i <= str2.length; i++) {
+                for (let j = 1; j <= str1.length; j++) {
+                    if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1,
+                            matrix[i][j - 1] + 1,
+                            matrix[i - 1][j] + 1
+                        );
+                    }
+                }
+            }
+            
+            return matrix[str2.length][str1.length];
+        }
+        
+        // Сохраняем в localStorage
+        localStorage.setItem(STORAGE_KEY_PARTY_NAMES, JSON.stringify(partyNames));
+        
+        console.log('📝 Распознано названий партий:', partyNames.length);
+        console.log('📝 Список партий:', partyNames);
+        
+        if (partyNames.length > 0) {
+            setStatus(`Найдено партий: ${partyNames.length}`);
+        } else {
+            setStatus('Текст не распознан. Попробуйте выделить область четче.');
+        }
+        
+        // Если есть QR коды, сопоставляем их с партиями
+        if (multiCodes.length > 0) {
+            await matchCodesWithParties();
+        }
+        
+    } catch (error) {
+        console.error('❌ Ошибка OCR текста:', error);
+        setStatus('Ошибка распознавания текста');
+    }
+}
+
+async function matchCodesWithParties() {
+    if (multiCodes.length === 0 || partyNames.length === 0) {
+        console.log('📝 Недостаточно данных для сопоставления');
+        return;
+    }
+    
+    console.log('🔗 Начинаю сопоставление QR кодов с партиями...');
+    console.log('📊 QR коды:', multiCodes.length);
+    console.log('📝 Партии:', partyNames.length);
+    console.log('📝 Текущие QR коды:', multiCodes);
+    console.log('📝 Текущие партии:', partyNames);
+    
+    // Создаем массив сопоставлений
+    const matchedCodes = [];
+    
+    // Умное сопоставление: распределяем QR коды по партиям равномерно
+    const codesPerParty = Math.floor(multiCodes.length / partyNames.length);
+    const remainingCodes = multiCodes.length % partyNames.length;
+    
+    console.log(`📊 Распределение: ${codesPerParty} кодов на партию, ${remainingCodes} остаток`);
+    
+    let codeIndex = 0;
+    
+    partyNames.forEach((partyName, partyIndex) => {
+        // Количество кодов для этой партии
+        const codesForThisParty = codesPerParty + (partyIndex < remainingCodes ? 1 : 0);
+        
+        console.log(`📊 Партия "${partyName}" получает ${codesForThisParty} кодов`);
+        
+        // Добавляем коды для этой партии
+        for (let i = 0; i < codesForThisParty && codeIndex < multiCodes.length; i++) {
+            const qrCode = multiCodes[codeIndex];
+            const qrValue = typeof qrCode === 'object' ? qrCode.code : qrCode;
+            
+            matchedCodes.push({
+                code: qrValue,
+                party: partyName,
+                x: typeof qrCode === 'object' ? qrCode.x : 0,
+                y: typeof qrCode === 'object' ? qrCode.y : 0,
+                index: codeIndex + 1
+            });
+            
+            console.log(`✅ Код ${codeIndex + 1} (${qrValue}) → Партия "${partyName}"`);
+            codeIndex++;
+        }
+    });
+    
+    // Обновляем multiCodes с сопоставленными партиями
+    multiCodes = matchedCodes;
+    
+    console.log('✅ Сопоставление завершено:');
+    matchedCodes.forEach((item, index) => {
+        console.log(`${index + 1}. ${item.code} → ${item.party}`);
+    });
+    
+    // Обновляем отображение результатов
+    updateMultiQrOverlay();
+    setStatus(`QR коды сопоставлены с ${partyNames.length} партиями`);
+}
+
 modeToggle.addEventListener('change', () => {
     isVideoMode = modeToggle.checked;
     localStorage.setItem(STORAGE_KEY_MODE, isVideoMode);
@@ -1127,6 +1986,13 @@ modeToggle.addEventListener('change', () => {
 function stopVideoStream() {
     if (activeStream) { activeStream.getTracks().forEach(t => t.stop()); activeStream = null; }
     captureVideo.srcObject = null;
+    
+    // Удаляем обработчик предотвращения блокировки системных клавиш
+    if (window.preventSystemBlock) {
+        document.removeEventListener('keydown', window.preventSystemBlock);
+        window.preventSystemBlock = null;
+    }
+    console.log('🔧 Очистка обработчиков системных клавиш при остановке видео');
 }
 
 /* ══════════════════════════════════════════════
@@ -1159,12 +2025,32 @@ function loadStoredRegion() {
             storedSingleRegion = r; // Загружаем SINGLE координаты
             storedRegion = storedSingleRegion;
         }
+        
+        // Загружаем текстовую область
+        const textR = JSON.parse(localStorage.getItem(STORAGE_KEY_TEXT_REGION)||'null');
+        if (textR && isFinite(textR.x) && isFinite(textR.y) && isFinite(textR.w) && isFinite(textR.h)) {
+            storedTextRegion = textR;
+            console.log('📝 Загружена текстовая область:', storedTextRegion);
+        }
+        
+        // Загружаем названия партий
+        const names = JSON.parse(localStorage.getItem(STORAGE_KEY_PARTY_NAMES)||'null');
+        if (names && Array.isArray(names)) {
+            partyNames = names;
+            console.log('📝 Загружены названия партий:', partyNames.length, partyNames);
+        }
     } catch { 
         storedRegion = null;
         storedSingleRegion = null;
         storedMultiRegion = null;
+        storedTextRegion = null;
     }
     updateCoordsDisplay(storedRegion);
+    
+    // Перерисовываем рамки после загрузки координат
+    if (activeStream && captureVideo.readyState >= 2) {
+        redrawCanvasWithRegions();
+    }
 }
 function storeRegion(r) {
     const region = { x:Math.round(r.x), y:Math.round(r.y), w:Math.round(r.w), h:Math.round(r.h) };
@@ -1301,6 +2187,35 @@ mainCanvas.addEventListener('mouseup', async e => {
         console.log('📊 Выделенная область:', region);
         
         if (isMultiMode) {
+            // Проверяем если это выделение текстовой области (ПРОВЕРКА ПЕРВОЙ!)
+            if (window.isSelectingTextRegion) {
+                console.log('📝 Это выделение текстовой области, сохраняю как текст...');
+                storedTextRegion = region;
+                localStorage.setItem(STORAGE_KEY_TEXT_REGION, JSON.stringify(region));
+                setStatus(t('textAreaSaved'));
+                
+                // Обновляем кнопки
+                window.updateTextButtons();
+                
+                // Перерисовываем рамки
+                redrawCanvasWithRegions();
+                
+                // Автоматически запускаем OCR для текстовой области
+                setTimeout(() => processTextRegion(region), 300);
+                
+                // Сбрасываем флаг
+                window.isSelectingTextRegion = false;
+                return;
+            }
+            
+            // Проверяем пересечение с существующей текстовой областью (ТОЛЬКО ПОСЛЕ ПРОВЕРКИ ФЛАГА)
+            if (storedTextRegion && isRegionIntersecting(region, storedTextRegion)) {
+                console.log('⚠️ Область пересекается с текстовой областью, пропускаем обработку QR кодов');
+                setStatus('Эта область зарезервирована для текста партий');
+                redrawCanvasWithRegions();
+                return;
+            }
+            
             // MULTI MODE: сохраняем одну большую область и обрабатываем сразу
             console.log('✅ Запускаю MULTI MODE обработку...');
             multiRegions = [region]; // Сохраняем как одну область
@@ -1313,284 +2228,299 @@ mainCanvas.addEventListener('mouseup', async e => {
             setStatus('MULTI: Обработка строк...');
             await processMultiRegionAsLines(region);
         } else {
-            // SINGLE MODE: обрабатываем одну область
-            console.log('✅ Запускаю SINGLE MODE обработку...');
+            // SINGLE MODE: сохраняем область и запускаем автоматическую обработку
+            console.log('✅ Сохраняю SINGLE MODE область...');
             storeRegion(region);
-            setStatus('statusProcessing');
-            await processRegion(region);
+            setStatus('SINGLE: Область сохранена');
+            // Запускаем автоматическую обработку при ручном выделении
+            setTimeout(() => processRegion(region), 300);
         }
     }
 });
 
-mainCanvas.addEventListener('mouseleave', () => {
-    if (isDrawing) {
-        isDrawing = false;
-        mainCanvas.classList.remove('drawing');
-        ctx.putImageData(imgDataSnapshot, 0, 0);
-    }
-});
+// Глобальные функции эффектов для карточек
+function addGalaxyCardEffects(item) {
+    const stars = document.createElement('div');
+    stars.style.cssText = `
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-image: 
+            radial-gradient(1px 1px at 20% 30%, white, transparent),
+            radial-gradient(1px 1px at 60% 70%, white, transparent);
+        background-size: 100px 100px;
+        animation: twinkle 4s ease-in-out infinite;
+        pointer-events: none;
+        opacity: 0.6;
+    `;
+    item.appendChild(stars);
+}
 
-// Обработчик ESC для завершения мультирежима
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && isMultiMode && multiRegions.length > 0) {
-        closeMultiQrOverlay();
-    }
-});
+function addCyborgCardEffects(item) {
+    const grid = document.createElement('div');
+    grid.style.cssText = `
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-image: 
+            linear-gradient(rgba(0,255,255,0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0,255,255,0.05) 1px, transparent 1px);
+        background-size: 15px 15px;
+        animation: cyberGrid 2s linear infinite;
+        pointer-events: none;
+    `;
+    item.appendChild(grid);
+}
 
-async function processMultiRegionAsLines(region) {
-    console.log('🔍 MULTI MODE: Начинаю обработку области', region);
-    multiCodes = [];
+function addWhiteCardEffects(item) {
+    const glow = document.createElement('div');
+    glow.style.cssText = `
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        border: 1px solid rgba(100, 200, 255, 0.1);
+        border-radius: 16px;
+        box-shadow: inset 0 0 10px rgba(100, 200, 255, 0.03);
+        animation: softNeonGlow 4s ease-in-out infinite;
+        pointer-events: none;
+    `;
+    item.appendChild(glow);
+}
+
+async function processMultiRegionAsLines(region) { 
+    setStatus('statusProcessing');
+    console.log('📊 Статус установлен: statusProcessing');
     
-    // Берем оригинальное изображение
-    const sourceCanvas = document.createElement('canvas');
-    const sourceCtx = sourceCanvas.getContext('2d');
-    sourceCanvas.width = mainCanvas.width;
-    sourceCanvas.height = mainCanvas.height;
-    sourceCtx.drawImage(mainCanvas, 0, 0);
-    
-    // Создаем временный canvas для выделенной области
-    const tempCanvas = document.createElement('canvas');
-    const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
-    tempCanvas.width = region.w;
-    tempCanvas.height = region.h;
-    tempCtx.drawImage(sourceCanvas, region.x, region.y, region.w, region.h, 0, 0, region.w, region.h);
-    
-    console.log('📊 Изображение скопировано, размер:', region.w, 'x', region.h);
-    
-    // Анализ строк для крупных QR кодов
-    const imageData = tempCtx.getImageData(0, 0, region.w, region.h);
-    const lines = await findVerticalLinesForLargeCodes(tempCanvas, imageData);
-    console.log('📝 Найдено строк:', lines.length);
-    
-    if (lines.length === 0) {
-        setStatus('statusMultiNotFound');
-        return;
-    }
-    
-    // Создаем одно изображение со всеми строками для быстрой OCR
-    const allLinesCanvas = createAllLinesCanvas(sourceCanvas, region, lines);
-    
-    // Запускаем один OCR для всех строк
-    const allCodes = await processAllLinesOCR(allLinesCanvas);
-    
-    // Фильтруем и сохраняем хорошие коды
-    for (const code of allCodes) {
-        if (code && code.length >= 4) {
-            multiCodes.push(code);
-            console.log(`✅ Добавлен код: ${code}`);
+    try {
+        if (activeStream && captureVideo.readyState >= 2) {
+            console.log('📹 Рисую видео кадр');
+            ctx.drawImage(captureVideo, 0, 0);
         }
-    }
-    
-    console.log('🎉 Итого найдено кодов:', multiCodes.length, multiCodes);
-    
-    if (multiCodes.length > 0) {
-        showMultiQrOverlay();
-    } else {
-        setStatus('statusMultiNotFound');
+        
+        // Автоматически увеличиваем изображение для лучшего распознавания
+        const scaleFactor = 1.46; // Идеальный масштаб по вашим тестам
+        console.log(`📏 Создаю canvas с масштабом ${scaleFactor}x`);
+        
+        const multiCanvas = document.createElement('canvas');
+        multiCanvas.width = Math.floor(region.w * scaleFactor);
+        multiCanvas.height = Math.floor(region.h * scaleFactor);
+        const multiCtx = multiCanvas.getContext('2d');
+        
+        // Сначала копируем оригинальную область во временный canvas
+        console.log('📋 Копирую оригинальную область');
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = region.w;
+        tempCanvas.height = region.h;
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCtx.drawImage(mainCanvas, region.x, region.y, region.w, region.h, 0, 0, region.w, region.h);
+        
+        // Затем увеличиваем в 1.46 раза без сглаживания для четких пикселей
+        console.log('🔍 Увеличиваю изображение');
+        multiCtx.imageSmoothingEnabled = false;
+        multiCtx.drawImage(tempCanvas, 0, 0, multiCanvas.width, multiCanvas.height);
+        
+        console.log(`🔍 MULTI: Автоматически увеличил изображение в ${scaleFactor}x: ${multiCanvas.width} x ${multiCanvas.height}`);
+        
+        const imageData = multiCtx.getImageData(0, 0, multiCanvas.width, multiCanvas.height);
+        console.log('📊 Получил imageData:', imageData.width, 'x', imageData.height);
+        
+        // Анализируем изображение и находим строки
+        console.log('🔍 Ищу строки...');
+        const lines = findVerticalLines(multiCanvas, imageData);
+        console.log('📊 Найдено строк:', lines.length);
+        
+        if (lines.length === 0) {
+            console.log('❌ Строки не найдены');
+            setStatus('statusFail');
+            isProcessing = false;
+            return;
+        }
+        
+        // Создаем отдельные canvas для каждой строки
+        console.log('🎨 Создаю canvas для каждой строки');
+        const lineCanvases = [];
+        lines.forEach((line, index) => {
+            const lineCanvas = document.createElement('canvas');
+            lineCanvas.width = line.width;
+            lineCanvas.height = line.height;
+            const lineCtx = lineCanvas.getContext('2d');
+            
+            // Копируем строку из увеличенного изображения
+            lineCtx.drawImage(
+                multiCanvas,
+                line.x, line.y, line.width, line.height,
+                0, 0, line.width, line.height
+            );
+            
+            lineCanvases.push(lineCanvas);
+        });
+        
+        console.log(`📊 Создано ${lineCanvases.length} canvas для строк`);
+        
+        // УЛЬТРА БЫСТРЫЙ МЕТОД: как SINGLE MODE - один OCR на весь canvas
+        console.log('⚡ УЛЬТРА БЫСТРЫЙ метод - один OCR на всю область');
+        
+        // Создаем один canvas со всей областью
+        const fullCanvas = document.createElement('canvas');
+        fullCanvas.width = multiCanvas.width;
+        fullCanvas.height = multiCanvas.height;
+        const fullCtx = fullCanvas.getContext('2d');
+        fullCtx.drawImage(multiCanvas, 0, 0);
+        
+        // Запускаем OCR как в SINGLE MODE
+        const result = await Tesseract.recognize(
+            fullCanvas,
+            ocrLangMap[currentLang] || 'pol',
+            { tessedit_char_whitelist: '0123456789' }
+        );
+        
+        console.log('🔍 MULTI OCR текст:', result.data.text);
+        console.log('🔍 MULTI OCR уверенность:', result.data.confidence);
+        
+        // Разбираем результат на строки
+        const ocrLines = result.data.text.split('\n');
+        const allCodes = [];
+        
+        ocrLines.forEach(line => {
+            const code = line.replace(/\D/g, '').trim();
+            if (code.length >= 4) {
+                allCodes.push(code);
+                console.log(`✅ Добавлен код (УЛЬТРА): ${code}`);
+            }
+        });
+        
+        console.log(`🎉 УЛЬТРА БЫСТРЫЙ результат: ${allCodes.length} кодов`);
+        
+        // Сохраняем результаты
+        multiRegions = lines;
+        multiCodes = allCodes;
+        saveMultiRegions();
+        
+        console.log(`🎉 Итого найдено кодов: ${allCodes.length} (${allCodes.length})`, allCodes);
+        
+        if (allCodes.length > 0) {
+            setStatus('MULTI: Готово!');
+            showMultiQrOverlay();
+            
+            // Автоматически сопоставляем с партиями если есть названия
+            if (partyNames.length > 0) {
+                console.log('🔗 Найдены QR коды и партии, начинаю сопоставление...');
+                await matchCodesWithParties();
+            }
+        } else {
+            setStatus('statusFail');
+        }
+        
+    } catch (error) {
+        console.error('❌ Критическая ошибка в processMultiRegionAsLines:', error);
+        setStatus('statusFail');
+    } finally {
+        isProcessing = false;
+        console.log('✅ Завершил processMultiRegionAsLines');
     }
 }
 
-async function findVerticalLinesOptimal(canvas, imageData) {
-    const lines = [];
+function findVerticalLines(canvas, imageData) {
+    const foundLines = [];
     const width = canvas.width;
     const height = canvas.height;
     const data = imageData.data;
     
-    console.log('🔍 Анализирую строки без ограничений...');
+    console.log('🔍 Анализирую вертикальные строки...');
+    console.log(`📏 Размер изображения: ${width} x ${height}`);
     
-    // Подсчет черных пикселей
+    // Ищем строки по вертикальным проекциям
     const rowCounts = new Array(height).fill(0);
+    
+    // Считаем черные пиксели в каждой строке
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
             const idx = (y * width + x) * 4;
-            if (data[idx] === 0) rowCounts[y]++;
-        }
-    }
-    
-    // Находим все строки с черными пикселями
-    let inLine = false;
-    let lineStart = 0;
-    
-    for (let y = 0; y < height; y++) {
-        const hasPixels = rowCounts[y] >= 1; // Минимум 1 пиксель
-        
-        if (hasPixels && !inLine) {
-            // Начало строки
-            inLine = true;
-            lineStart = y;
-        } else if (!hasPixels && inLine) {
-            // Конец строки
-            inLine = false;
-            const lineHeight = y - lineStart;
-            
-            if (lineHeight >= 5 && lineHeight <= 100) { // Минимум 5px высота
-                // Находим границы текста в строке
-                const refinedLine = refineLineBounds(data, width, height, lineStart, y - 1);
-                lines.push(refinedLine);
-                console.log(`✅ Найдена строка: Y=${lineStart}-${y-1}, высота=${lineHeight}, пикселей=${rowCounts.slice(lineStart, y).reduce((a,b) => a+b, 0)}`);
+            if (data[idx] === 0) { // Черный пиксель
+                rowCounts[y]++;
             }
         }
     }
     
-    // Обрабатываем последнюю строку
-    if (inLine) {
-        const lineHeight = height - lineStart;
-        if (lineHeight >= 5 && lineHeight <= 100) { // Минимум 5px
-            const refinedLine = refineLineBounds(data, width, height, lineStart, height - 1);
-            lines.push(refinedLine);
-            console.log(`✅ Найдена последняя строка: Y=${lineStart}-${height-1}, высота=${lineHeight}, пикселей=${rowCounts.slice(lineStart, height).reduce((a,b) => a+b, 0)}`);
-        }
-    }
-    
-    console.log(`📊 Итого найдено строк: ${lines.length}`);
-    return lines;
-}
-
-async function findVerticalLinesForLargeCodes(canvas, imageData) {
-    const lines = [];
-    const width = canvas.width;
-    const height = canvas.height;
-    const data = imageData.data;
-    
-    console.log('🔍 Анализирую крупные QR коды...');
-    
-    // Подсчет черных пикселей
-    const rowCounts = new Array(height).fill(0);
-    for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-            const idx = (y * width + x) * 4;
-            if (data[idx] === 0) rowCounts[y]++;
-        }
-    }
-    
-    // Логируем первые строки для анализа
-    console.log('📊 Анализ пикселей (первые 50 строк):');
+    console.log('📊 Анализ черных пикселей по строкам (первые 50):');
     for (let y = 0; y < Math.min(height, 50); y++) {
         if (rowCounts[y] > 0) {
-            console.log(`  Строка ${y}: ${rowCounts[y]} пикселей`);
+            console.log(`  Строка ${y}: ${rowCounts[y]} черных пикселей`);
         }
     }
     
-    // Находим пики с очень низким порогом для крупных кодов
+    // Находим пики черных пикселей
     const peaks = [];
     for (let y = 0; y < height; y++) {
-        if (rowCounts[y] >= 1) { // Минимум 1 пиксель
+        if (rowCounts[y] >= 3) { // Уменьшаем порог для маленьких изображений
             peaks.push(y);
         }
     }
+    
+    // Новый подход: создаем строки из каждого пика
+    const minLineHeight = 12;
+    const maxLineHeight = 50;
+    const lineHeight = 25; // Фиксированная высота для каждой строки
     
     console.log(`📊 Найдено пиков: ${peaks.length}`);
     
-    if (peaks.length < 2) {
-        console.log('❌ Слишком мало пиков');
-        return lines;
+    if (peaks.length === 0) {
+        console.log('❌ Пики не найдены');
+        return foundLines;
     }
     
-    // Группируем пики в строки
-    let inLine = false;
-    let lineStart = 0;
-    
+    // Создаем строки для каждого найденого пика
     for (let i = 0; i < peaks.length; i++) {
-        const currentPeak = peaks[i];
+        const peakY = peaks[i];
         
-        if (!inLine) {
-            // Начало новой строки
-            inLine = true;
-            lineStart = currentPeak;
-        } else {
-            // Проверяем разрыв между пиками
-            const gap = currentPeak - peaks[i-1];
-            if (gap > 15) { // Большой разрыв - новая строка
-                // Сохраняем предыдущую строку
-                const lineHeight = peaks[i-1] - lineStart + 10; // +10 для захвата
-                if (lineHeight >= 15 && lineHeight <= 80) {
-                    lines.push({
-                        x: 0,
-                        y: Math.max(0, lineStart - 5),
-                        width: width,
-                        height: Math.min(height - lineStart, lineHeight + 10)
-                    });
-                    console.log(`✅ Добавлена строка: Y=${lineStart}-${peaks[i-1] + 10}, высота=${lineHeight + 10}`);
-                }
-                
-                // Начинаем новую строку
-                lineStart = currentPeak;
-            }
+        // Пропускаем слишком близкие пики (дубликаты)
+        if (i > 0 && peakY - peaks[i-1] < minLineHeight) {
+            console.log(`⏭ Пропускаю близкий пик: ${peakY} (разница: ${peakY - peaks[i-1]})`);
+            continue;
         }
+        
+        const startY = Math.max(0, peakY - Math.floor(lineHeight / 2));
+        const endY = Math.min(height - 1, peakY + Math.floor(lineHeight / 2));
+        
+        console.log(`✅ Создаю строку из пика ${i+1}: Y=${startY}-${endY}, центр=${peakY}`);
+        
+        foundLines.push({
+            x: 0,
+            y: startY,
+            width: width,
+            height: endY - startY + 1,
+            centerY: peakY
+        });
     }
     
-    // Добавляем последнюю строку
-    if (inLine && peaks.length > 0) {
-        const lastPeak = peaks[peaks.length - 1];
-        const lineHeight = lastPeak - lineStart + 10;
-        if (lineHeight >= 15 && lineHeight <= 80) {
-            lines.push({
-                x: 0,
-                y: Math.max(0, lineStart - 5),
-                width: width,
-                height: Math.min(height - lineStart, lineHeight + 10)
-            });
-            console.log(`✅ Добавлена последняя строка: Y=${lineStart}-${lastPeak + 10}, высота=${lineHeight + 10}`);
-        }
-    }
-    
-    console.log(`📊 Итого найдено строк: ${lines.length}`);
-    return lines;
+    console.log(`📊 Итого создано строк: ${foundLines.length}`);
+    return foundLines;
 }
 
-async function findVerticalLinesFast(canvas, imageData) {
-    const lines = [];
-    const width = canvas.width;
-    const height = canvas.height;
-    const data = imageData.data;
+async function processCanvasForCode(canvas) {
+    console.log('🔍 Обработка canvas:', canvas.width, 'x', canvas.height);
     
-    // Быстрый подсчет черных пикселей
-    const rowCounts = new Array(height).fill(0);
-    for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-            const idx = (y * width + x) * 4;
-            if (data[idx] === 0) rowCounts[y]++;
-        }
-    }
-    
-    // Находим пики с более низким порогом
-    const peaks = [];
-    for (let y = 0; y < height; y++) {
-        if (rowCounts[y] >= 5) {
-            peaks.push(y);
-            console.log(`📍 Пик найден: строка ${y}, пикселей: ${rowCounts[y]}`);
-        }
-    }
-    
-    if (peaks.length < 2) return lines;
-    
-    const avgGap = Math.round((peaks[peaks.length-1] - peaks[0]) / (peaks.length - 1));
-    const lineCount = Math.min(24, Math.floor(height / avgGap));
-    
-    for (let i = 0; i < lineCount; i++) {
-        const centerY = peaks[0] + (i * avgGap);
-        const startY = Math.max(0, centerY - 10);
-        const endY = Math.min(height - 1, centerY + 10);
+    try {
+        const ocrLang = ocrLangMap[currentLang] || 'pol';
+        console.log('🔍 Запускаю OCR с языком:', ocrLang);
         
-        let totalPixels = 0;
-        for (let y = startY; y <= endY; y++) {
-            totalPixels += rowCounts[y];
-        }
+        // Используем простой и надежный подход
+        const result = await Tesseract.recognize(
+            canvas,
+            ocrLang,
+            { 
+                tessedit_char_whitelist: '0123456789'
+            }
+        );
         
-        if (totalPixels >= 3) { // Снижаем до 3 пикселей для мелких кодов
-            lines.push({
-                x: 0,
-                y: startY,
-                width: width,
-                height: endY - startY + 1
-            });
-            console.log(`✅ Строка добавлена: Y=${startY}-${endY}, пикселей: ${totalPixels}`);
-        } else {
-            console.log(`❌ Строка отфильтрована: Y=${startY}-${endY}, пикселей: ${totalPixels}`);
-        }
+        console.log('🔍 OCR текст:', result.data.text);
+        console.log('🔍 OCR уверенность:', result.data.confidence);
+        
+        const cleanText = result.data.text.replace(/\D/g, '').trim();
+        console.log('🔍 Очищенный текст:', cleanText);
+        
+        return cleanText.length > 0 ? cleanText : null;
+    } catch (err) {
+        console.error('❌ OCR ошибка:', err);
+        return null;
     }
-    
-    return lines;
 }
 
 function createAllLinesCanvas(sourceCanvas, region, lines) {
@@ -1623,260 +2553,163 @@ function createAllLinesCanvas(sourceCanvas, region, lines) {
 async function processAllLinesOCR(allLinesCanvas) {
     try {
         const ocrLang = ocrLangMap[currentLang] || 'pol';
-        const result = await Tesseract.recognize(
-            allLinesCanvas,
-            ocrLang,
-            { tessedit_char_whitelist: '0123456789' }
-        );
         
-        // Разделяем результат на строки
-        const lines = result.data.text.split('\n').map(line => line.replace(/\D/g, '').trim()).filter(code => code.length >= 4);
-        console.log('🔍 OCR все строки:', lines);
+        // Создаем несколько вариантов для лучшего распознавания
+        const variants = [];
         
-        return lines;
+        // Вариант 1: Оригинальное изображение
+        variants.push(allLinesCanvas);
+        
+        // Вариант 2: Инвертированное изображение
+        const invertedCanvas = document.createElement('canvas');
+        invertedCanvas.width = allLinesCanvas.width;
+        invertedCanvas.height = allLinesCanvas.height;
+        const invCtx = invertedCanvas.getContext('2d');
+        invCtx.filter = 'invert(100%) contrast(200%)';
+        invCtx.drawImage(allLinesCanvas, 0, 0);
+        variants.push(invertedCanvas);
+        
+        // Вариант 3: Усиленный контраст
+        const contrastCanvas = document.createElement('canvas');
+        contrastCanvas.width = allLinesCanvas.width;
+        contrastCanvas.height = allLinesCanvas.height;
+        const conCtx = contrastCanvas.getContext('2d');
+        conCtx.filter = 'contrast(300%) brightness(120%)';
+        conCtx.drawImage(allLinesCanvas, 0, 0);
+        variants.push(contrastCanvas);
+        
+        // Вариант 4: Адаптивный для синего фона с белым текстом (новый метод)
+        const adaptiveCanvas = document.createElement('canvas');
+        adaptiveCanvas.width = allLinesCanvas.width;
+        adaptiveCanvas.height = allLinesCanvas.height;
+        const adaptiveCtx = adaptiveCanvas.getContext('2d');
+        
+        // Сначала получаем данные изображения для анализа
+        const imageData = allLinesCanvas.getContext('2d').getImageData(0, 0, allLinesCanvas.width, allLinesCanvas.height);
+        const data = imageData.data;
+        
+        // Анализируем среднюю яркость для определения типа фона
+        let totalBrightness = 0;
+        let bluePixels = 0;
+        
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            const brightness = (r + g + b) / 3;
+            totalBrightness += brightness;
+            
+            // Проверяем на синие пиксели
+            if (b > r + 30 && b > g + 30) {
+                bluePixels++;
+            }
+        }
+        
+        const avgBrightness = totalBrightness / (data.length / 4);
+        const blueRatio = bluePixels / (data.length / 4);
+        
+        console.log(`🔍 Анализ изображения: средняя яркость ${avgBrightness.toFixed(1)}, синих пикселей ${(blueRatio * 100).toFixed(1)}%`);
+        
+        // Применяем адаптивные фильтры в зависимости от типа фона
+        if (blueRatio > 0.3) {
+            // Много синего - специальный фильтр для синего фона
+            adaptiveCtx.filter = 'invert(100%) sepia(50%) contrast(400%) brightness(150%)';
+            console.log('🔵 Применен фильтр для синего фона');
+        } else if (avgBrightness < 100) {
+            // Темный фон
+            adaptiveCtx.filter = 'invert(90%) contrast(350%) brightness(140%)';
+            console.log('⚫ Применен фильтр для темного фона');
+        } else {
+            // Светлый фон
+            adaptiveCtx.filter = 'contrast(300%) brightness(110%)';
+            console.log('⚪ Применен фильтр для светлого фона');
+        }
+        
+        adaptiveCtx.drawImage(allLinesCanvas, 0, 0);
+        variants.push(adaptiveCanvas);
+        
+        // Вариант 5: Увеличенный текст + усиленный темный фон
+        const darkBgCanvas = document.createElement('canvas');
+        darkBgCanvas.width = allLinesCanvas.width;
+        darkBgCanvas.height = allLinesCanvas.height;
+        const darkBgCtx = darkBgCanvas.getContext('2d');
+        
+        // Сначала увеличиваем изображение в 2 раза
+        const scaledCanvas = document.createElement('canvas');
+        scaledCanvas.width = allLinesCanvas.width * 2;
+        scaledCanvas.height = allLinesCanvas.height * 2;
+        const scaledCtx = scaledCanvas.getContext('2d');
+        scaledCtx.imageSmoothingEnabled = false;
+        scaledCtx.drawImage(allLinesCanvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
+        
+        // Затем применяем усиленные фильтры для темного фона
+        darkBgCtx.filter = 'brightness(60%) contrast(350%)';
+        darkBgCtx.drawImage(scaledCanvas, 0, 0, darkBgCanvas.width, darkBgCanvas.height);
+        variants.push(darkBgCanvas);
+        
+        // Вариант 6: Экстремальный для синего фона с белым текстом
+        const extremeBlueCanvas = document.createElement('canvas');
+        extremeBlueCanvas.width = allLinesCanvas.width;
+        extremeBlueCanvas.height = allLinesCanvas.height;
+        const extremeBlueCtx = extremeBlueCanvas.getContext('2d');
+        
+        // Экстремальные фильтры для синего фона
+        extremeBlueCtx.filter = 'invert(100%) contrast(500%) brightness(200%) saturate(0%)';
+        extremeBlueCtx.drawImage(allLinesCanvas, 0, 0);
+        variants.push(extremeBlueCanvas);
+        
+        // Вариант 7: Пороговая обработка для синего фона
+        const thresholdCanvas = document.createElement('canvas');
+        thresholdCanvas.width = allLinesCanvas.width;
+        thresholdCanvas.height = allLinesCanvas.height;
+        const thresholdCtx = thresholdCanvas.getContext('2d');
+        
+        // Получаем данные изображения для пороговой обработки
+        const thresholdImageData = allLinesCanvas.getContext('2d').getImageData(0, 0, allLinesCanvas.width, allLinesCanvas.height);
+        const thresholdData = thresholdImageData.data;
+        
+        // Пороговая обработка с акцентом на синий канал
+        for (let i = 0; i < thresholdData.length; i += 4) {
+            const r = thresholdData[i];
+            const g = thresholdData[i + 1];
+            const b = thresholdData[i + 2];
+            
+            // Инвертируем синий канал и усиливаем
+            const invertedBlue = 255 - b;
+            const enhanced = invertedBlue > 150 ? 255 : 0;
+            
+            thresholdData[i] = enhanced;
+            thresholdData[i + 1] = enhanced;
+            thresholdData[i + 2] = enhanced;
+        }
+        
+        thresholdCtx.putImageData(thresholdImageData, 0, 0);
+        variants.push(thresholdCanvas);
+        
+        let bestLines = [];
+        
+        console.log('🔍 Пробую', variants.length, 'вариантов для MULTI OCR...');
+        
+        for (let i = 0; i < variants.length; i++) {
+            const result = await Tesseract.recognize(
+                variants[i],
+                ocrLang,
+                { tessedit_char_whitelist: '0123456789' }
+            );
+            
+            const lines = result.data.text.split('\n').map(line => line.replace(/\D/g, '').trim()).filter(code => code.length >= 4);
+            console.log(`📊 MULTI Вариант ${i + 1}:`, lines.length, 'кодов');
+            
+            if (lines.length > bestLines.length) {
+                bestLines = lines;
+                console.log(`✅ Лучший MULTI результат: ${bestLines.length} кодов (вариант ${i + 1})`);
+            }
+        }
+        
+        return bestLines;
     } catch (err) {
         console.error('❌ OCR ошибка:', err);
         return [];
-    }
-}
-
-function findVerticalLines(canvas, imageData) {
-    const lines = [];
-    const width = canvas.width;
-    const height = canvas.height;
-    const data = imageData.data;
-    
-    console.log('🔍 Анализирую вертикальные строки...');
-    
-    // Ищем строки по вертикальным проекциям
-    const rowCounts = new Array(height).fill(0);
-    
-    // Считаем черные пиксели в каждой строке
-    for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-            const idx = (y * width + x) * 4;
-            if (data[idx] === 0) { // Черный пиксель
-                rowCounts[y]++;
-            }
-        }
-    }
-    
-    console.log('📊 Анализ черных пикселей по строкам (первые 50):');
-    for (let y = 0; y < Math.min(height, 50); y++) {
-        if (rowCounts[y] > 0) {
-            console.log(`  Строка ${y}: ${rowCounts[y]} черных пикселей`);
-        }
-    }
-    
-    // Новый подход: ищем пики черных пикселей и делим на равные интервалы
-    const peaks = [];
-    for (let y = 0; y < height; y++) {
-        if (rowCounts[y] >= 5) { // Минимум 5 пикселей для пика
-            peaks.push(y);
-        }
-    }
-    
-    console.log(`📊 Найдено пиков: ${peaks.length}`);
-    
-    if (peaks.length < 2) {
-        console.log('❌ Слишком мало пиков для анализа');
-        return lines;
-    }
-    
-    // Определяем средний интервал между пиками
-    let totalGap = 0;
-    let gapCount = 0;
-    for (let i = 1; i < peaks.length; i++) {
-        const gap = peaks[i] - peaks[i-1];
-        if (gap > 5 && gap < 100) { // Разумные интервалы
-            totalGap += gap;
-            gapCount++;
-        }
-    }
-    
-    const avgGap = gapCount > 0 ? Math.round(totalGap / gapCount) : 25;
-    console.log(`📏 Средний интервал между строками: ${avgGap} пикселей`);
-    
-    // Создаем строки на основе пиков и среднего интервала
-    const firstY = peaks[0];
-    const lineCount = Math.min(24, Math.floor(height / avgGap)); // Максимум 24 строки
-    
-    for (let i = 0; i < lineCount; i++) {
-        const centerY = firstY + (i * avgGap);
-        const startY = Math.max(0, centerY - 10);
-        const endY = Math.min(height - 1, centerY + 10);
-        
-        console.log(`📝 Строка ${i+1}: центр Y=${centerY}, диапазон ${startY}-${endY}`);
-        
-        // Проверяем что в этой области есть черные пиксели
-        let totalPixels = 0;
-        for (let y = startY; y <= endY; y++) {
-            totalPixels += rowCounts[y];
-        }
-            
-        // Фильтруем по качеству - минимум 10 черных пикселей
-        if (totalPixels >= 10) {
-            const refinedLine = refineLineBounds(data, width, height, startY, endY);
-            lines.push(refinedLine);
-            console.log(`✅ Добавлена строка:`, refinedLine);
-        } else {
-            console.log(`❌ Группа ${i+1} отфильтрована: мало пикселей (${totalPixels})`);
-        }
-    }
-        
-    console.log(`📊 Итого добавлено строк: ${lines.length}`);
-        
-    return lines;
-}
-
-function isValidCode(code) {
-    // Проверка на реалистичные QR коды
-    if (!code || typeof code !== 'string') return false;
-    
-    // Убираем лишние нули в начале если код слишком длинный
-    const cleanCode = code.replace(/^0+/, '');
-    
-    // Проверяем что код состоит только из цифр
-    if (!/^\d+$/.test(cleanCode)) return false;
-    
-    // Проверяем длину (4-16 символов после очистки)
-    if (cleanCode.length < 4 || cleanCode.length > 16) return false;
-    
-    // Проверяем что это не все одинаковые цифры
-    if (/^(\d)\1+$/.test(cleanCode)) return false;
-    
-    console.log(`🔍 Валидация кода: ${code} -> ${cleanCode} ✅`);
-    return true;
-}
-
-function refineLineBounds(data, width, height, startY, endY) {
-    // Находим фактические границы текста в строке
-    let minX = width;
-    let maxX = 0;
-    let actualStartY = endY;
-    let actualEndY = startY;
-    
-    for (let y = startY; y <= endY; y++) {
-        let hasTextInRow = false;
-        
-        for (let x = 0; x < width; x++) {
-            const idx = (y * width + x) * 4;
-            if (data[idx] === 0) { // Черный пиксель
-                minX = Math.min(minX, x);
-                maxX = Math.max(maxX, x);
-                hasTextInRow = true;
-                actualStartY = Math.min(actualStartY, y);
-                actualEndY = Math.max(actualEndY, y);
-            }
-        }
-    }
-    
-    // Добавляем небольшие отступы
-    minX = Math.max(0, minX - 5);
-    maxX = Math.min(width - 1, maxX + 5);
-    actualStartY = Math.max(0, actualStartY - 2);
-    actualEndY = Math.min(height - 1, actualEndY + 2);
-    
-    return {
-        x: minX,
-        y: actualStartY,
-        width: maxX - minX + 1,
-        height: actualEndY - actualStartY + 1
-    };
-}
-
-async function findTextLines(canvas, imageData) {
-    const lines = [];
-    const width = canvas.width;
-    const height = canvas.height;
-    const data = imageData.data;
-    
-    // Ищем строки по горизонтальным проекциям
-    const rowCounts = new Array(height).fill(0);
-    
-    // Считаем черные пиксели в каждой строке
-    for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-            const idx = (y * width + x) * 4;
-            if (data[idx] === 0) { // Черный пиксель
-                rowCounts[y]++;
-            }
-        }
-    }
-    
-    console.log('📊 Анализ строк:', rowCounts.slice(0, 50)); // Первые 50 строк для отладки
-    
-    // Находим интервалы с текстом
-    let inLine = false;
-    let lineStart = 0;
-    
-    for (let y = 0; y < height; y++) {
-        const hasText = rowCounts[y] > 10; // Минимум 10 черных пикселей в строке
-        
-        if (hasText && !inLine) {
-            // Начало строки
-            inLine = true;
-            lineStart = y;
-        } else if (!hasText && inLine) {
-            // Конец строки
-            inLine = false;
-            const lineHeight = y - lineStart;
-            
-            if (lineHeight >= 15 && lineHeight <= 60) { // Разумная высота строки
-                lines.push({
-                    x: 0,
-                    y: lineStart,
-                    width: width,
-                    height: lineHeight
-                });
-                console.log(`📝 Найдена строка: y=${lineStart}, h=${lineHeight}`);
-            }
-        }
-    }
-    
-    // Обрабатываем последнюю строку если она не закончилась
-    if (inLine) {
-        const lineHeight = height - lineStart;
-        if (lineHeight >= 15 && lineHeight <= 60) {
-            lines.push({
-                x: 0,
-                y: lineStart,
-                width: width,
-                height: lineHeight
-            });
-            console.log(`📝 Найдена последняя строка: y=${lineStart}, h=${lineHeight}`);
-        }
-    }
-    
-    return lines;
-}
-
-async function processCanvasForCode(canvas) {
-    console.log('🔍 Обработка canvas:', canvas.width, 'x', canvas.height);
-    
-    try {
-        const ocrLang = ocrLangMap[currentLang] || 'pol';
-        console.log('🔍 Запускаю OCR с языком:', ocrLang);
-        
-        // Используем простой и надежный подход как в QR2
-        const result = await Tesseract.recognize(
-            canvas,
-            ocrLang,
-            { 
-                tessedit_char_whitelist: '0123456789'
-            }
-        );
-        
-        console.log('🔍 OCR текст:', result.data.text);
-        console.log('🔍 OCR уверенность:', result.data.confidence);
-        
-        const cleanText = result.data.text.replace(/\D/g, '').trim();
-        console.log('🔍 Очищенный текст:', cleanText);
-        
-        return cleanText.length > 0 ? cleanText : null;
-    } catch (err) {
-        console.error('❌ OCR ошибка:', err);
-        return null;
     }
 }
 
@@ -1889,11 +2722,296 @@ function showMultiQrOverlay() {
 
 function closeMultiQrOverlay() {
     document.getElementById('multiQrOverlay').style.display = 'none';
+    
+    // Удаляем переключатель тем
+    const themeSwitcher = document.getElementById('multiThemeSwitcher');
+    if (themeSwitcher) {
+        document.body.removeChild(themeSwitcher);
+    }
+    
     // Не очищаем коды и области - они могут понадобиться снова
     // multiRegions = [];
     // multiCodes = [];
     // saveMultiRegions();
     setStatus('MULTI: Готово!');
+}
+
+
+function createMultiQrItem(code, index) {
+    // Получаем текущую тему
+    const currentTheme = parseInt(localStorage.getItem('qrModalTheme') || '0');
+    const themes = [
+        { name: 'Galaxy', bg: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e, #0f0c29)', accent: '#9d4edd' },
+        { name: 'Cyborg', bg: 'linear-gradient(135deg, #0f0f0f, #1a1a1a, #262626, #333333, #404040)', accent: '#ff6b35' },
+        { name: 'White', bg: 'linear-gradient(135deg, #f8f9fa 0%, #e8eef5 20%, #f0f4f8 40%, #e6ecf3 60%, #f5f7fa 80%, #e9eef5 100%)', accent: '#6c757d' }
+    ];
+    const selectedTheme = themes[currentTheme];
+    
+    const item = document.createElement('div');
+    item.className = 'multi-qr-item';
+    // Применяем только фон темы, сохраняя оригинальные размеры
+    item.style.cssText = `
+        background: ${selectedTheme.bg};
+        padding: 15px; /* УМЕНЬШАЕМ с 25px до 15px */
+        border-radius: 25px;
+        text-align: center; cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 12px 35px rgba(0,0,0,0.4);
+        border: 4px solid transparent;
+        position: relative;
+        overflow: hidden;
+        aspect-ratio: 3/2; /* Пропорция 3:2 */
+        min-height: 200px;
+    `;
+    
+    // Добавляем эффекты темы к карточке
+    if (selectedTheme.name === 'Galaxy') {
+        addGalaxyCardEffects(item);
+    } else if (selectedTheme.name === 'Cyborg') {
+        addCyborgCardEffects(item);
+    } else if (selectedTheme.name === 'White') {
+        addWhiteCardEffects(item);
+    }
+    
+    item.onclick = (e) => {
+        e.stopPropagation();
+        openSingleQrViewer(code);
+    };
+    
+    // Добавляем индекс - МИНИМАЛЬНЫЙ РАЗМЕР В ЛЕВОМ ВЕРХНЕМ УГЛУ
+    const indexBadge = document.createElement('div');
+    indexBadge.className = 'index-badge';
+    indexBadge.style.cssText = `
+        position: absolute; top: 5px; left: 5px;
+        background: linear-gradient(145deg, 
+            ${selectedTheme.accent} 0%, 
+            ${selectedTheme.accent}cc 50%, 
+            ${selectedTheme.accent}dd 100%);
+        color: white;
+        font-size: 12px; font-weight: bold;
+        padding: 4px 8px; border-radius: 20px;
+        box-shadow: 
+            0 2px 8px ${selectedTheme.accent}60,
+            0 0 0 1px rgba(255,255,255,0.2),
+            inset 0 1px 2px rgba(255,255,255,0.3),
+            inset 0 -1px 2px rgba(0,0,0,0.2);
+        z-index: 10;
+        transition: all 0.4s ease;
+        border: 1px solid rgba(255,255,255,0.3);
+        text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        position: relative;
+        overflow: hidden;
+    `;
+    indexBadge.textContent = index + 1;
+    item.appendChild(indexBadge);
+    
+    // Добавляем название партии если есть - В ОДНОЙ СТРОКЕ С НОМЕРОМ
+    const qrValue = typeof code === 'object' ? code.code : code;
+    const partyName = typeof code === 'object' ? code.party : null;
+    
+    if (partyName) {
+        // Создаем контейнер для номера и партии в одной строке
+        const topContainer = document.createElement('div');
+        topContainer.style.cssText = `
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            z-index: 10;
+        `;
+        
+        // Название партии
+        const partyBadge = document.createElement('div');
+        partyBadge.className = 'party-badge';
+        partyBadge.style.cssText = `
+            background: linear-gradient(145deg, 
+                ${selectedTheme.accent} 0%, 
+                ${selectedTheme.accent}cc 50%, 
+                ${selectedTheme.accent}dd 100%);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 
+                0 3px 12px ${selectedTheme.accent}60,
+                0 0 0 2px rgba(255,255,255,0.2),
+                inset 0 1px 2px rgba(255,255,255,0.3),
+                inset 0 -1px 2px rgba(0,0,0,0.2);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.3);
+            position: relative;
+            overflow: hidden;
+        `;
+        partyBadge.textContent = partyName;
+        
+        topContainer.appendChild(indexBadge);
+        topContainer.appendChild(partyBadge);
+        item.appendChild(topContainer);
+    } else {
+        // Если нет партии, добавляем только номер слева
+        item.appendChild(indexBadge);
+    }
+    
+    // QR код — ЗЕРКАЛЬНАЯ ПОВЕРХНОСТЬ
+const canvas = document.createElement('canvas');
+new QRious({
+    element: canvas,
+    value: qrValue,
+    size: 500
+});
+
+canvas.style.cssText = `
+    width: auto;
+    height: auto;
+    max-width: 95%;
+    max-height: 75%;
+    border-radius: 20px;
+
+    background: linear-gradient(135deg,
+        rgba(255,255,255,0.35) 0%,
+        rgba(255,255,255,0.15) 40%,
+        rgba(255,255,255,0.45) 100%
+    );
+
+    box-shadow:
+        0 12px 35px rgba(0,0,0,0.35),
+        inset 0 3px 6px rgba(255,255,255,0.35),
+        inset 0 -4px 8px rgba(0,0,0,0.45);
+
+    border: 1px solid rgba(255,255,255,0.45);
+
+    filter: drop-shadow(0 0 25px rgba(255,255,255,0.25));
+
+    transition: all 0.4s ease;
+    margin-top: ${partyName ? '25px' : '10px'};
+    margin-bottom: 1px;
+`;
+
+item.appendChild(canvas);
+
+    
+    // Текст кода - УМЕНЬШАЕМ РАЗМЕР И ИСПРАВЛЯЕМ ФОН
+    const codeText = document.createElement('div');
+    codeText.className = 'code-text';
+    codeText.style.cssText = `
+        position: relative; /* Не абсолютное позиционирование */
+        bottom: auto;
+        left: auto;
+        margin-top: 2px;  // МИНИМАЛЬНЫЙ ОТСТУП СНИЗУ ОТ QR
+        font-size: 14px; font-weight: bold;
+        color: #fff; 
+        font-family: 'Courier New', monospace;
+        letter-spacing: 0.8px;
+        word-break: break-all;
+        line-height: 1.2;
+        z-index: 10;
+        transition: all 0.4s ease;
+        background: ${selectedTheme.name === 'White' 
+            ? 'linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 25%, #1a1a1a 50%, #0d0d0d 75%, #1a1a1a 100%)'
+            : 'linear-gradient(145deg, rgba(30,30,30,0.9) 0%, rgba(20,20,20,0.8) 50%, rgba(30,30,30,0.9) 100%)'};
+        padding: 6px 10px;
+        border-radius: 8px;
+        box-shadow: 
+            ${selectedTheme.name === 'White' 
+                ? '0 4px 12px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.2), inset 0 -1px 2px rgba(0,0,0,0.3)'
+                : '0 4px 12px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.2), inset 0 -1px 2px rgba(0,0,0,0.3)'};        
+        border: 1px solid ${selectedTheme.name === 'White' ? 'rgba(157,78,221,0.3)' : 'rgba(255,255,255,0.3)'};
+        position: relative;
+        overflow: hidden;
+    `;
+    codeText.textContent = qrValue;
+    item.appendChild(codeText);
+    
+    return item;
+}
+
+function updateMultiQrOverlay() {
+    // Перерисовываем все QR элементы с обновленными данными и темами
+    const container = document.getElementById('multiQrContainer');
+    if (!container) return;
+    
+    // Перерисовываем все элементы с текущей темой
+    renderMultiPage();
+    
+    // Добавляем переключатель тем если еще не добавлен
+    if (!document.getElementById('multiThemeSwitcher')) {
+        addMultiThemeSwitcher();
+    }
+}
+
+function addMultiThemeSwitcher() {
+    // Получаем текущую тему
+    const currentTheme = parseInt(localStorage.getItem('qrModalTheme') || '0');
+    const themes = [
+        { name: 'Galaxy', bg: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e, #0f0c29)', accent: '#9d4edd' },
+        { name: 'Cyborg', bg: 'linear-gradient(135deg, #0f0f0f, #1a1a1a, #262626, #333333, #404040)', accent: '#ff6b35' },
+        { name: 'White', bg: 'linear-gradient(135deg, #f8f9fa 0%, #e8eef5 20%, #f0f4f8 40%, #e6ecf3 60%, #f5f7fa 80%, #e9eef5 100%)', accent: '#6c757d' }
+    ];
+    
+    // Создаем переключатель тем
+    const themeSwitcher = document.createElement('div');
+    themeSwitcher.id = 'multiThemeSwitcher';
+    themeSwitcher.style.cssText = `
+        position: fixed;
+        top: 80px;
+        left: 30px;
+        background: rgba(0,0,0,0.9);
+        border-radius: 20px;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        z-index: 100000;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+        border: 2px solid rgba(255,255,255,0.2);
+        max-width: 80px;
+    `;
+    
+    themes.forEach((theme, index) => {
+        const themeBtn = document.createElement('button');
+        themeBtn.style.cssText = `
+            background: ${index === currentTheme ? theme.accent : 'rgba(255,255,255,0.3)'};
+            border: none;
+            border-radius: 12px;
+            padding: 8px 6px;
+            color: white;
+            font-size: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            width: 60px;
+        `;
+        themeBtn.textContent = theme.name;
+        themeBtn.onclick = () => {
+            // Сохраняем тему
+            localStorage.setItem('qrModalTheme', index.toString());
+            // Обновляем multi оверлей
+            updateMultiQrOverlay();
+        };
+        themeBtn.onmouseenter = () => {
+            themeBtn.style.background = theme.accent;
+            themeBtn.style.transform = 'scale(1.05)';
+            themeBtn.style.boxShadow = '0 3px 12px rgba(0,0,0,0.4)';
+        };
+        themeBtn.onmouseleave = () => {
+            if (index !== currentTheme) {
+                themeBtn.style.background = 'rgba(255,255,255,0.3)';
+                themeBtn.style.transform = 'scale(1)';
+                themeBtn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+            }
+        };
+        themeSwitcher.appendChild(themeBtn);
+    });
+    
+    document.body.appendChild(themeSwitcher);
 }
 
 function renderMultiPage() {
@@ -1914,39 +3032,8 @@ function renderMultiPage() {
     document.getElementById('multiPageInfo').textContent = `${currentMultiPage + 1}/${totalPages}`;
     
     // Обновляем состояние кнопок навигации
-    document.getElementById('multiPrev').disabled = currentMultiPage === 0;
+    document.getElementById('multiPrev').disabled = currentMultiPage <= 0;
     document.getElementById('multiNext').disabled = currentMultiPage >= totalPages - 1;
-}
-
-function createMultiQrItem(code, index) {
-    const item = document.createElement('div');
-    item.className = 'multi-qr-item';
-    item.onclick = (e) => {
-        e.stopPropagation();
-        openSingleQrViewer(code);
-    };
-    
-    // Добавляем индекс
-    const indexBadge = document.createElement('div');
-    indexBadge.className = 'index-badge';
-    indexBadge.textContent = index + 1;
-    item.appendChild(indexBadge);
-    
-    const canvas = document.createElement('canvas');
-    new QRious({
-        element: canvas,
-        value: code,
-        size: 500 // Увеличиваем размер для больших прямоугольных QR
-    });
-    
-    const codeText = document.createElement('div');
-    codeText.className = 'code-text';
-    codeText.textContent = code;
-    
-    item.appendChild(canvas);
-    item.appendChild(codeText);
-    
-    return item;
 }
 
 function navigateMultiPage(direction) {
@@ -1984,6 +3071,8 @@ function createIndependentQrViewer(initialCode) {
         position: relative; display: flex; flex-direction: column; align-items: center;
         cursor: default;
         padding: 40px;
+        width: auto; /* АВТОШИРИНА - подстраивается под содержимое */
+        max-width: 95vw; /* Максимальная ширина для маленьких экранов */
     `;
     innerContainer.onclick = (e) => e.stopPropagation();
     
@@ -1991,21 +3080,25 @@ function createIndependentQrViewer(initialCode) {
     const closeBtn = document.createElement('button');
     closeBtn.style.cssText = `
         position: absolute; top: 20px; right: 20px;
-        background: rgba(255,255,255,0.9); border: none;
-        border-radius: 50%; width: 40px; height: 40px;
-        font-size: 18px; cursor: pointer;
-        transition: all 0.2s;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        z-index: 10;
+        background: linear-gradient(135deg, #ef4444, #dc2626); border: none;
+        border-radius: 50%; width: 45px; height: 45px;
+        font-size: 20px; cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 8px 25px rgba(239,68,68,0.4), 0 0 0 2px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2);
+        z-index: 20;
+        color: white;
+        font-weight: bold;
     `;
     closeBtn.textContent = '✕';
     closeBtn.onmouseenter = () => {
-        closeBtn.style.background = 'white';
-        closeBtn.style.transform = 'scale(1.1)';
+        closeBtn.style.background = 'linear-gradient(135deg, #f87171, #ef4444)';
+        closeBtn.style.transform = 'scale(1.15) rotate(90deg)';
+        closeBtn.style.boxShadow = '0 12px 35px rgba(239,68,68,0.6), 0 0 0 3px rgba(255,255,255,0.2), inset 0 1px 0 rgba(255,255,255,0.3)';
     };
     closeBtn.onmouseleave = () => {
-        closeBtn.style.background = 'rgba(255,255,255,0.9)';
-        closeBtn.style.transform = 'scale(1)';
+        closeBtn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+        closeBtn.style.transform = 'scale(1) rotate(0deg)';
+        closeBtn.style.boxShadow = '0 8px 25px rgba(239,68,68,0.4), 0 0 0 2px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2)';
     };
     closeBtn.onclick = () => closeIndependentViewer();
     
@@ -2013,19 +3106,26 @@ function createIndependentQrViewer(initialCode) {
     const counterInfo = document.createElement('div');
     counterInfo.style.cssText = `
         position: absolute; top: 20px; left: 20px;
-        background: rgba(255,255,255,0.9); padding: 8px 15px;
-        border-radius: 20px; font-size: 14px; font-weight: bold;
-        color: #000;
+        background: linear-gradient(135deg, #3b82f6, #2563eb); padding: 10px 18px;
+        border-radius: 25px; font-size: 16px; font-weight: bold;
+        color: white;
+        box-shadow: 0 8px 25px rgba(59,130,246,0.4), 0 0 0 2px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2);
+        z-index: 20;
+        letter-spacing: 1px;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.3);
     `;
     
     // Кнопки навигации
     const prevBtn = document.createElement('button');
     prevBtn.style.cssText = `
         position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
-        background: rgba(255,255,255,0.9); border: none;
-        border-radius: 50%; width: 50px; height: 50px;
-        font-size: 24px; cursor: pointer; transition: all 0.2s;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed); border: none;
+        border-radius: 50%; width: 55px; height: 55px;
+        font-size: 26px; cursor: pointer; transition: all 0.3s;
+        box-shadow: 0 8px 25px rgba(139,92,246,0.4), 0 0 0 2px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2);
+        color: white;
+        font-weight: bold;
+        z-index: 20;
     `;
     prevBtn.textContent = '‹';
     prevBtn.onclick = (e) => {
@@ -2033,21 +3133,26 @@ function createIndependentQrViewer(initialCode) {
         navigateIndependent(-1);
     };
     prevBtn.onmouseenter = () => {
-        prevBtn.style.background = 'white';
-        prevBtn.style.transform = 'translateY(-50%) scale(1.1)';
+        prevBtn.style.background = 'linear-gradient(135deg, #a78bfa, #8b5cf6)';
+        prevBtn.style.transform = 'translateY(-50%) scale(1.15)';
+        prevBtn.style.boxShadow = '0 12px 35px rgba(139,92,246,0.6), 0 0 0 3px rgba(255,255,255,0.2), inset 0 1px 0 rgba(255,255,255,0.3)';
     };
     prevBtn.onmouseleave = () => {
-        prevBtn.style.background = 'rgba(255,255,255,0.9)';
+        prevBtn.style.background = 'linear-gradient(135deg, #8b5cf6, #7c3aed)';
         prevBtn.style.transform = 'translateY(-50%) scale(1)';
+        prevBtn.style.boxShadow = '0 8px 25px rgba(139,92,246,0.4), 0 0 0 2px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2)';
     };
     
     const nextBtn = document.createElement('button');
     nextBtn.style.cssText = `
         position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
-        background: rgba(255,255,255,0.9); border: none;
-        border-radius: 50%; width: 50px; height: 50px;
-        font-size: 24px; cursor: pointer; transition: all 0.2s;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        background: linear-gradient(135deg, #10b981, #059669); border: none;
+        border-radius: 50%; width: 55px; height: 55px;
+        font-size: 26px; cursor: pointer; transition: all 0.3s;
+        box-shadow: 0 8px 25px rgba(16,185,129,0.4), 0 0 0 2px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2);
+        color: white;
+        font-weight: bold;
+        z-index: 20;
     `;
     nextBtn.textContent = '›';
     nextBtn.onclick = (e) => {
@@ -2055,36 +3160,409 @@ function createIndependentQrViewer(initialCode) {
         navigateIndependent(1);
     };
     nextBtn.onmouseenter = () => {
-        nextBtn.style.background = 'white';
-        nextBtn.style.transform = 'translateY(-50%) scale(1.1)';
+        nextBtn.style.background = 'linear-gradient(135deg, #34d399, #10b981)';
+        nextBtn.style.transform = 'translateY(-50%) scale(1.15)';
+        nextBtn.style.boxShadow = '0 12px 35px rgba(16,185,129,0.6), 0 0 0 3px rgba(255,255,255,0.2), inset 0 1px 0 rgba(255,255,255,0.3)';
     };
     nextBtn.onmouseleave = () => {
-        nextBtn.style.background = 'rgba(255,255,255,0.9)';
+        nextBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
         nextBtn.style.transform = 'translateY(-50%) scale(1)';
+        nextBtn.style.boxShadow = '0 8px 25px rgba(16,185,129,0.4), 0 0 0 2px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2)';
     };
     
     // QR код контейнер
     const qrBox = document.createElement('div');
     qrBox.style.cssText = `
-        background: white; padding: 20px; border-radius: 15px; text-align: center;
-        box-shadow: 0 0 50px rgba(255,255,255,0.2);
+        background: linear-gradient(135deg, #1e293b 0%, #334155 25%, #475569 50%, #64748b 75%, #94a3b8 100%);
+        padding: 25px; border-radius: 35px; text-align: center;
+        box-shadow: 0 25px 80px rgba(0,0,0,0.3), 0 0 0 2px rgba(59,130,246,0.3), inset 0 2px 0 rgba(255,255,255,0.1), inset 0 -2px 0 rgba(0,0,0,0.3);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        min-height: 520px;
+        justify-content: center;
+        width: 790px; /* ФИКСИРОВАННАЯ ШИРИНА БЕЛОЙ ОБЛАСТИ */
+        max-width: 80vw; /* Максимальная ширина для маленьких экранов */
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
     `;
     
+    // Переключатель тем (максимально вверху справа)
+    const themeSwitcher = document.createElement('div');
+    themeSwitcher.style.cssText = `
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: rgba(0,0,0,0.9);
+        border-radius: 20px;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        z-index: 30;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+        border: 2px solid rgba(255,255,255,0.2);
+        max-width: 80px;
+    `;
+    
+    const themes = [
+        { name: 'Galaxy', bg: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e, #0f0c29)', accent: '#9d4edd' },
+        { name: 'Cyborg', bg: 'linear-gradient(135deg, #0f0f0f, #1a1a1a, #262626, #333333, #404040)', accent: '#ff6b35' },
+        { name: 'White', bg: 'linear-gradient(135deg, #f8f9fa 0%, #e8eef5 20%, #f0f4f8 40%, #e6ecf3 60%, #f5f7fa 80%, #e9eef5 100%)', accent: '#6c757d' }
+    ];
+    
+    // Загружаем сохраненную тему или используем Galaxy по умолчанию
+    let currentTheme = parseInt(localStorage.getItem('qrModalTheme') || '0');
+    
+    themes.forEach((theme, index) => {
+        const themeBtn = document.createElement('button');
+        themeBtn.style.cssText = `
+            background: ${index === currentTheme ? theme.accent : 'rgba(255,255,255,0.3)'};
+            border: none;
+            border-radius: 12px;
+            padding: 8px 6px;
+            color: white;
+            font-size: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            width: 60px;
+        `;
+        themeBtn.textContent = theme.name;
+        themeBtn.onclick = () => switchTheme(index);
+        themeBtn.onmouseenter = () => {
+            themeBtn.style.background = theme.accent;
+            themeBtn.style.transform = 'scale(1.05)';
+            themeBtn.style.boxShadow = '0 3px 12px rgba(0,0,0,0.4)';
+        };
+        themeBtn.onmouseleave = () => {
+            if (index !== currentTheme) {
+                themeBtn.style.background = 'rgba(255,255,255,0.3)';
+                themeBtn.style.transform = 'scale(1)';
+                themeBtn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+            }
+        };
+        themeSwitcher.appendChild(themeBtn);
+    });
+    
+    function switchTheme(themeIndex) {
+        currentTheme = themeIndex;
+        const theme = themes[themeIndex];
+        qrBox.style.background = theme.bg;
+        
+        // Сохраняем выбор в localStorage
+        localStorage.setItem('qrModalTheme', themeIndex.toString());
+        
+        // Обновляем кнопки тем
+        themeSwitcher.querySelectorAll('button').forEach((btn, index) => {
+            btn.style.background = index === themeIndex ? theme.accent : 'rgba(255,255,255,0.3)';
+        });
+        
+        // Обновляем эффекты
+        updateThemeEffects(theme);
+    }
+    
+    function updateThemeEffects(theme) {
+        // Очищаем старые эффекты
+        const oldEffects = qrBox.querySelectorAll('.theme-effect');
+        oldEffects.forEach(effect => effect.remove());
+        
+        if (theme.name === 'Galaxy') {
+            addGalaxyEffects();
+        } else if (theme.name === 'Cyborg') {
+            addCyborgEffects();
+        } else if (theme.name === 'White') {
+            addWhiteEffects();
+        }
+    }
+    
+    function addGalaxyEffects() {
+        // Звездное небо
+        const stars = document.createElement('div');
+        stars.className = 'theme-effect';
+        stars.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(2px 2px at 20% 30%, white, transparent),
+                radial-gradient(2px 2px at 60% 70%, white, transparent),
+                radial-gradient(1px 1px at 50% 50%, white, transparent);
+            background-size: 200px 200px;
+            animation: twinkle 4s ease-in-out infinite;
+            pointer-events: none;
+        `;
+        qrBox.appendChild(stars);
+        
+        // Планеты
+        const planets = [
+            { size: 12, color: '#ff6b6b', top: '15%', left: '20%', duration: '8s' },
+            { size: 8, color: '#4ecdc4', top: '25%', left: '70%', duration: '6s' },
+            { size: 6, color: '#ffe66d', top: '60%', left: '30%', duration: '10s' }
+        ];
+        
+        planets.forEach((planet, index) => {
+            const planetEl = document.createElement('div');
+            planetEl.className = 'theme-effect';
+            planetEl.style.cssText = `
+                position: absolute;
+                top: ${planet.top};
+                left: ${planet.left};
+                width: ${planet.size}px;
+                height: ${planet.size}px;
+                background: ${planet.color};
+                border-radius: 50%;
+                animation: orbit ${planet.duration} linear infinite;
+                animation-delay: ${index * 2}s;
+                pointer-events: none;
+            `;
+            qrBox.appendChild(planetEl);
+        });
+        
+        // Туманность
+        const nebula = document.createElement('div');
+        nebula.className = 'theme-effect';
+        nebula.style.cssText = `
+            position: absolute;
+            top: -10%;
+            left: -10%;
+            width: 120%;
+            height: 120%;
+            background: radial-gradient(ellipse, rgba(157,78,221,0.2) 0%, transparent 70%);
+            animation: nebulaPulse 6s ease-in-out infinite;
+            pointer-events: none;
+        `;
+        qrBox.appendChild(nebula);
+    }
+    
+    function addCyborgEffects() {
+        // Кибер-сетки
+        const cyberGrid = document.createElement('div');
+        cyberGrid.className = 'theme-effect';
+        cyberGrid.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0,255,255,0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,255,255,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            animation: cyberGrid 2s linear infinite;
+            pointer-events: none;
+        `;
+        qrBox.appendChild(cyberGrid);
+    }
+    
+    function addWhiteEffects() {
+        // Легкие неоновые эффекты для премиум белой темы
+        
+        // Нежное неоновое свечение по краям
+        const neonGlow = document.createElement('div');
+        neonGlow.className = 'theme-effect';
+        neonGlow.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 1px solid rgba(100, 200, 255, 0.2);
+            border-radius: 35px;
+            box-shadow: 
+                inset 0 0 20px rgba(100, 200, 255, 0.05),
+                0 0 30px rgba(100, 200, 255, 0.08);
+            animation: softNeonGlow 4s ease-in-out infinite;
+            pointer-events: none;
+        `;
+        qrBox.appendChild(neonGlow);
+        
+        // Легкие переливающиеся блики
+        const topGlow = document.createElement('div');
+        topGlow.className = 'theme-effect';
+        topGlow.style.cssText = `
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 250px;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(100, 200, 255, 0.3) 20%,
+                rgba(150, 220, 255, 0.5) 50%,
+                rgba(100, 200, 255, 0.3) 80%,
+                transparent 100%);
+            animation: softGlow 3s ease-in-out infinite;
+            pointer-events: none;
+        `;
+        qrBox.appendChild(topGlow);
+        
+        const bottomGlow = document.createElement('div');
+        bottomGlow.className = 'theme-effect';
+        bottomGlow.style.cssText = `
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(120, 180, 255, 0.2) 30%,
+                rgba(140, 200, 255, 0.4) 50%,
+                rgba(120, 180, 255, 0.2) 70%,
+                transparent 100%);
+            animation: softGlow 3s ease-in-out infinite reverse;
+            pointer-events: none;
+        `;
+        qrBox.appendChild(bottomGlow);
+        
+        // Нежные неоновые частицы
+        for (let i = 0; i < 4; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'theme-effect';
+            particle.style.cssText = `
+                position: absolute;
+                top: ${Math.random() * 80 + 10}%;
+                left: ${Math.random() * 80 + 10}%;
+                width: 2px;
+                height: 2px;
+                background: rgba(100, 200, 255, 0.4);
+                border-radius: 50%;
+                animation: softParticle ${6 + Math.random() * 2}s ease-in-out infinite;
+                animation-delay: ${Math.random() * 6}s;
+                pointer-events: none;
+            `;
+            qrBox.appendChild(particle);
+        }
+    }
+    
+    // Добавляем переключатель тем
+    qrBox.appendChild(themeSwitcher);
+    
+    // Устанавливаем начальный фон
+    qrBox.style.background = themes[currentTheme].bg;
+    
+    // Инициализируем сохраненную тему
+    updateThemeEffects(themes[currentTheme]);
+    
+    // Название партии (если есть)
+    const partyBadge = document.createElement('div');
+    partyBadge.id = 'independentPartyBadge';
+    partyBadge.style.cssText = `
+        background: linear-gradient(135deg, 
+            rgba(59,130,246,0.95) 0%, 
+            rgba(37,99,235,0.9) 50%, 
+            rgba(29,78,216,0.95) 100%);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 20px;
+        font-size: 20px;
+        font-weight: bold;
+        box-shadow: 
+            0 8px 32px rgba(59,130,246,0.4),
+            0 0 0 2px rgba(255,255,255,0.1),
+            inset 0 2px 8px rgba(255,255,255,0.2),
+            inset 0 -2px 8px rgba(0,0,0,0.2);
+        z-index: 20;
+        letter-spacing: 1px;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.3);
+        backdrop-filter: blur(10px);
+        position: relative;
+        overflow: hidden;
+    `;
+    
+    // Добавляем внутренний блеск для значка партии
+    const partyInnerGlow = document.createElement('div');
+    partyInnerGlow.style.cssText = `
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, 
+            transparent 30%,
+            rgba(255,255,255,0.1) 50%,
+            transparent 70%);
+        animation: shimmer 3s ease-in-out infinite;
+        pointer-events: none;
+    `;
+    partyBadge.appendChild(partyInnerGlow);
+    
+    // QR код
     const qrCanvas = document.createElement('canvas');
-    qrCanvas.id = 'independentQrCanvas';
+    qrCanvas.style.cssText = `
+        max-width: 400px;
+        max-height: 400px;
+        border-radius: 18px;
+        background: white;
+        padding: 10px;
+        box-shadow: 
+            0 8px 32px rgba(0,0,0,0.15),
+            0 0 0 2px rgba(255,255,255,0.2),
+            inset 0 2px 8px rgba(255,255,255,0.3);
+    `;
     
     const codeText = document.createElement('div');
     codeText.id = 'independentCodeText';
     codeText.style.cssText = `
-        margin-top: 15px;
-        font-size: 60px;
+        font-size: 32px;
         font-family: 'Courier New', monospace;
         font-weight: bold;
         color: #000;
-        letter-spacing: 2px;
+        letter-spacing: 1.5px;
+        background: linear-gradient(135deg, 
+            #1a1a1a 0%, 
+            #2d2d2d 25%, 
+            #1a1a1a 50%, 
+            #0d0d0d 75%, 
+            #1a1a1a 100%);
+        color: #ffffff;
+        padding: 15px 30px;
+        border-radius: 20px;
+        margin-top: 15px;
+        width: 750px;
+        max-width: 95%;
+        text-align: center;
+        box-sizing: border-box;
+        box-shadow: 
+            0 8px 32px rgba(0,0,0,0.3),
+            0 0 0 2px rgba(255,255,255,0.1),
+            inset 0 2px 8px rgba(255,255,255,0.1),
+            inset 0 -2px 8px rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.2);
+        position: relative;
+        overflow: hidden;
     `;
     
+    // Добавляем внутренний блеск для текста кода
+    const codeInnerGlow = document.createElement('div');
+    codeInnerGlow.style.cssText = `
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, 
+            transparent 40%,
+            rgba(255,255,255,0.05) 50%,
+            transparent 60%);
+        animation: shimmer 4s ease-in-out infinite;
+        pointer-events: none;
+    `;
+    codeText.appendChild(codeInnerGlow);
+    
     // Собираем все вместе
+    qrBox.appendChild(partyBadge);
     qrBox.appendChild(qrCanvas);
     qrBox.appendChild(codeText);
     innerContainer.appendChild(closeBtn);
@@ -2102,12 +3580,26 @@ function createIndependentQrViewer(initialCode) {
     
     function updateViewer() {
         const code = multiCodes[currentIdx];
+        const qrValue = typeof code === 'object' ? code.code : code;
+        const partyName = typeof code === 'object' ? code.party : null;
+        
+        // Обновляем QR код
         new QRious({
             element: qrCanvas,
-            value: code,
+            value: qrValue,
             size: 400
         });
-        codeText.textContent = code;
+        
+        // Обновляем название партии
+        if (partyName) {
+            partyBadge.textContent = partyName;
+            partyBadge.style.display = 'block';
+        } else {
+            partyBadge.style.display = 'none';
+        }
+        
+        // Обновляем цифровой код
+        codeText.textContent = qrValue;
         counterInfo.textContent = `${currentIdx + 1}/${multiCodes.length}`;
         
         // Обновляем состояние кнопок
@@ -2179,7 +3671,7 @@ function closeOverlay() {
 }
 
 function showAllCodesViewer() {
-    // Показываем все коды как в QR_Cards.html
+    // Показываем все коды как в QR_Cards.html с темами
     const container = document.createElement('div');
     container.style.cssText = `
         position: fixed; inset: 0; z-index: 99999;
@@ -2189,28 +3681,49 @@ function showAllCodesViewer() {
         padding: 40px;
     `;
     
+    // Получаем текущую тему
+    const currentTheme = parseInt(localStorage.getItem('qrModalTheme') || '0');
+    const themes = [
+        { name: 'Galaxy', bg: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e, #0f0c29)', accent: '#9d4edd' },
+        { name: 'Cyborg', bg: 'linear-gradient(135deg, #0f0f0f, #1a1a1a, #262626, #333333, #404040)', accent: '#ff6b35' },
+        { name: 'White', bg: 'linear-gradient(135deg, #f8f9fa 0%, #e8eef5 20%, #f0f4f8 40%, #e6ecf3 60%, #f5f7fa 80%, #e9eef5 100%)', accent: '#6c757d' }
+    ];
+    const selectedTheme = themes[currentTheme];
+    
     const grid = document.createElement('div');
     grid.style.cssText = `
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Увеличиваем минимальный размер */
-        gap: 30px; /* Увеличиваем отступы */
-        max-width: 1400px; /* Увеличиваем максимальную ширину */
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 30px;
+        max-width: 1600px;
         width: 100%;
     `;
     
     multiCodes.forEach((code, index) => {
         const item = document.createElement('div');
+        item.className = 'qr-card-item';
         item.style.cssText = `
-            background: white; padding: 25px; border-radius: 20px;
-            text-align: center; cursor: pointer;
+            background: ${selectedTheme.bg}; 
+            padding: 25px; 
+            border-radius: 20px;
+            text-align: center; 
+            cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 12px 35px rgba(0,0,0,0.4);
-            border: 4px solid transparent;
+            border: 4px solid ${selectedTheme.accent}20;
             position: relative;
             overflow: hidden;
-            /* Прямоугольная форма */
-            aspect-ratio: 3/2; /* Пропорция 3:2 (горизонтальный прямоугольник) */
+            aspect-ratio: 3/2;
         `;
+        
+        // Добавляем эффекты темы к карточке
+        if (selectedTheme.name === 'Galaxy') {
+            addGalaxyCardEffects(item);
+        } else if (selectedTheme.name === 'Cyborg') {
+            addCyborgCardEffects(item);
+        } else if (selectedTheme.name === 'White') {
+            addWhiteCardEffects(item);
+        }
         
         item.onclick = () => {
             // При клике показываем одиночный просмотр
@@ -2219,77 +3732,266 @@ function showAllCodesViewer() {
         
         item.onmouseenter = () => {
             item.style.transform = 'scale(1.08) translateY(-8px)';
-            item.style.boxShadow = '0 20px 50px rgba(0,0,0,0.6)';
-            item.style.borderColor = '#4ade80';
-            item.style.background = 'linear-gradient(145deg, #ffffff 0%, #f0fdf4 100%)';
+            item.style.boxShadow = `0 20px 50px rgba(0,0,0,0.6), 0 0 30px ${selectedTheme.accent}40`;
+            item.style.borderColor = selectedTheme.accent;
         };
         
         item.onmouseleave = () => {
             item.style.transform = 'scale(1)';
             item.style.boxShadow = '0 12px 35px rgba(0,0,0,0.4)';
-            item.style.borderColor = 'transparent';
-            item.style.background = 'white';
+            item.style.borderColor = `${selectedTheme.accent}20`;
         };
         
-        // Индекс
+        // Индекс с премиум стилем
         const indexBadge = document.createElement('div');
         indexBadge.style.cssText = `
             position: absolute; top: 10px; left: 10px;
-            background: #4ade80; color: white;
+            background: linear-gradient(135deg, 
+                ${selectedTheme.accent}dd 0%, 
+                ${selectedTheme.accent}99 50%, 
+                ${selectedTheme.accent}dd 100%);
+            color: white;
             font-size: 14px; font-weight: bold;
             padding: 6px 10px; border-radius: 25px;
-            box-shadow: 0 3px 12px rgba(74,222,128,0.5);
+            box-shadow: 
+                0 3px 12px ${selectedTheme.accent}60,
+                0 0 0 2px rgba(255,255,255,0.2),
+                inset 0 1px 2px rgba(255,255,255,0.3),
+                inset 0 -1px 2px rgba(0,0,0,0.2);
+            z-index: 10;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.3);
         `;
         indexBadge.textContent = index + 1;
         item.appendChild(indexBadge);
         
-        // QR код
+        // QR код с премиум стилем
+        const canvasContainer = document.createElement('div');
+        canvasContainer.style.cssText = `
+            background: white;
+            padding: 8px;
+            border-radius: 15px;
+            box-shadow: 
+                0 6px 20px rgba(0,0,0,0.2),
+                0 0 0 2px rgba(255,255,255,0.3),
+                inset 0 1px 3px rgba(255,255,255,0.4);
+            margin: 5px auto;
+            width: fit-content;
+            position: relative;
+            overflow: hidden;
+        `;
+        
+        // Добавляем внутренний блеск для QR контейнера
+        const qrInnerGlow = document.createElement('div');
+        qrInnerGlow.style.cssText = `
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                transparent 40%,
+                rgba(255,255,255,0.1) 50%,
+                transparent 60%);
+            animation: shimmer 3s ease-in-out infinite;
+            pointer-events: none;
+        `;
+        canvasContainer.appendChild(qrInnerGlow);
+        
         const canvas = document.createElement('canvas');
         new QRious({
             element: canvas,
             value: code,
-            size: 300 /* Увеличиваем размер */
+            size: 280
         });
         canvas.style.cssText = `
             width: 100%; height: 100%; 
-            border-radius: 15px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            border-radius: 12px;
+            position: relative;
+            z-index: 1;
         `;
-        item.appendChild(canvas);
+        canvasContainer.appendChild(canvas);
+        item.appendChild(canvasContainer);
         
-        // Текст кода
+        // Текст кода с премиум стилем
         const codeText = document.createElement('div');
         codeText.style.cssText = `
-            margin-top: 15px; font-size: 18px; font-weight: bold;
-            color: #000; font-family: 'Courier New', monospace;
+            margin-top: 15px; 
+            font-size: 18px; 
+            font-weight: bold;
+            color: ${selectedTheme.name === 'White' ? '#000' : '#fff'}; 
+            font-family: 'Courier New', monospace;
             letter-spacing: 1.2px;
             word-break: break-all;
             line-height: 1.3;
+            background: ${selectedTheme.name === 'White' 
+                ? 'linear-gradient(145deg, #ffffff 0%, #f8f9fa 50%, #e9ecef 100%)'
+                : 'linear-gradient(145deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.1) 100%)'};
+            padding: 8px 12px;
+            border-radius: 10px;
+            box-shadow: 
+                ${selectedTheme.name === 'White' 
+                    ? '0 4px 12px rgba(0,0,0,0.15), 0 1px 4px rgba(0,0,0,0.1), inset 0 1px 2px rgba(255,255,255,0.8), inset 0 -1px 2px rgba(0,0,0,0.1)'
+                    : '0 4px 12px rgba(0,0,0,0.3), 0 1px 4px rgba(0,0,0,0.2), inset 0 1px 2px rgba(255,255,255,0.2), inset 0 -1px 2px rgba(0,0,0,0.2)'},
+                0 0 0 1px ${selectedTheme.name === 'White' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.2)'};
+            border: 1px solid ${selectedTheme.name === 'White' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.3)'};
+            position: relative;
+            overflow: hidden;
         `;
-        codeText.textContent = code;
-        item.appendChild(codeText);
         
+        // Добавляем внутренний блеск для текста
+        const textInnerGlow = document.createElement('div');
+        textInnerGlow.style.cssText = `
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                transparent 40%,
+                rgba(255,255,255,0.05) 50%,
+                transparent 60%);
+            animation: shimmer 4s ease-in-out infinite;
+            pointer-events: none;
+        `;
+        codeText.appendChild(textInnerGlow);
+        
+        const codeSpan = document.createElement('span');
+        codeSpan.style.cssText = 'position: relative; z-index: 1;';
+        codeSpan.textContent = code;
+        codeText.appendChild(codeSpan);
+        
+        item.appendChild(codeText);
         grid.appendChild(item);
     });
     
-    // Кнопка закрытия
+    // Кнопка закрытия с премиум стилем и темой
     const closeBtn = document.createElement('button');
     closeBtn.style.cssText = `
         position: fixed; top: 30px; right: 30px;
-        background: linear-gradient(135deg, #22c55e, #16a34a);
+        background: linear-gradient(135deg, 
+            ${selectedTheme.accent}dd 0%, 
+            ${selectedTheme.accent}99 50%, 
+            ${selectedTheme.accent}dd 100%);
         color: white; border: none;
-        border-radius: 50%; width: 60px; height: 60px;
-        font-size: 20px; cursor: pointer;
+        border-radius: 50%; 
+        width: 60px; height: 60px;
+        font-size: 24px; cursor: pointer;
         transition: all 0.3s ease;
-        box-shadow: 0 8px 25px rgba(34,197,94,0.4);
+        box-shadow: 
+            0 8px 25px ${selectedTheme.accent}60,
+            0 0 0 2px rgba(255,255,255,0.2),
+            inset 0 2px 4px rgba(255,255,255,0.3);
         z-index: 1000;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.3);
+        position: relative;
+        overflow: hidden;
     `;
-    closeBtn.textContent = '✕';
+    
+    // Добавляем внутренний блеск для кнопки
+    const btnInnerGlow = document.createElement('div');
+    btnInnerGlow.style.cssText = `
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, 
+            transparent 40%,
+            rgba(255,255,255,0.2) 50%,
+            transparent 60%);
+        animation: shimmer 2s ease-in-out infinite;
+        pointer-events: none;
+    `;
+    closeBtn.appendChild(btnInnerGlow);
+    
+    const btnText = document.createElement('span');
+    btnText.style.cssText = 'position: relative; z-index: 1;';
+    btnText.textContent = '✕';
+    closeBtn.appendChild(btnText);
+    
+    closeBtn.onmouseenter = () => {
+        closeBtn.style.transform = 'scale(1.1) rotate(90deg)';
+        closeBtn.style.boxShadow = 
+            `0 12px 35px ${selectedTheme.accent}80,
+            0 0 0 3px rgba(255,255,255,0.3),
+            inset 0 3px 6px rgba(255,255,255,0.4)`;
+    };
+    
+    closeBtn.onmouseleave = () => {
+        closeBtn.style.transform = 'scale(1) rotate(0deg)';
+        closeBtn.style.boxShadow = 
+            `0 8px 25px ${selectedTheme.accent}60,
+            0 0 0 2px rgba(255,255,255,0.2),
+            inset 0 2px 4px rgba(255,255,255,0.3)`;
+    };
+    
     closeBtn.onclick = () => {
         document.body.removeChild(container);
     };
     
     container.appendChild(grid);
+    
+    // Добавляем переключатель тем в список
+    const themeSwitcher = document.createElement('div');
+    themeSwitcher.style.cssText = `
+        position: fixed;
+        top: 30px;
+        left: 30px;
+        background: rgba(0,0,0,0.9);
+        border-radius: 20px;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        z-index: 1000;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+        border: 2px solid rgba(255,255,255,0.2);
+        max-width: 80px;
+    `;
+    
+    themes.forEach((theme, index) => {
+        const themeBtn = document.createElement('button');
+        themeBtn.style.cssText = `
+            background: ${index === currentTheme ? theme.accent : 'rgba(255,255,255,0.3)'};
+            border: none;
+            border-radius: 12px;
+            padding: 8px 6px;
+            color: white;
+            font-size: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            width: 60px;
+        `;
+        themeBtn.textContent = theme.name;
+        themeBtn.onclick = () => {
+            // Сохраняем тему
+            localStorage.setItem('qrModalTheme', index.toString());
+            // Перезагружаем список с новой темой
+            document.body.removeChild(container);
+            showAllCodesViewer();
+        };
+        themeBtn.onmouseenter = () => {
+            themeBtn.style.background = theme.accent;
+            themeBtn.style.transform = 'scale(1.05)';
+            themeBtn.style.boxShadow = '0 3px 12px rgba(0,0,0,0.4)';
+        };
+        themeBtn.onmouseleave = () => {
+            if (index !== currentTheme) {
+                themeBtn.style.background = 'rgba(255,255,255,0.3)';
+                themeBtn.style.transform = 'scale(1)';
+                themeBtn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+            }
+        };
+        themeSwitcher.appendChild(themeBtn);
+    });
+    
+    container.appendChild(themeSwitcher);
     container.appendChild(closeBtn);
     document.body.appendChild(container);
     
@@ -2372,23 +4074,50 @@ async function startCapture() {
         startScreen.style.display  = 'none';
         workControls.style.display = 'flex';
         setStatus('statusReady');
+        
+        // Показываем уведомление о восстановлении системных комбинаций
+        console.log('✅ Захват успешен! Alt+Tab и кнопка Пуск должны работать нормально');
+        
         loadStoredRegion();
         initMultiMode(); // Инициализация мультирежима
         updateWorkModeToggle(); // Обновляем быстрый тумблер
         
-        // Автоматический запуск если есть сохраненная область для текущего режима
-        if (storedRegion) {
-            console.log('🚀 Автоматический запуск обработки сохраненной области...');
-            // Запускаем сразу без задержки
-            if (isMultiMode) {
-                processMultiRegionAsLines(storedRegion);
-            } else {
-                autoRunSavedRegion();
-            }
+        // Автоматический запуск если есть сохраненная область
+        if (isMultiMode) {
+            // Для MULTI MODE всегда используем фиксированные координаты
+            const fixedMultiRegion = {
+                x: 540,
+                y: 241,
+                w: 220,
+                h: 606
+            };
+            console.log('🚀 Автоматический запуск MULTI MODE с фиксированными координатами...');
+            console.log('🎯 Использую фиксированные координаты для MULTI:', fixedMultiRegion);
+            setTimeout(() => processMultiRegionAsLines(fixedMultiRegion), 300);
+        } else if (storedSingleRegion) {
+            // Для SINGLE MODE используем сохраненные координаты
+            console.log('🚀 Автоматический запуск SINGLE MODE с сохраненными координатами...');
+            console.log('🎯 Использую SINGLE координаты:', storedSingleRegion);
+            setTimeout(() => autoRunSavedRegion(), 300);
         }
         activeStream.getVideoTracks()[0].addEventListener('ended', () => {
             stopVideoStream(); setStatus('statusSelectNew');
         });
+        
+        // Восстанавливаем фокус окна и системные комбинации
+        setTimeout(() => {
+            window.focus();
+            console.log('🔧 Восстановлен фокус окна для Alt+Tab и системных комбинаций');
+        }, 100);
+        
+        // Добавляем обработчик для предотвращения блокировки системных клавиш
+        window.preventSystemBlock = function preventSystemBlock(e) {
+            // Разрешаем Alt+Tab, Win+Tab, Win и другие системные комбинации
+            if (e.altKey || e.metaKey) {
+                e.stopPropagation();
+            }
+        };
+        document.addEventListener('keydown', window.preventSystemBlock, true);
     } catch(err) { console.warn('Capture cancelled:', err); }
 }
 
@@ -2396,10 +4125,102 @@ function drawVideoFrame() {
     if (!activeStream) return;
     if (captureVideo.readyState >= 2) {
         if (!isDrawing) {
-            ctx.drawImage(captureVideo, 0, 0);
+            redrawCanvasWithRegions();
         }
     }
     requestAnimationFrame(drawVideoFrame);
+}
+
+/* ════════════════════════════════════════════
+   ПОСТОЯННЫЕ РАМКИ ДЛЯ СОХРАНЕННЫХ ОБЛАСТЕЙ
+════════════════════════════════════════════ */
+function drawPermanentRegions() {
+    if (!mainCanvas.width || !mainCanvas.height) return;
+    
+    // Сохраняем текущее изображение
+    const imageData = ctx.getImageData(0, 0, mainCanvas.width, mainCanvas.height);
+    
+    // Рисуем рамку для SINGLE MODE (зеленая) - всегда видна в MULTI MODE
+    if (storedSingleRegion) {
+        ctx.strokeStyle = '#22c55e'; // Зеленый
+        ctx.lineWidth = 3;
+        ctx.setLineDash([]); // Сплошная линия
+        ctx.shadowColor = '#22c55e';
+        ctx.shadowBlur = 8;
+        ctx.strokeRect(
+            storedSingleRegion.x, 
+            storedSingleRegion.y, 
+            storedSingleRegion.w, 
+            storedSingleRegion.h
+        );
+        ctx.shadowBlur = 0;
+        
+        // Метка для SINGLE MODE с фоном
+        ctx.fillStyle = '#22c55e';
+        ctx.fillRect(storedSingleRegion.x + 5, storedSingleRegion.y - 20, 50, 18);
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 12px Arial';
+        ctx.fillText('SINGLE', storedSingleRegion.x + 8, storedSingleRegion.y - 7);
+    }
+    
+    // Рисуем рамку для MULTI MODE (красная) - всегда видна в SINGLE MODE
+    if (storedMultiRegion) {
+        ctx.strokeStyle = '#ef4444'; // Красный
+        ctx.lineWidth = 3;
+        ctx.setLineDash([]); // Сплошная линия
+        ctx.shadowColor = '#ef4444';
+        ctx.shadowBlur = 10;
+        ctx.strokeRect(
+            storedMultiRegion.x, 
+            storedMultiRegion.y, 
+            storedMultiRegion.w, 
+            storedMultiRegion.h
+        );
+        ctx.shadowBlur = 0;
+        
+        // Метка для MULTI MODE с фоном
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(storedMultiRegion.x + 5, storedMultiRegion.y - 20, 50, 18);
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 12px Arial';
+        ctx.fillText('MULTI', storedMultiRegion.x + 8, storedMultiRegion.y - 7);
+    }
+    
+    // Рисуем рамку для текстовой области (синяя) - всегда видна в обоих режимах
+    if (storedTextRegion) {
+        ctx.strokeStyle = '#3b82f6'; // Синий
+        ctx.lineWidth = 3;
+        ctx.setLineDash([]); // Сплошная линия
+        ctx.shadowColor = '#3b82f6';
+        ctx.shadowBlur = 8;
+        ctx.strokeRect(
+            storedTextRegion.x, 
+            storedTextRegion.y, 
+            storedTextRegion.w, 
+            storedTextRegion.h
+        );
+        ctx.shadowBlur = 0;
+        
+        // Метка для текстовой области с фоном
+        ctx.fillStyle = '#3b82f6';
+        ctx.fillRect(storedTextRegion.x + 5, storedTextRegion.y - 20, 80, 18);
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 12px Arial';
+        ctx.fillText('PARTIA', storedTextRegion.x + 8, storedTextRegion.y - 7);
+    }
+    
+    // Сбрасываем стили для рисования
+    ctx.setLineDash([]);
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = '#facc15';
+    ctx.shadowBlur = 0;
+}
+
+function redrawCanvasWithRegions() {
+    if (activeStream && captureVideo.readyState >= 2) {
+        ctx.drawImage(captureVideo, 0, 0);
+    }
+    drawPermanentRegions();
 }
 
 async function doQuickCapture() {
@@ -2454,18 +4275,89 @@ async function processRegion(r) {
     if (isProcessing) return;
     isProcessing = true; setStatus('statusProcessing');
     if (activeStream && captureVideo.readyState >= 2) ctx.drawImage(captureVideo, 0, 0);
-    previewCanvas.width = r.w; previewCanvas.height = r.h;
-    pCtx.drawImage(mainCanvas, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
-    const raw = pCtx.getImageData(0, 0, r.w, r.h);
-    pCtx.putImageData(toBlackWhite(raw, HARDCODED_THRESHOLD), 0, 0);
+    
+    // Автоматически увеличиваем изображение для лучшего распознавания
+    const scaleFactor = 1.46; // Идеальный масштаб по вашим тестам
+    
+    previewCanvas.width = Math.floor(r.w * scaleFactor);
+    previewCanvas.height = Math.floor(r.h * scaleFactor);
+    
+    // Сначала копируем оригинальную область во временный canvas
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = r.w;
+    tempCanvas.height = r.h;
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCtx.drawImage(mainCanvas, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
+    
+    // Затем увеличиваем в 1.46 раза без сглаживания для четких пикселей
+    pCtx.imageSmoothingEnabled = false;
+    pCtx.drawImage(tempCanvas, 0, 0, previewCanvas.width, previewCanvas.height);
+    
+    const raw = pCtx.getImageData(0, 0, previewCanvas.width, previewCanvas.height);
+    
+    console.log(`🔍 Автоматически увеличил изображение в ${scaleFactor}x: ${previewCanvas.width} x ${previewCanvas.height}`);
+    
+    // Создаем несколько вариантов изображения для лучшего распознавания
+    const variants = createImageVariants(raw);
+    let bestResult = '';
+    
     try {
-        const result = await Tesseract.recognize(previewCanvas, ocrLangMap[currentLang] || 'eng',
-            { tessedit_char_whitelist: '0123456789' });
-        const digits = (result.data.text || '').replace(/\D/g, '').trim();
-        if (digits.length >= 4) { setStatus('statusDone'); showOverlay(digits); }
-        else { setStatus('statusFail'); }
-    } catch(err) { console.error('OCR error:', err); setStatus('statusFail'); }
-    isProcessing = false;
+        console.log(`🔍 Пробую ${variants.length} вариантов для SINGLE OCR...`);
+        
+        let bestResult = '';
+        let maxConfidence = 0;
+        
+        for (let i = 0; i < variants.length; i++) {
+            // Создаем временный canvas для каждого варианта
+            const variantCanvas = document.createElement('canvas');
+            variantCanvas.width = previewCanvas.width;
+            variantCanvas.height = previewCanvas.height;
+            const variantCtx = variantCanvas.getContext('2d');
+            
+            if (variants[i] instanceof ImageData) {
+                variantCtx.putImageData(variants[i], 0, 0);
+            } else {
+                // Для canvas вариантов (вариант 4, 5)
+                variantCtx.drawImage(variants[i], 0, 0);
+            }
+            
+            const result = await Tesseract.recognize(variantCanvas, ocrLangMap[currentLang] || 'eng',
+                { tessedit_char_whitelist: '0123456789' });
+            
+            const digits = (result.data.text || '').replace(/\D/g, '').trim();
+            const confidence = result.data.confidence || 0;
+            
+            console.log(`📊 SINGLE Вариант ${i + 1}: "${digits}" (уверенность: ${confidence}%)`);
+            
+            // Выбираем результат с наибольшей уверенностью и длиной
+            if (digits.length >= 4) {
+                // Даем приоритет более длинным кодам даже при меньшей уверенности
+                const score = digits.length * 10 + confidence;
+                const currentBestScore = bestResult.length * 10 + maxConfidence;
+                
+                if (score > currentBestScore) {
+                    bestResult = digits;
+                    maxConfidence = confidence;
+                    console.log(`✅ Лучший SINGLE результат: "${bestResult}" (вариант ${i + 1}, уверенность: ${confidence}%, длина: ${digits.length}, score: ${score})`);
+                }
+            }
+        }
+        
+        console.log(`📊 Итоговый SINGLE результат: "${bestResult}"`);
+        
+        if (bestResult.length >= 4) { 
+            setStatus('statusDone'); 
+            showOverlay(bestResult); 
+        } else { 
+            setStatus('statusFail'); 
+        }
+        
+    } catch (err) {
+        console.error('❌ OCR ошибка:', err);
+        setStatus('statusFail');
+    } finally {
+        isProcessing = false;
+    }
 }
 
 function toBlackWhite(imgData, threshold) {
@@ -2475,6 +4367,64 @@ function toBlackWhite(imgData, threshold) {
         d[i] = d[i+1] = d[i+2] = v;
     }
     return new ImageData(d, imgData.width, imgData.height);
+}
+
+// Новая функция для улучшения изображения перед распознаванием
+function enhanceImageForOCR(imgData) {
+    const d = new Uint8ClampedArray(imgData.data);
+    const width = imgData.width;
+    const height = imgData.height;
+    
+    // 1. Инвертируем цвета (если QR коды светлые на темном фоне)
+    for (let i = 0; i < d.length; i += 4) {
+        const gray = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
+        
+        // 2. Агрессивное усиление контраста
+        let enhanced;
+        if (gray > 128) {
+            // Для светлых пикселей - делаем еще светлее
+            enhanced = Math.min(255, gray + 80);
+        } else {
+            // Для темных пикселей - делаем еще темнее
+            enhanced = Math.max(0, gray - 80);
+        }
+        
+        // 3. Бинаризация с адаптивным порогом
+        const threshold = enhanced > 140 ? 255 : 0;
+        
+        d[i] = d[i+1] = d[i+2] = threshold;
+    }
+    
+    return new ImageData(d, width, height);
+}
+
+// Функция для создания нескольких вариантов изображения
+function createImageVariants(originalData) {
+    const variants = [];
+    
+    // Вариант 1: Оригинальная обработка
+    variants.push(toBlackWhite(originalData, HARDCODED_THRESHOLD));
+    
+    // Вариант 2: Специальный для белого текста на синем/темном фоне (лучший!)
+    const whiteOnDarkCanvas = document.createElement('canvas');
+    whiteOnDarkCanvas.width = originalData.width;
+    whiteOnDarkCanvas.height = originalData.height;
+    const whiteOnDarkCtx = whiteOnDarkCanvas.getContext('2d');
+    
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = originalData.width;
+    tempCanvas.height = originalData.height;
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCtx.putImageData(originalData, 0, 0);
+    
+    whiteOnDarkCtx.filter = 'invert(75%) brightness(110%) contrast(200%)';
+    whiteOnDarkCtx.drawImage(tempCanvas, 0, 0);
+    variants.push(whiteOnDarkCanvas);
+    
+    // Вариант 3: Агрессивное улучшение
+    variants.push(enhanceImageForOCR(originalData));
+    
+    return variants;
 }
 
 /* ══════════════════════════════════════════════
@@ -2602,6 +4552,33 @@ loadStoredRegion(); // Загружаем координаты ПЕРЕД ини
 loadStoredWindow();
 applyTranslations();
 initMultiMode(); // Затем инициализируем режим и обновляем координаты
+
+// Инициализируем кнопки текстовой области - всегда видимы
+function initTextButtons() {
+    const buttonText = storedTextRegion ? t('partyBtnSaved') : t('partyBtn');
+    
+    // Основная кнопка в overlay - УДАЛЕНА
+    // if (textRegionBtn) {
+    //     textRegionBtn.style.display = 'inline-block';
+    //     textRegionBtn.textContent = buttonText;
+    //     console.log('🔵 Основная кнопка текстовой области инициализирована');
+    // } else {
+    //     console.log('❌ Основная кнопка textRegionBtn не найдена!');
+    // }
+    
+    // Кнопка в рабочей панели
+    if (workTextRegionBtn) {
+        const textSpan = document.getElementById('workTextBtnText');
+        if (textSpan) {
+            textSpan.textContent = buttonText.replace('🏷️ ', ''); // Убираем эмодзи
+        }
+        console.log('🔵 Рабочая кнопка текстовой области инициализирована');
+    } else {
+        console.log('❌ Рабочая кнопка workTextRegionBtn не найдена!');
+    }
+}
+
+initTextButtons();
 </script>
 </body>
 </html>
