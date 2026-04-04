@@ -225,6 +225,247 @@
   }
   .thumb canvas{width:100%; height:auto; border-radius:8px}
   .thumb .code{font-size:12px; color:#cbd5e1; word-break:break-all; text-align:center}
+  
+  /* --- Управление карточками --- */
+  .card-controls{
+    position:absolute;
+    top:8px;
+    right:8px;
+    display:flex;
+    gap:6px;
+    z-index:10;
+  }
+  .existing-card{
+    border:2px solid #10b981;
+    opacity:0.9;
+  }
+  .existing-indicator{
+    background:#10b981;
+    color:white;
+    border-radius:50%;
+    width:20px;
+    height:20px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:12px;
+    font-weight:bold;
+  }
+  
+  /* --- Drag & Drop --- */
+  .draggable-row{
+    cursor:default;
+    transition:background-color 0.2s;
+  }
+  .draggable-row:hover{
+    background-color:rgba(37,99,235,0.05);
+  }
+  .dragging{
+    opacity:0.5;
+    background-color:rgba(37,99,235,0.2);
+  }
+  .drag-over{
+    background-color:rgba(37,99,235,0.1);
+    border-top:2px solid #2563eb;
+  }
+  .drag-handle{
+    cursor:move;
+    color:#94a3b8;
+    font-size:14px;
+    padding:4px 6px;
+    border-radius:4px;
+    transition:all 0.2s;
+    user-select:none;
+    text-align:center;
+    white-space:nowrap;
+  }
+  .drag-handle:hover{
+    color:#2563eb;
+    background-color:rgba(37,99,235,0.1);
+  }
+  
+  /* --- Улучшенный выбор цвета --- */
+  .color-input-wrapper{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .color-preview{
+    width:30px;
+    height:30px;
+    border-radius:6px;
+    border:2px solid var(--border);
+    cursor:pointer;
+    transition:transform 0.2s;
+  }
+  .color-preview:hover{
+    transform:scale(1.05);
+  }
+  
+  /* --- Двухколоночная таблица кодов --- */
+  .two-column-table{
+    display:flex;
+    gap:20px;
+    width:100%;
+  }
+  .column{
+    flex:1;
+    background:var(--panel-2);
+    border-radius:12px;
+    padding:16px;
+    border:1px solid var(--border);
+  }
+  .column h3{
+    margin:0 0 12px 0;
+    color:var(--text);
+    font-size:14px;
+    font-weight:bold;
+    text-align:center;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--border);
+  }
+  .settings-above-column{
+    margin-bottom:12px;
+    padding:8px;
+    background:var(--panel);
+    border-radius:6px;
+    border:1px solid var(--border);
+  }
+  .setting-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:4px;
+  }
+  .setting-row:last-child{
+    margin-bottom:0;
+  }
+  .setting-row label{
+    font-size:12px;
+    color:var(--text);
+    white-space:nowrap;
+  }
+  .setting-row select{
+    font-size:12px;
+    padding:2px 6px;
+    border:1px solid var(--border);
+    border-radius:4px;
+    background:var(--panel-2);
+    color:var(--text);
+  }
+  .column-content{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .code-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:8px;
+    background:var(--panel);
+    border-radius:8px;
+    border:1px solid var(--border);
+    transition:all 0.2s;
+  }
+  .code-row:hover{
+    background:rgba(37,99,235,0.05);
+    border-color:var(--accent);
+  }
+  .code-row.dragging{
+    opacity:0.5;
+    background:rgba(37,99,235,0.1);
+  }
+  .code-row.drag-over{
+    background:rgba(37,99,235,0.1);
+    border:2px solid var(--accent);
+  }
+  .code-number{
+    background:var(--accent);
+    color:white;
+    width:24px;
+    height:24px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:11px;
+    font-weight:bold;
+    flex-shrink:0;
+    transition:all 0.2s;
+  }
+  .code-number:hover{
+    background:var(--accent-hover, #1e40af);
+    transform:scale(1.1);
+  }
+  .code-number:focus{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+    background:var(--accent-hover, #1e40af);
+  }
+  .settings-group{
+    background:var(--bg, #1e293b);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:12px;
+    margin-bottom:12px;
+    transition:all 0.2s;
+  }
+  .settings-group:hover{
+    border-color:var(--accent);
+    box-shadow:0 2px 8px rgba(59,130,246,0.2);
+  }
+  .settings-group .row{
+    margin-bottom:0;
+  }
+  .settings-group label{
+    color:var(--text, #f1f5f9);
+    font-weight:500;
+  }
+  .code-input{
+    flex:1;
+    min-width:120px;
+  }
+  .code-color{
+    width:30px;
+    height:30px;
+    border-radius:6px;
+    border:2px solid var(--border);
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .code-delete{
+    width:24px;
+    height:24px;
+    border-radius:50%;
+    border:none;
+    background:var(--danger);
+    color:white;
+    cursor:pointer;
+    font-size:12px;
+    font-weight:bold;
+    flex-shrink:0;
+    transition:all 0.2s;
+  }
+  .code-delete:hover{
+    background:#b91c1c;
+    transform:scale(1.1);
+  }
+  .drag-handle-small{
+    cursor:move;
+    color:#94a3b8;
+    font-size:12px;
+    padding:2px 4px;
+    border-radius:3px;
+    transition:all 0.2s;
+    user-select:none;
+    flex-shrink:0;
+  }
+  .drag-handle-small:hover{
+    color:var(--accent);
+    background:rgba(37,99,235,0.1);
+  }
+  
   #gallery{display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:14px}
 
   /* --- Modal Collage --- */
@@ -382,7 +623,7 @@
           <span>English</span>
           <span class="lang-item-check">✓</span>
         </div>
-        <div class="lang-dropdown-item" data-lang="uk" onclick="selectLanguage('uk')">
+        <div class="lang-dropdown-item" data-lang="ua" onclick="selectLanguage('ua')">
           <span class="fi fi-ua"></span>
           <span>Українська</span>
           <span class="lang-item-check">✓</span>
@@ -399,44 +640,46 @@
   <!-- LEFT: controls -->
   <div class="panel">
     <h2 data-i18n="settings">Ustawienia</h2>
-    <div class="section">
-      <label data-i18n="logoLabel">Logo (PNG/JPG/SVG)</label><br>
-      <input id="logoFile" type="file" accept="image/*">
-    </div>
     <div class="section" style="margin-top:10px">
-      <div class="row">
-        <label data-i18n="logoSizeLabel">Rozmiar logo: <span id="logoSizeVal">20</span>%</label>
-        <input id="logoSize" type="range" min="8" max="32" value="20">
+      <!-- Логотип и размер logo в одной строке -->
+      <div class="settings-group">
+        <div class="row">
+          <label data-i18n="logoLabel">Logo (PNG/JPG/SVG)</label>
+          <input id="logoFile" type="file" accept="image/*" style="flex:1">
+          <label data-i18n="logoSizeLabel" style="margin-left:16px">Rozmiar logo: <span id="logoSizeVal">20</span>%</label>
+          <input id="logoSize" type="range" min="8" max="32" value="20" style="flex:1">
+        </div>
       </div>
-      <div class="row" style="margin-top:8px">
-        <label>DPI:</label>
-        <select id="dpiSelect">
-          <option value="300">300</option>
-          <option value="200">200</option>
-          <option value="150">150</option>
-        </select>
-        <label data-i18n="bgShapeLabel">Tło pod logo:</label>
-        <select id="bgShape">
-          <option value="circle" data-i18n="circle">Koło</option>
-          <option value="rect" data-i18n="rectangle">Prostokąt</option>
-          <option value="none" data-i18n="none">Brak</option>
-        </select>
+      <!-- DPI и фон под логотипом в одной строке -->
+      <div class="settings-group">
+        <div class="row" style="margin-top:8px">
+          <label>DPI:</label>
+          <select id="dpiSelect">
+            <option value="300">300</option>
+            <option value="200">200</option>
+            <option value="150">150</option>
+          </select>
+          <label data-i18n="bgShapeLabel" style="margin-left:16px">Tło pod logo:</label>
+          <select id="bgShape">
+            <option value="circle" data-i18n="circle">Koło</option>
+            <option value="rect" data-i18n="rectangle">Prostokąt</option>
+            <option value="none" data-i18n="none">Brak</option>
+          </select>
+        </div>
       </div>
     </div>
 
     <div class="section" style="margin-top:16px">
       <h2 data-i18n="codesList">Lista kodów</h2>
       <div class="code-table-wrap">
-        <table id="codeTable">
-          <thead>
-            <tr>
-              <th data-i18n="code">Kod</th>
-              <th class="color-cell" data-i18n="color">Kolor</th>
-              <th style="width:50px"></th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+        <div class="two-column-table">
+          <div class="column" id="leftColumn">
+            <div class="column-content"></div>
+          </div>
+          <div class="column" id="rightColumn">
+            <div class="column-content"></div>
+          </div>
+        </div>
       </div>
       <div class="row" style="margin-top:10px">
         <button class="btn secondary" id="addRow" data-i18n="addRow">+ Dodaj wiersz</button>
@@ -545,6 +788,78 @@ const selectedSet=new Set();
 let activePalettePopup = null;
 let isUpdating = false;
 
+// Функции для локального сохранения карточек
+function saveCardsToStorage() {
+  // if (isUpdating) return; // Временно убираем защиту для отладки
+  
+  try {
+    isUpdating = true;
+    // Сохраняем только новые карточки (не из defaultCodes)
+    const tableCards = [];
+    const leftContent = document.querySelector('#leftColumn .column-content');
+    const rightContent = document.querySelector('#rightColumn .column-content');
+    
+    // Собираем все карточки в текущем порядке
+    const allRows = Array.from(leftContent.querySelectorAll('.code-row')).concat(Array.from(rightContent.querySelectorAll('.code-row')));
+    
+    allRows.forEach(row => {
+      const codeInput = row.querySelector('.code-input');
+      const colorInput = row.querySelector('.code-color input[type="color"]');
+      const code = codeInput.value.trim();
+      
+      // Проверяем что это не одна из 6 карточек по умолчанию
+      const isDefaultCard = defaultCodes.some(c => c.code === code);
+      
+      if (code) {
+        // Сохраняем номер карточки
+        const cardNumber = parseInt(row.dataset.cardNumber);
+        tableCards.push({
+          code: code,
+          color: colorInput.value,
+          cardNumber: cardNumber, // Сохраняем номер
+          isExisting: true
+        });
+      }
+    });
+    
+    // Используем sessionStorage как запасной вариант
+    try {
+      localStorage.setItem('qrCardsData', JSON.stringify(tableCards));
+      console.log('Новые карточки сохранены в localStorage:', tableCards.length);
+    } catch (e) {
+      // Если localStorage недоступен, используем sessionStorage
+      sessionStorage.setItem('qrCardsData', JSON.stringify(tableCards));
+      console.log('Новые карточки сохранены в sessionStorage:', tableCards.length);
+    }
+  } catch (e) {
+    console.error('Ошибка сохранения карточек:', e);
+  } finally {
+    isUpdating = false;
+  }
+}
+
+function loadCardsFromStorage() {
+  try {
+    let saved = null;
+    // Сначала пробуем localStorage
+    try {
+      saved = localStorage.getItem('qrCardsData');
+    } catch (e) {
+      // Если localStorage недоступен, пробуем sessionStorage
+      saved = sessionStorage.getItem('qrCardsData');
+    }
+    
+    if (saved) {
+      const cardsData = JSON.parse(saved);
+      console.log('Загружено карточек:', cardsData.length);
+      return cardsData;
+    }
+  } catch (e) {
+    console.error('Ошибка загрузки карточек:', e);
+  }
+  return [];
+}
+
 const sheetCanvas=document.createElement('canvas');
 const sheetCtx=sheetCanvas.getContext('2d');
 const sheetDisplay=document.getElementById('sheetDisplay');
@@ -622,71 +937,483 @@ function showPalettePopup(triggerEl, colorInput) {
 
 /* ---------- Таблица кодов ---------- */
 const defaultCodes=[
-  {code:"F3-WMT-000-000-001",color:"#FFD54F"},
-  {code:"F3-WFR-000-000-002",color:"#F44336"},
-  {code:"F4-WBP18-000-000-000",color:"#64B5F6"},
-  {code:"F3-WRM13-000-000-001",color:"#8BC34A"},
-  {code:"F1-DOCK-U1-000-000-000",color:"#FF9800"},
-  {code:"F3-WMA-000-000-003",color:"#E1BEE7"}
+  {code:"F3-WMT-000-000-001",color:"#FFD54F",cardNumber:1},
+  {code:"F3-WFR-000-000-002",color:"#F44336",cardNumber:2},
+  {code:"F4-WBP18-000-000-000",color:"#64B5F6",cardNumber:3},
+  {code:"F3-WRM13-000-000-001",color:"#8BC34A",cardNumber:4},
+  {code:"F1-DOCK-U1-000-000-000",color:"#FF9800",cardNumber:5},
+  {code:"F3-WMA-000-000-003",color:"#E1BEE7",cardNumber:6}
 ];
 
-function addRow(item={code:"",color:"#FFD54F"}){
-  const tbody = document.querySelector('#codeTable tbody');
-  const tr = document.createElement('tr');
+function addRow(item={code:"",color:"#FFD54F", cardNumber: null}){
+  // Получаем все текущие карточки
+  const leftContent = document.querySelector('#leftColumn .column-content');
+  const rightContent = document.querySelector('#rightColumn .column-content');
+  const allRows = Array.from(leftContent.querySelectorAll('.code-row')).concat(Array.from(rightContent.querySelectorAll('.code-row')));
   
-  const tdCode = document.createElement('td');
-  const inpCode = document.createElement('input');
-  inpCode.type = 'text';
-  inpCode.value = item.code;
-  inpCode.placeholder = t('placeholder');
-  tdCode.appendChild(inpCode);
-  tr.appendChild(tdCode);
+  // Сначала определяем это карточка по умолчанию или нет
+  const isDefaultCard = defaultCodes.some(c => c.code === item.code);
   
-  const tdColor = document.createElement('td');
-  tdColor.className = 'color-cell';
-  const colorRow = document.createElement('div');
-  colorRow.className = 'color-row';
+  let newNumber;
+  if (item.cardNumber !== null) {
+    // Если номер указан (при загрузке), используем его
+    newNumber = item.cardNumber;
+  } else if (isDefaultCard && item.cardNumber !== undefined) {
+    // Для карточек по умолчанию используем номер из defaultCodes
+    newNumber = item.cardNumber;
+  } else {
+    // Определяем номер новой карточки (следующий свободный)
+    const usedNumbers = new Set();
+    allRows.forEach(row => {
+      const num = parseInt(row.querySelector('.code-number').textContent);
+      usedNumbers.add(num);
+    });
+    
+    newNumber = 1;
+    while (usedNumbers.has(newNumber)) {
+      newNumber++;
+    }
+  }
   
-  const colorWrap = document.createElement('div');
-  colorWrap.className = 'color-input-wrap';
-  const inpColor = document.createElement('input');
-  inpColor.type = 'color';
-  inpColor.value = item.color;
-  colorWrap.appendChild(inpColor);
-  colorRow.appendChild(colorWrap);
+  // Определяем в какой столбец добавлять (нечетные - левый, четные - правый)
+  const targetColumn = newNumber % 2 === 1 ? leftContent : rightContent;
   
-  const paletteBtn = document.createElement('button');
-  paletteBtn.type = 'button';
-  paletteBtn.innerHTML = '🎨';
-  paletteBtn.title = t('paletteTitle');
-  paletteBtn.style.cssText = 'background:#334155;border:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:14px';
-  paletteBtn.onclick = (e) => { e.stopPropagation(); showPalettePopup(paletteBtn, inpColor); };
-  colorRow.appendChild(paletteBtn);
+  // Создаем строку карточки
+  const codeRow = document.createElement('div');
+  codeRow.className = 'code-row';
+  // Убираем draggable - отключаем перетаскивание
   
-  tdColor.appendChild(colorRow);
-  tr.appendChild(tdColor);
+  // Номер карточки (редактируемый)
+  const numberDiv = document.createElement('div');
+  numberDiv.className = 'code-number';
+  numberDiv.textContent = newNumber;
+  numberDiv.contentEditable = true; // Делаем редактируемым
+  numberDiv.style.cursor = 'text';
+  numberDiv.title = 'Кликните чтобы изменить номер';
   
-  const tdDel = document.createElement('td');
-  tdDel.style.width = '50px';
-  const delBtn = document.createElement('button');
-  delBtn.type = 'button';
-  delBtn.className = 'delete-row';
-  delBtn.innerHTML = '✕';
-  delBtn.title = t('deleteRow');
-  delBtn.onclick = () => { tr.remove(); updatePreview(); };
-  tdDel.appendChild(delBtn);
-  tr.appendChild(tdDel);
+  // Обработчик изменения номера
+  numberDiv.addEventListener('blur', () => {
+    const newNum = parseInt(numberDiv.textContent);
+    if (!isNaN(newNum) && newNum > 0) {
+      changeCardNumber(codeRow, newNum);
+    } else {
+      // Возвращаем старый номер если введено некорректное значение
+      numberDiv.textContent = codeRow.dataset.cardNumber;
+    }
+  });
   
-  tbody.appendChild(tr);
+  // Обработчик нажатия Enter
+  numberDiv.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      numberDiv.blur();
+    }
+  });
+  
+  // Сохраняем номер в data-атрибуте
+  codeRow.dataset.cardNumber = newNumber;
+  
+  // Поле ввода кода
+  const codeInput = document.createElement('input');
+  codeInput.type = 'text';
+  codeInput.className = 'code-input';
+  codeInput.placeholder = t('placeholder') || 'Kod QR';
+  codeInput.value = item.code;
+  if (isDefaultCard) {
+    codeInput.readOnly = true;
+  }
+  
+  // Выбор цвета
+  const colorWrapper = document.createElement('div');
+  colorWrapper.style.position = 'relative';
+  
+  const colorInput = document.createElement('input');
+  colorInput.type = 'color';
+  colorInput.value = item.color;
+  colorInput.style.position = 'absolute';
+  colorInput.style.left = '0';
+  colorInput.style.top = '0';
+  colorInput.style.width = '30px';
+  colorInput.style.height = '30px';
+  colorInput.style.opacity = '0';
+  colorInput.style.cursor = 'pointer';
+  if (isDefaultCard) {
+    colorInput.disabled = true;
+    colorInput.style.cursor = 'not-allowed';
+  }
+  
+  const colorPreview = document.createElement('div');
+  colorPreview.className = 'code-color';
+  colorPreview.style.backgroundColor = item.color;
+  colorPreview.style.position = 'relative';
+  
+  colorPreview.appendChild(colorInput);
+  
+  // Обработчик изменения цвета в реальном времени
+  colorInput.addEventListener('input', (e) => {
+    colorPreview.style.backgroundColor = e.target.value;
+    updatePreview();
+    saveCardsToStorage();
+  });
+  
+  colorPreview.onclick = () => {
+    if (!colorInput.disabled) {
+      colorInput.click();
+    }
+  };
+  
+  colorWrapper.appendChild(colorPreview);
+  
+  // Кнопка удаления (только для новых карточек)
+  let deleteBtn = null;
+  if (!isDefaultCard) {
+    deleteBtn = document.createElement('button');
+    deleteBtn.className = 'code-delete';
+    deleteBtn.textContent = '×';
+    deleteBtn.onclick = () => deleteCodeRow(codeRow);
+  }
+  
+  // Собираем строку
+  codeRow.appendChild(numberDiv);
+  codeRow.appendChild(codeInput);
+  codeRow.appendChild(colorWrapper);
+  if (deleteBtn) {
+    codeRow.appendChild(deleteBtn);
+  }
+  
+  // Добавляем в столбец
+  targetColumn.appendChild(codeRow);
+  
+  // Обновляем предпросмотр
+  updatePreview();
+  saveCardsToStorage();
 }
 
-defaultCodes.forEach(addRow);
+// Загружаем сохраненные карточки и добавляем их
+const savedCards = loadCardsFromStorage();
+
+// Добавляем 6 карточек по умолчанию только если нет сохраненных или если сохраненные данные некорректны
+if (savedCards.length === 0) {
+  defaultCodes.forEach(defaultCode => {
+    addRow({ 
+      code: defaultCode.code, 
+      color: defaultCode.color,
+      cardNumber: defaultCode.cardNumber 
+    });
+  });
+} else {
+  // Если есть сохраненные карточки, добавляем только их
+  // Сначала добавляем карточки по умолчанию которые есть в сохраненных
+  savedCards.forEach(savedCard => {
+    // Проверяем есть ли такая карточка в defaultCodes
+    const defaultCard = defaultCodes.find(c => c.code === savedCard.code);
+    if (defaultCard) {
+      // Это карточка по умолчанию, используем ее оригинальный цвет но сохраненный номер
+      addRow({ 
+        code: savedCard.code, 
+        color: defaultCard.color, // Используем оригинальный цвет
+        cardNumber: savedCard.cardNumber || defaultCard.cardNumber // Используем сохраненный номер или оригинальный
+      });
+    } else {
+      // Это новая карточка, добавляем как есть
+      addRow({ 
+        code: savedCard.code, 
+        color: savedCard.color,
+        cardNumber: savedCard.cardNumber 
+      });
+    }
+  });
+  
+  // Если после загрузки сохраненных карточек у нас меньше 6, добавляем недостающие карточки по умолчанию
+  const currentCodes = new Set();
+  document.querySelectorAll('.code-input').forEach(input => {
+    const code = input.value.trim();
+    if (code) currentCodes.add(code);
+  });
+  
+  defaultCodes.forEach(defaultCode => {
+    if (!currentCodes.has(defaultCode.code)) {
+      addRow({ 
+        code: defaultCode.code, 
+        color: defaultCode.color,
+        cardNumber: defaultCode.cardNumber 
+      });
+    }
+  });
+}
+
+// Функция удаления строки карточки
+function deleteCodeRow(codeRow) {
+  codeRow.remove();
+  // Перенумеруем все карточки
+  renumberAllCards();
+  updatePreview();
+  // Сохранение только один раз в конце
+  setTimeout(() => saveCardsToStorage(), 100);
+}
+
+// Функция перенумерации всех карточек
+function renumberAllCards() {
+  const leftContent = document.querySelector('#leftColumn .column-content');
+  const rightContent = document.querySelector('#rightColumn .column-content');
+  
+  // Собираем все карточки и сортируем по текущим номерам
+  const allRows = Array.from(leftContent.querySelectorAll('.code-row')).concat(Array.from(rightContent.querySelectorAll('.code-row')));
+  
+  // Сортируем по текущим номерам для правильного порядка
+  allRows.sort((a, b) => {
+    const numA = parseInt(a.dataset.cardNumber) || 999;
+    const numB = parseInt(b.dataset.cardNumber) || 999;
+    return numA - numB;
+  });
+  
+  console.log('Перенумерация: текущее количество карточек:', allRows.length);
+  
+  // Перенумеровываем по порядку 1,2,3,4...
+  allRows.forEach((row, index) => {
+    const newNumber = index + 1;
+    const numberDiv = row.querySelector('.code-number');
+    if (numberDiv) {
+      const oldNumber = numberDiv.textContent;
+      numberDiv.textContent = newNumber;
+      row.dataset.cardNumber = newNumber;
+    }
+  });
+  
+  // Перераспределяем по новым номерам
+  redistributeCardsWithFixedNumbers(allRows);
+  
+  console.log('Перенумерация завершена');
+  // Не сохраняем здесь - сохранение будет вызвано из deleteCodeRow
+}
+
+// Функция изменения номера карточки
+function changeCardNumber(codeRow, newNumber) {
+  const oldNumber = parseInt(codeRow.dataset.cardNumber);
+  
+  if (oldNumber === newNumber) return; // Номер не изменился
+  
+  // Получаем все карточки
+  const leftContent = document.querySelector('#leftColumn .column-content');
+  const rightContent = document.querySelector('#rightColumn .column-content');
+  const allRows = Array.from(leftContent.querySelectorAll('.code-row')).concat(Array.from(rightContent.querySelectorAll('.code-row')));
+  
+  // Находим карточку с текущим номером newNumber для обмена
+  const targetRow = allRows.find(row => parseInt(row.dataset.cardNumber) === newNumber && row !== codeRow);
+  
+  if (targetRow) {
+    // Меняем номера местами
+    codeRow.dataset.cardNumber = newNumber;
+    codeRow.querySelector('.code-number').textContent = newNumber;
+    
+    targetRow.dataset.cardNumber = oldNumber;
+    targetRow.querySelector('.code-number').textContent = oldNumber;
+    
+    // Перераспределяем карточки по колонкам
+    redistributeCardsWithFixedNumbers(allRows);
+    updatePreview();
+    saveCardsToStorage();
+  } else {
+    // Если нет карточки с таким номером, просто меняем номер
+    codeRow.dataset.cardNumber = newNumber;
+    codeRow.querySelector('.code-number').textContent = newNumber;
+    
+    // Перенумеровываем все карточки по порядку
+    updateCardNumbers(allRows, newNumber, oldNumber);
+    redistributeCardsWithFixedNumbers(allRows);
+    updatePreview();
+    saveCardsToStorage();
+  }
+}
+
+// Функция изменения номера карточки
+function changeCardNumber(codeRow, newNumber) {
+  const oldNumber = parseInt(codeRow.dataset.cardNumber);
+  
+  if (oldNumber === newNumber) return; // Номер не изменился
+  
+  // Получаем все карточки
+  const leftContent = document.querySelector('#leftColumn .column-content');
+  const rightContent = document.querySelector('#rightColumn .column-content');
+  const allRows = Array.from(leftContent.querySelectorAll('.code-row')).concat(Array.from(rightContent.querySelectorAll('.code-row')));
+  
+  // Находим карточку с текущим номером newNumber для обмена
+  const targetRow = allRows.find(row => parseInt(row.dataset.cardNumber) === newNumber && row !== codeRow);
+  
+  if (targetRow) {
+    // Меняем номера местами
+    codeRow.dataset.cardNumber = newNumber;
+    codeRow.querySelector('.code-number').textContent = newNumber;
+    
+    targetRow.dataset.cardNumber = oldNumber;
+    targetRow.querySelector('.code-number').textContent = oldNumber;
+    
+    // Перераспределяем карточки по колонкам
+    redistributeCardsWithFixedNumbers(allRows);
+    updatePreview();
+    saveCardsToStorage();
+  } else {
+    // Если нет карточки с таким номером, просто меняем номер
+    codeRow.dataset.cardNumber = newNumber;
+    codeRow.querySelector('.code-number').textContent = newNumber;
+    
+    // Перенумеровываем все карточки по порядку
+    updateCardNumbers(allRows, newNumber, oldNumber);
+    redistributeCardsWithFixedNumbers(allRows);
+    updatePreview();
+    saveCardsToStorage();
+  }
+}
+
+// Функция обновления номеров карточек (полная перенумерация)
+function updateCardNumbers(allRows, targetNumber, draggedNumber) {
+  // Просто перенумеровываем все карточки по порядку 1,2,3,4...
+  allRows.forEach((row, index) => {
+    const newNumber = index + 1;
+    row.dataset.cardNumber = newNumber;
+    row.querySelector('.code-number').textContent = newNumber;
+  });
+}
+
+// Функция перераспределения карточек по столбцам с фиксированными номерами
+function redistributeCardsWithFixedNumbers(allRows) {
+  const leftContent = document.querySelector('#leftColumn .column-content');
+  const rightContent = document.querySelector('#rightColumn .column-content');
+  
+  // Очищаем столбцы
+  leftContent.innerHTML = '';
+  rightContent.innerHTML = '';
+  
+  // Сортируем карточки по номерам
+  const sortedRows = [...allRows].sort((a, b) => {
+    const numA = parseInt(a.dataset.cardNumber);
+    const numB = parseInt(b.dataset.cardNumber);
+    return numA - numB;
+  });
+  
+  // Распределяем по столбцам (нечетные слева, четные справа)
+  sortedRows.forEach((row) => {
+    const cardNumber = parseInt(row.dataset.cardNumber);
+    const targetColumn = cardNumber % 2 === 1 ? leftContent : rightContent;
+    targetColumn.appendChild(row);
+  });
+}
+
+// Функция удаления строки
+function deleteRow(btn) {
+  const row = btn.closest('tr');
+  if (row) {
+    row.remove();
+    updatePreview();
+    saveCardsToStorage();
+  }
+}
+
+// Функции для Drag & Drop для новой структуры
+function addDragHandlersForNewRow(dragHandle, row) {
+  let draggedRow = null;
+  
+  dragHandle.addEventListener('dragstart', (e) => {
+    draggedRow = row;
+    row.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', row.innerHTML);
+  });
+  
+  dragHandle.addEventListener('dragend', () => {
+    row.classList.remove('dragging');
+    draggedRow = null;
+  });
+  
+  // Делаем кнопку перетаскивания draggable
+  dragHandle.draggable = true;
+}
+
+// Глобальные обработчики для drop
+function setupGlobalDropHandlers() {
+  document.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    
+    const targetRow = e.target.closest('.code-row');
+    const draggingRow = document.querySelector('.dragging');
+    
+    if (targetRow && draggingRow && draggingRow !== targetRow) {
+      targetRow.classList.add('drag-over');
+    }
+  });
+  
+  document.addEventListener('dragleave', (e) => {
+    const targetRow = e.target.closest('.code-row');
+    if (targetRow) {
+      targetRow.classList.remove('drag-over');
+    }
+  });
+  
+  document.addEventListener('drop', (e) => {
+    e.preventDefault();
+    
+    const targetRow = e.target.closest('.code-row');
+    const draggingRow = document.querySelector('.dragging');
+    
+    if (targetRow && draggingRow && draggingRow !== targetRow) {
+      targetRow.classList.remove('drag-over');
+      
+      // Получаем все карточки из обоих колонок в порядке DOM
+      const leftContent = document.querySelector('#leftColumn .column-content');
+      const rightContent = document.querySelector('#rightColumn .column-content');
+      const allRows = [];
+      
+      // Собираем все карточки в текущем порядке
+      leftContent.querySelectorAll('.code-row').forEach(row => allRows.push(row));
+      rightContent.querySelectorAll('.code-row').forEach(row => allRows.push(row));
+      
+      // Получаем номера цели и перетаскиваемой карточки
+      const targetNumber = parseInt(targetRow.dataset.cardNumber);
+      const draggedNumber = parseInt(draggingRow.dataset.cardNumber);
+      
+      // Удаляем перетаскиваемую карточку из DOM
+      draggingRow.remove();
+      
+      // Пересобираем массив без перетаскиваемой карточки
+      const newAllRows = allRows.filter(row => row !== draggingRow);
+      
+      // Находим индекс цели
+      const targetIndex = newAllRows.indexOf(targetRow);
+      
+      // Вставляем перетаскиваемую карточку ПОСЛЕ цели
+      newAllRows.splice(targetIndex + 1, 0, draggingRow);
+      
+      // Обновляем номера (сдвигаем все с targetNumber и ниже на +1)
+      updateCardNumbers(newAllRows, targetNumber, draggedNumber);
+      
+      // Перераспределяем по столбцам
+      redistributeCardsWithFixedNumbers(newAllRows);
+      updatePreview();
+      saveCardsToStorage();
+    }
+  });
+}
+
 document.getElementById('addRow').onclick = () => addRow();
 
 let previewTimer = null;
-document.querySelector('#codeTable tbody').addEventListener('input', () => {
-  clearTimeout(previewTimer);
-  previewTimer = setTimeout(updatePreview, 400);
+// Обработчик изменений для новой структуры
+document.addEventListener('input', (e) => {
+  if (e.target.matches('.code-input') || e.target.matches('.code-color input[type="color"]')) {
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(() => {
+      updatePreview();
+      saveCardsToStorage();
+    }, 400);
+  }
+});
+
+// Сохраняем карточки при загрузке страницы
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    updatePreview();
+  }, 100);
 });
 
 /* ---------- Логотип ---------- */
@@ -830,11 +1557,36 @@ async function updatePreview() {
   const bgShape = document.getElementById('bgShape').value;
   const DPI = Number(document.getElementById('dpiSelect').value);
 
+  // Загружаем сохраненные карточки
+  const savedCards = loadCardsFromStorage();
+  const savedCodes = new Set(savedCards.map(c => c.code));
+  
   const items = [];
-  document.querySelectorAll('#codeTable tbody tr').forEach(tr => {
-    const code = tr.cells[0].querySelector('input').value.trim();
-    const color = tr.cells[1].querySelector('input[type="color"]').value;
+  const leftContent = document.querySelector('#leftColumn .column-content');
+  const rightContent = document.querySelector('#rightColumn .column-content');
+  
+  // Собираем все карточки и сортируем по номеру для галереи
+  const allRows = Array.from(leftContent.querySelectorAll('.code-row')).concat(Array.from(rightContent.querySelectorAll('.code-row')));
+  
+  // Сортируем по номеру карточки (из data-атрибута)
+  allRows.sort((a, b) => {
+    const numA = parseInt(a.dataset.cardNumber);
+    const numB = parseInt(b.dataset.cardNumber);
+    return numA - numB;
+  });
+  
+  // Собираем данные в отсортированном порядке для галереи
+  allRows.forEach(row => {
+    const code = row.querySelector('.code-input').value.trim();
+    const color = row.querySelector('.code-color input[type="color"]').value;
     if (code) items.push({ code, color });
+  });
+  
+  // Добавляем сохраненные карточки которых нет в таблице
+  savedCards.forEach(savedCard => {
+    if (!savedCodes.has(savedCard.code)) {
+      items.push({ code: savedCard.code, color: savedCard.color });
+    }
   });
 
   cards = [];
@@ -848,7 +1600,8 @@ async function updatePreview() {
     thumb.width = Math.round(big.width * scale);
     thumb.height = Math.round(big.height * scale);
     thumb.getContext('2d').drawImage(big, 0, 0, thumb.width, thumb.height);
-    cards.push({ code: it.code, color: it.color, canvas: big, thumbCanvas: thumb });
+    const isExisting = savedCodes.has(it.code);
+    cards.push({ code: it.code, color: it.color, canvas: big, thumbCanvas: thumb, isExisting });
   }
   
   renderGallery();
@@ -865,12 +1618,40 @@ function renderGallery() {
   cards.forEach((c, idx) => {
     const wrap = document.createElement('div');
     wrap.className = 'thumb';
+    
+    // Добавляем класс для существующих карточек
+    if (c.isExisting) {
+      wrap.classList.add('existing-card');
+    }
+    
     wrap.onclick = () => showLightbox(idx);
     wrap.appendChild(c.thumbCanvas);
-    const code = document.createElement('div');
-    code.className = 'code';
-    code.textContent = c.code;
-    wrap.appendChild(code);
+    
+    // Создаем контейнер для управления карточкой
+    const controls = document.createElement('div');
+    controls.className = 'card-controls';
+    
+    // Кнопка удаления только для новых карточек
+    if (!c.isExisting) {
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'delete-row';
+      deleteBtn.textContent = '×';
+      deleteBtn.onclick = (e) => {
+        e.stopPropagation();
+        deleteCard(idx);
+      };
+      controls.appendChild(deleteBtn);
+    }
+    
+    // Индикатор существующей карточки
+    if (c.isExisting) {
+      const indicator = document.createElement('div');
+      indicator.className = 'existing-indicator';
+      indicator.textContent = '✓';
+      controls.appendChild(indicator);
+    }
+    
+    wrap.appendChild(controls);
     gallery.appendChild(wrap);
   });
 }
@@ -1004,50 +1785,125 @@ function redrawSheet() {
   sheetDisplayCtx.drawImage(sheetCanvas, 0, 0, sheetDisplay.width, sheetDisplay.height);
 }
 
-/* ---------- Кнопки ---------- */
-document.getElementById('logoSize').addEventListener('input', e => {
-  document.getElementById('logoSizeVal').textContent = e.target.value;
-  updatePreview();
-});
-document.getElementById('dpiSelect').addEventListener('change', () => {
-  initSheet();
-  updatePreview();
-  if (collageModal.classList.contains('show')) { layoutDisplayCanvas(); redrawSheet(); }
-});
-document.getElementById('bgShape').addEventListener('change', updatePreview);
-document.getElementById('previewAll').onclick = updatePreview;
-
-document.getElementById('downloadAll').onclick = async () => {
+/* ---------- Обновление карточек в галерее ---------- */
+function updateGalleryCards() {
+  console.log('=== Функция updateGalleryCards() НАЧАЛА РАБОТУ ===');
   const logoPct = Number(document.getElementById('logoSize').value);
   const bgShape = document.getElementById('bgShape').value;
   const DPI = Number(document.getElementById('dpiSelect').value);
-
+  
+  console.log('Параметры:', { logoPct, bgShape, DPI });
+  
+  // Собираем текущие данные карточек
   const items = [];
-  document.querySelectorAll('#codeTable tbody tr').forEach(tr => {
-    const code = tr.cells[0].querySelector('input').value.trim();
-    const color = tr.cells[1].querySelector('input[type="color"]').value;
-    if (code) items.push({ code, color });
+  const leftContent = document.querySelector('#leftColumn .column-content');
+  const rightContent = document.querySelector('#rightColumn .column-content');
+  const allRows = Array.from(leftContent.querySelectorAll('.code-row')).concat(Array.from(rightContent.querySelectorAll('.code-row')));
+  
+  console.log('Найдено строк:', allRows.length);
+  
+  allRows.forEach(row => {
+    const codeInput = row.querySelector('.code-input');
+    const colorInput = row.querySelector('.code-color input[type="color"]');
+    const code = codeInput.value.trim();
+    if (code) {
+      items.push({ code, color: colorInput.value });
+    }
   });
-  for (const it of items) {
-    const c = await buildCard(it, logoPct, bgShape, DPI);
-    c.toBlob(b => downloadBlob(b, `${it.code}.png`), 'image/png');
-  }
-};
+  
+  console.log('Найдено карточек:', items.length);
+  
+  // Находим все изображения в галерее
+  const galleryImages = document.querySelectorAll('#gallery img');
+  console.log('Найдено изображений в галерее:', galleryImages.length);
+  
+  // Обновляем каждое изображение
+  items.forEach(async (item, index) => {
+    if (galleryImages[index]) {
+      console.log(`Обновление карточки ${index + 1}:`, item.code);
+      const canvas = await buildCard(item, logoPct, bgShape, DPI);
+      galleryImages[index].src = canvas.toDataURL();
+      console.log(`Карточка ${index + 1} обновлена`);
+    }
+  });
+  
+  console.log('=== Функция updateGalleryCards() ЗАВЕРШИЛА РАБОТУ ===');
+}
 
-document.getElementById('resetSheet').onclick = () => {
-  selectedSet.clear();
-  renderPicker();
-  redrawSheet();
-};
-document.getElementById('exportSheet').onclick = () => {
-  if (selectedSet.size === 0) { 
-    alert(t('collageEmpty') || 'Колаж порожній / Collage is empty'); 
-    return; 
+/* ---------- Кнопки ---------- */
+// Используем setTimeout чтобы гарантировать что DOM полностью загружен
+setTimeout(() => {
+  console.log('Инициализация обработчиков...');
+  
+  const logoSizeInput = document.getElementById('logoSize');
+  const logoSizeVal = document.getElementById('logoSizeVal');
+  
+  console.log('Найдены элементы:', { 
+    logoSizeInput: !!logoSizeInput, 
+    logoSizeVal: !!logoSizeVal 
+  });
+  
+  if (logoSizeInput && logoSizeVal) {
+    logoSizeInput.addEventListener('input', e => {
+      console.log('Ползунок перемещен, новое значение:', e.target.value);
+      logoSizeVal.textContent = e.target.value;
+      updatePreview();
+      // Обновляем только карточки в галерее без полной перезагрузки
+      console.log('Вызов updateGalleryCards()');
+      updateGalleryCards();
+    });
+  } else {
+    console.log('ОШИБКА: элементы не найдены!');
   }
-  sheetCanvas.toBlob(b => downloadBlob(b, 'collage_A4_4quadrants.png'), 'image/png');
-};
+  
+  document.getElementById('dpiSelect').addEventListener('change', () => {
+    const items = [];
+    document.querySelectorAll('#codeTable tbody tr').forEach(tr => {
+      const code = tr.cells[0].querySelector('input').value.trim();
+      const color = tr.cells[1].querySelector('input[type="color"]').value;
+      if (code) items.push({ code, color });
+    });
+    initSheet();
+    updatePreview();
+    if (collageModal.classList.contains('show')) { layoutDisplayCanvas(); redrawSheet(); }
+  });
+  
+  document.getElementById('bgShape').addEventListener('change', updatePreview);
+  document.getElementById('previewAll').onclick = updatePreview;
+  
+  document.getElementById('downloadAll').onclick = async () => {
+    const logoPct = Number(document.getElementById('logoSize').value);
+    const bgShape = document.getElementById('bgShape').value;
+    const DPI = Number(document.getElementById('dpiSelect').value);
 
-document.getElementById('cutGapMm').addEventListener('input', redrawSheet);
+    const items = [];
+    document.querySelectorAll('#codeTable tbody tr').forEach(tr => {
+      const code = tr.cells[0].querySelector('input').value.trim();
+      const color = tr.cells[1].querySelector('input[type="color"]').value;
+      if (code) items.push({ code, color });
+    });
+    for (const it of items) {
+      const c = await buildCard(it, logoPct, bgShape, DPI);
+      c.toBlob(b => downloadBlob(b, `${it.code}.png`), 'image/png');
+    }
+  };
+  
+  document.getElementById('resetSheet').onclick = () => {
+    selectedSet.clear();
+    renderPicker();
+    redrawSheet();
+  };
+  
+  document.getElementById('exportSheet').onclick = () => {
+    if (selectedSet.size === 0) { 
+      alert(t('collageEmpty') || 'Колаж порожній / Collage is empty'); 
+      return; 
+    }
+    sheetCanvas.toBlob(b => downloadBlob(b, 'collage_A4_4quadrants.png'), 'image/png');
+  };
+  
+  document.getElementById('cutGapMm').addEventListener('input', redrawSheet);
+}, 100); // Ждем 100мс после загрузки
 
 /* ---------- Инициализация языка при загрузке ---------- */
 setLanguage(currentLang);
