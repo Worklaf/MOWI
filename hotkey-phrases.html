@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Hotkey Phrases</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons/css/flag-icons.min.css">
+
+<style>
+    :root {
+        --bg: #0f172a;
+        --bg-alt: #020617;
+        --card: #111827;
+        --accent: #6366f1;
+        --accent-soft: rgba(99,102,241,0.15);
+        --text: #e5e7eb;
+        --text-soft: #9ca3af;
+        --danger: #ef4444;
+        --border: #1f2937;
+        --radius-lg: 18px;
+        --radius-md: 10px;
+        --shadow-soft: 0 18px 45px rgba(15,23,42,0.85);
+        --shadow-chip: 0 10px 25px rgba(15,23,42,0.9);
+        --blur: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+        background: radial-gradient(circle at top, #1d2538 0, #020617 45%, #000 100%);
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px;
+    }
+
+    .app-shell {
+        width: 100%;
+        max-width: 1100px;
+        background: radial-gradient(circle at top left, rgba(96,165,250,0.12), transparent 55%),
+                    radial-gradient(circle at bottom right, rgba(244,114,182,0.12), transparent 55%),
+                    rgba(15,23,42,0.92);
+        border-radius: 28px;
+        box-shadow: var(--shadow-soft);
+        border: 1px solid rgba(148,163,184,0.18);
+        backdrop-filter: blur(var(--blur));
+        padding: 26px 26px 22px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .app-shell::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(148,163,184,0.18), transparent 40%, transparent 60%, rgba(129,140,248,0.22));
+        mix-blend-mode: soft-light;
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    .app-inner { position: relative; z-index: 1; }
+
+    .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 22px;
+    }
+
+    .title-block { display: flex; align-items: center; gap: 14px; }
+
+    .logo {
+        width: 40px; height: 40px;
+        border-radius: 14px;
+        background: radial-gradient(circle at 30% 0, #f97316, transparent 55%),
+                    radial-gradient(circle at 70% 100%, #6366f1, transparent 55%),
+                    #020617;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 12px 30px rgba(15,23,42,0.9);
+        border: 1px solid rgba(148,163,184,0.4);
+    }
+
+    .logo span { font-size: 20px; font-weight: 700; letter-spacing: 0.03em; }
+
+    .title-text h1 { margin: 0; font-size: 20px; letter-spacing: 0.03em; text-transform: uppercase; color: #e5e7eb; }
+    .title-text p { margin: 2px 0 0; font-size: 12px; color: var(--text-soft); }
+
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    
+    .back-btn {
+      padding: 8px 16px;
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .back-btn-icon {
+      font-size: 14px;
+    }
+    
+    .back-btn-text {
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .back-btn:hover {
+      background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(37,99,235,0.4);
+    }
+    
+    .back-btn:active {
+      transform: translateY(0);
+    }
+
+    .lang-switcher { display: flex; gap: 4px; }
+
+    .lang-btn {
+        padding: 5px 11px;
+        border-radius: 999px;
+        border: 1px solid rgba(55,65,81,0.9);
+        background: rgba(15,23,42,0.9);
+        color: #9ca3af;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        transition: background 0.1s, border 0.1s, color 0.1s;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .lang-btn.active, .lang-btn:hover {
+        background: rgba(30,64,175,0.9);
+        border-color: rgba(129,140,248,0.9);
+        color: #c7d2fe;
+    }
+
+    .status-pill {
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(22,163,74,0.12);
+        border: 1px solid rgba(34,197,94,0.35);
+        color: #bbf7d0;
+        font-size: 11px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .status-dot {
+        width: 7px; height: 7px;
+        border-radius: 999px;
+        background: #22c55e;
+        box-shadow: 0 0 0 6px rgba(34,197,94,0.25);
+    }
+
+    .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
+        gap: 18px;
+    }
+
+    @media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+    .card {
+        background: radial-gradient(circle at top, rgba(15,23,42,0.9), rgba(15,23,42,0.96));
+        border-radius: var(--radius-lg);
+        border: 1px solid rgba(31,41,55,0.95);
+        box-shadow: 0 14px 35px rgba(15,23,42,0.9);
+        padding: 16px 16px 14px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at top left, rgba(129,140,248,0.18), transparent 55%);
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    .card-header {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 10px; position: relative; z-index: 1;
+    }
+
+    .card-title { font-size: 13px; text-transform: uppercase; letter-spacing: 0.16em; color: #9ca3af; }
+
+    .badge {
+        font-size: 11px; padding: 4px 9px; border-radius: 999px;
+        background: rgba(15,23,42,0.9); border: 1px solid rgba(55,65,81,0.9); color: #9ca3af;
+    }
+
+    .form { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 10px; }
+
+    .field-group { display: flex; flex-direction: column; gap: 4px; }
+
+    label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: #9ca3af; }
+
+    input[type="text"], textarea, select {
+        width: 100%;
+        background: radial-gradient(circle at top, #020617, #020617);
+        border-radius: 11px;
+        border: 1px solid rgba(55,65,81,0.95);
+        padding: 9px 11px;
+        color: var(--text);
+        font-size: 13px;
+        outline: none;
+        transition: border 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, transform 0.08s ease;
+    }
+
+    textarea { resize: vertical; min-height: 70px; max-height: 160px; }
+
+    input:focus, textarea:focus, select:focus {
+        border-color: rgba(129,140,248,0.9);
+        box-shadow: 0 0 0 1px rgba(129,140,248,0.7);
+        background: radial-gradient(circle at top, #020617, #020617);
+        transform: translateY(-0.5px);
+    }
+
+    .hotkey-row { display: grid; grid-template-columns: 1.1fr 1.1fr; gap: 8px; }
+
+    .hint { font-size: 11px; color: var(--text-soft); }
+
+    .btn-primary {
+        margin-top: 4px; width: 100%;
+        border-radius: 999px; border: none;
+        padding: 9px 14px;
+        font-size: 13px; font-weight: 600;
+        letter-spacing: 0.08em; text-transform: uppercase;
+        background: linear-gradient(135deg, #6366f1, #ec4899);
+        color: white; cursor: pointer;
+        box-shadow: 0 14px 30px rgba(79,70,229,0.7);
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.08s ease;
+    }
+
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 18px 40px rgba(79,70,229,0.9); filter: brightness(1.05); }
+    .btn-primary:active { transform: translateY(0); box-shadow: 0 10px 24px rgba(79,70,229,0.7); filter: brightness(0.98); }
+    .btn-primary span.icon { font-size: 15px; }
+
+    .list {
+        position: relative; z-index: 1;
+        display: flex; flex-direction: column; gap: 8px;
+        max-height: 330px; overflow-y: auto; padding-right: 4px;
+    }
+
+    .list::-webkit-scrollbar { width: 6px; }
+    .list::-webkit-scrollbar-track { background: rgba(15,23,42,0.9); border-radius: 999px; }
+    .list::-webkit-scrollbar-thumb { background: rgba(55,65,81,0.9); border-radius: 999px; }
+
+    .item {
+        background: radial-gradient(circle at top, rgba(15,23,42,0.98), rgba(15,23,42,0.98));
+        border-radius: 14px;
+        border: 1px solid rgba(31,41,55,0.95);
+        padding: 9px 10px 8px;
+        display: grid;
+        grid-template-columns: minmax(0, 1.6fr) minmax(0, 0.9fr) auto;
+        gap: 8px;
+        align-items: center;
+        box-shadow: var(--shadow-chip);
+        cursor: pointer;
+        transition: border-color 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .item:hover {
+        border-color: rgba(99,102,241,0.5);
+        box-shadow: 0 10px 25px rgba(15,23,42,0.9), 0 0 0 1px rgba(99,102,241,0.25);
+    }
+
+    .item.copied {
+        border-color: rgba(34,197,94,0.6);
+        box-shadow: 0 10px 25px rgba(15,23,42,0.9), 0 0 0 1px rgba(34,197,94,0.3);
+    }
+
+    @media (max-width: 900px) {
+        .item { grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.9fr); grid-template-rows: auto auto; }
+    }
+
+    .item-main { display: flex; flex-direction: column; gap: 3px; }
+    .item-text { font-size: 13px; color: #e5e7eb; word-break: break-word; }
+    .item-meta { font-size: 11px; color: var(--text-soft); }
+
+    .item-hotkey {
+        justify-self: flex-start;
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 5px 9px; border-radius: 999px;
+        background: rgba(15,23,42,0.9);
+        border: 1px solid rgba(55,65,81,0.95);
+        font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: #c7d2fe;
+    }
+
+    .item-hotkey span.key {
+        padding: 2px 6px; border-radius: 6px;
+        background: rgba(30,64,175,0.9);
+        border: 1px solid rgba(129,140,248,0.9);
+        font-size: 10px;
+    }
+
+    .item-actions { display: flex; gap: 6px; justify-content: flex-end; }
+
+    .btn-icon {
+        border-radius: 999px;
+        border: 1px solid rgba(55,65,81,0.95);
+        background: rgba(15,23,42,0.95);
+        color: #9ca3af;
+        width: 26px; height: 26px;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 13px; cursor: pointer;
+        transition: background 0.1s ease, border 0.1s ease, transform 0.08s ease, color 0.08s ease;
+    }
+
+    .btn-icon:hover { background: rgba(30,64,175,0.9); border-color: rgba(129,140,248,0.9); color: #e5e7eb; transform: translateY(-0.5px); }
+    .btn-icon.danger:hover { background: rgba(127,29,29,0.95); border-color: rgba(248,113,113,0.95); color: #fecaca; }
+
+    .pill-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+
+    .pill {
+        font-size: 10px; padding: 3px 7px; border-radius: 999px;
+        border: 1px solid rgba(55,65,81,0.95);
+        background: rgba(15,23,42,0.95);
+        color: #9ca3af; text-transform: uppercase; letter-spacing: 0.12em;
+    }
+
+    .footer {
+        margin-top: 12px; display: flex; justify-content: space-between; align-items: center;
+        font-size: 11px; color: var(--text-soft);
+    }
+
+    .footer span.accent { color: #a5b4fc; text-transform: uppercase; letter-spacing: 0.16em; font-size: 10px; }
+
+    .toast {
+        position: fixed; bottom: 18px; right: 18px;
+        background: radial-gradient(circle at top, #111827, #020617);
+        border-radius: 999px; padding: 8px 14px;
+        border: 1px solid rgba(55,65,81,0.95);
+        color: #e5e7eb; font-size: 12px;
+        display: flex; align-items: center; gap: 8px;
+        box-shadow: 0 14px 35px rgba(15,23,42,0.95);
+        opacity: 0; transform: translateY(10px); pointer-events: none;
+        transition: opacity 0.15s ease, transform 0.15s ease;
+        z-index: 50;
+    }
+
+    .toast.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+    .toast-dot { width: 8px; height: 8px; border-radius: 999px; background: #22c55e; box-shadow: 0 0 0 5px rgba(34,197,94,0.25); }
+
+    .empty-state { font-size: 12px; color: var(--text-soft); padding: 10px 4px 4px; }
+    .kbd-hint { font-size: 11px; color: #9ca3af; margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div class="app-inner">
+    <div class="header">
+      <div class="title-block">
+        <div class="logo"><span>HK</span></div>
+        <div class="title-text">
+          <h1>Hotkey Phrases</h1>
+          <p id="subtitle"></p>
+        </div>
+      </div>
+      <div class="header-right">
+        <button class="back-btn"
+        onclick="window.location.href='https://worklaf.github.io/MOWI/QR.html'"
+        data-i18n-title="backToQrTitle">
+    <span class="back-btn-icon">←</span>
+    <span class="back-btn-text" data-i18n="backToQr">MAX QR READER</span>
+</button>
+        <div class="lang-switcher">
+         <button class="lang-btn" data-lang="en">
+  <span class="fi fi-gb"></span> EN
+</button>
+<button class="lang-btn" data-lang="pl">
+  <span class="fi fi-pl"></span> PL
+</button>
+<button class="lang-btn" data-lang="ua">
+  <span class="fi fi-ua"></span> UA
+</button>
+
+        </div>
+        <div class="status-pill">
+          <span class="status-dot"></span>
+          <span id="statusLabel"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title" id="formCardTitle"></div>
+          <div class="badge" id="modeBadge"></div>
+        </div>
+        <form class="form" id="phraseForm">
+          <input type="hidden" id="editIndex" value="-1">
+          <div class="field-group">
+            <label for="text" id="labelText"></label>
+            <textarea id="text"></textarea>
+          </div>
+          <div class="field-group">
+            <label id="labelHotkey"></label>
+            <div class="hotkey-row">
+              <select id="modifier">
+                <option value="Ctrl">Ctrl</option>
+                <option value="Alt">Alt</option>
+              </select>
+              <input type="text" id="key" maxlength="1" id="keyInput">
+            </div>
+            <div class="hint" id="hintText"></div>
+          </div>
+          <button type="submit" class="btn-primary" id="submitBtn">
+            <span class="icon">＋</span>
+            <span id="submitLabel"></span>
+          </button>
+          <div class="kbd-hint" id="kbdHint"></div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title" id="listCardTitle"></div>
+          <div class="badge" id="countBadge">0</div>
+        </div>
+        <div class="list" id="list"></div>
+        <div class="empty-state" id="emptyState"></div>
+        <div class="pill-row">
+          <div class="pill" id="pill1"></div>
+          <div class="pill" id="pill2"></div>
+          <div class="pill" id="pill3"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div id="footerNote"></div>
+      <div><span class="accent">CTRL / ALT + KEY</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <div class="toast-dot"></div>
+  <div id="toastText"></div>
+</div>
+
+<script>
+const STORAGE_KEY = 'hotkey_phrases_v1';
+const LANG_KEY = 'hotkey_phrases_lang';
+
+const LANGS = {
+  en: {
+    backToQrTitle: 'Return to MAX QR READER',
+    subtitle: 'Local hotkey phrase manager with clipboard copy',
+    statusLabel: 'Listening for hotkeys',
+    formCardTitle: 'New phrase / edit',
+    modeAdd: 'Mode: add',
+    modeEdit: 'Mode: edit',
+    labelText: 'Phrase text',
+    textareaPlaceholder: 'Enter text to copy on hotkey press',
+    labelHotkey: 'Hotkey',
+    keyPlaceholder: 'Digit or letter (e.g. 1, 2, Q, W)',
+    hint: 'Allowed: Ctrl + digit, Alt + digit, Ctrl + letter, Alt + letter.',
+    submitAdd: 'Add phrase',
+    submitSave: 'Save changes',
+    kbdHint: 'Tip: keep this tab open so hotkeys work across the browser.',
+    listCardTitle: 'Saved phrases',
+    emptyState: 'No phrases yet. Add one on the left — it will be available via hotkey right away.',
+    pill1: 'Storage: localStorage',
+    pill2: 'Works offline',
+    pill3: 'Copy to clipboard',
+    footerNote: 'All data is stored locally in your browser only.',
+    comboLabel: 'Combo:',
+    backToQr: 'MAX QR READER',
+    toastCopied: 'Copied',
+    toastAdded: 'Phrase added',
+    toastUpdated: 'Phrase updated',
+    toastDeleted: 'Phrase deleted',
+    toastEditMode: 'Edit mode',
+    toastEmptyText: 'Phrase text is empty',
+    toastEmptyKey: 'No key specified',
+    toastInvalidKey: 'Only a single letter or digit is allowed',
+    toastComboUsed: 'This combo is already in use',
+    confirmDelete: 'Delete phrase with combo',
+    countSuffix: (n) => n === 1 ? '1 phrase' : `${n} phrases`,
+  },
+  pl: {
+    backToQrTitle: 'Powrót do MAX QR READER',
+    subtitle: 'Lokalny menedżer fraz skrótów z kopiowaniem do schowka',
+    statusLabel: 'Nasłuchuję skrótów',
+    formCardTitle: 'Nowa fraza / edycja',
+    modeAdd: 'Tryb: dodawanie',
+    modeEdit: 'Tryb: edycja',
+    labelText: 'Treść frazy',
+    textareaPlaceholder: 'Wpisz tekst, który zostanie skopiowany po naciśnięciu skrótu',
+    labelHotkey: 'Skrót klawiszowy',
+    keyPlaceholder: 'Cyfra lub litera (np. 1, 2, Q, W)',
+    hint: 'Dozwolone: Ctrl + cyfra, Alt + cyfra, Ctrl + litera, Alt + litera.',
+    submitAdd: 'Dodaj frazę',
+    submitSave: 'Zapisz zmiany',
+    kbdHint: 'Wskazówka: trzymaj tę kartę otwartą, by skróty działały w całej przeglądarce.',
+    listCardTitle: 'Zapisane frazy',
+    emptyState: 'Brak fraz. Dodaj pierwszą po lewej — od razu będzie dostępna pod skrótem.',
+    pill1: 'Zapis: localStorage',
+    pill2: 'Działa offline',
+    pill3: 'Kopiowanie do schowka',
+    footerNote: 'Wszystkie dane są przechowywane wyłącznie lokalnie w przeglądarce.',
+    comboLabel: 'Kombinacja:',
+    backToQr: 'MAX QR READER',
+    toastCopied: 'Skopiowano',
+    toastAdded: 'Fraza dodana',
+    toastUpdated: 'Fraza zaktualizowana',
+    toastDeleted: 'Fraza usunięta',
+    toastEditMode: 'Tryb edycji',
+    toastEmptyText: 'Treść frazy jest pusta',
+    toastEmptyKey: 'Nie podano klawisza',
+    toastInvalidKey: 'Dozwolona tylko jedna litera lub cyfra',
+    toastComboUsed: 'Ten skrót jest już używany',
+    confirmDelete: 'Usuń frazę ze skrótem',
+    countSuffix: (n) => n === 1 ? '1 fraza' : (n < 5 ? `${n} frazy` : `${n} fraz`),
+  },
+  ua: {
+    backToQrTitle: 'Повернутися до MAX QR READER',
+    subtitle: 'Локальний менеджер гарячих фраз із копіюванням у буфер',
+    statusLabel: 'Слухаю гарячі клавіші',
+    formCardTitle: 'Нова фраза / редагування',
+    modeAdd: 'Режим: додавання',
+    modeEdit: 'Режим: редагування',
+    labelText: 'Текст фрази',
+    textareaPlaceholder: 'Введи текст, який буде копіюватися по гарячій клавіші',
+    labelHotkey: 'Гаряча клавіша',
+    keyPlaceholder: 'Цифра або буква (напр.: 1, 2, Q, W)',
+    hint: 'Допустимі: Ctrl + цифра, Alt + цифра, Ctrl + буква, Alt + буква.',
+    submitAdd: 'Додати фразу',
+    submitSave: 'Зберегти зміни',
+    kbdHint: 'Підказка: тримай цю вкладку відкритою, щоб гарячі клавіші працювали у всьому браузері.',
+    listCardTitle: 'Збережені фрази',
+    emptyState: 'Поки немає жодної фрази. Додай першу зліва — і вона одразу стане доступна по гарячій клавіші.',
+    pill1: 'Зберігання: localStorage',
+    pill2: 'Працює офлайн',
+    pill3: 'Копіювання у буфер',
+    footerNote: 'Усі дані зберігаються лише локально у твоєму браузері.',
+    comboLabel: 'Комбінація:',
+    backToQr: 'MAX QR READER',
+    toastCopied: 'Скопійовано',
+    toastAdded: 'Фразу додано',
+    toastUpdated: 'Фразу оновлено',
+    toastDeleted: 'Фразу видалено',
+    toastEditMode: 'Режим редагування',
+    toastEmptyText: 'Текст фрази порожній',
+    toastEmptyKey: 'Не вказано клавішу',
+    toastInvalidKey: 'Допустима лише одна буква або цифра',
+    toastComboUsed: 'Ця комбінація вже використовується',
+    confirmDelete: 'Видалити фразу з комбінацією',
+    countSuffix: (n) => n === 1 ? '1 фраза' : (n < 5 ? `${n} фрази` : `${n} фраз`),
+  }
+};
+
+let currentLang = localStorage.getItem(LANG_KEY) || 'pl';
+let phrases = [];
+
+const form = document.getElementById('phraseForm');
+const textInput = document.getElementById('text');
+const modifierInput = document.getElementById('modifier');
+const keyInput = document.getElementById('key');
+const listEl = document.getElementById('list');
+const emptyStateEl = document.getElementById('emptyState');
+const countBadge = document.getElementById('countBadge');
+const modeBadge = document.getElementById('modeBadge');
+const submitLabel = document.getElementById('submitLabel');
+const editIndexInput = document.getElementById('editIndex');
+const toast = document.getElementById('toast');
+const toastText = document.getElementById('toastText');
+
+function t() { return LANGS[currentLang]; }
+
+function applyLang() {
+  const L = t();
+  document.getElementById('subtitle').textContent = L.subtitle;
+  document.getElementById('statusLabel').textContent = L.statusLabel;
+  document.getElementById('formCardTitle').textContent = L.formCardTitle;
+  document.getElementById('labelText').textContent = L.labelText;
+  textInput.placeholder = L.textareaPlaceholder;
+  document.getElementById('labelHotkey').textContent = L.labelHotkey;
+  keyInput.placeholder = L.keyPlaceholder;
+  document.getElementById('hintText').textContent = L.hint;
+  document.getElementById('kbdHint').textContent = L.kbdHint;
+  document.getElementById('listCardTitle').textContent = L.listCardTitle;
+  document.getElementById('emptyState').textContent = L.emptyState;
+  document.getElementById('pill1').textContent = L.pill1;
+  document.getElementById('pill2').textContent = L.pill2;
+  document.getElementById('pill3').textContent = L.pill3;
+  document.getElementById('footerNote').textContent = L.footerNote;
+  
+  // Обновляем кнопку возврата
+  const backBtnText = document.querySelector('.back-btn-text');
+  if (backBtnText) {
+    backBtnText.textContent = L.backToQr;
+  }
+document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    const key = el.getAttribute('data-i18n-title');
+    if (LANGS[currentLang][key]) {
+        el.setAttribute('title', LANGS[currentLang][key]);
+    }
+});
+  const editIndex = parseInt(editIndexInput.value, 10);
+  modeBadge.textContent = editIndex >= 0 ? L.modeEdit : L.modeAdd;
+  submitLabel.textContent = editIndex >= 0 ? L.submitSave : L.submitAdd;
+
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === currentLang);
+  });
+
+  renderList();
+}
+
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentLang = btn.dataset.lang;
+    localStorage.setItem(LANG_KEY, currentLang);
+    applyLang();
+  });
+});
+
+function showToast(message) {
+  toastText.textContent = message;
+  toast.classList.add('visible');
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(() => toast.classList.remove('visible'), 1600);
+}
+
+function loadPhrases() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) { return []; }
+}
+
+function savePhrases() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(phrases));
+}
+
+function copyText(text, label) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast(t().toastCopied + ': ' + label);
+    }).catch(() => fallbackCopy(text, label));
+  } else {
+    fallbackCopy(text, label);
+  }
+}
+
+function fallbackCopy(text, label) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showToast(t().toastCopied + ': ' + label);
+  } catch (e) {
+    showToast('Error');
+  }
+  document.body.removeChild(ta);
+}
+
+function renderList() {
+  const L = t();
+  listEl.innerHTML = '';
+  if (!phrases.length) {
+    emptyStateEl.style.display = 'block';
+    countBadge.textContent = L.countSuffix(0);
+    return;
+  }
+  emptyStateEl.style.display = 'none';
+  countBadge.textContent = L.countSuffix(phrases.length);
+
+  phrases.forEach((item, index) => {
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.title = L.toastCopied;
+
+    div.addEventListener('click', (e) => {
+      if (e.target.closest('.item-actions')) return;
+      copyText(item.text, item.modifier + ' + ' + item.key.toUpperCase());
+      div.classList.add('copied');
+      setTimeout(() => div.classList.remove('copied'), 600);
+    });
+
+    const main = document.createElement('div');
+    main.className = 'item-main';
+
+    const text = document.createElement('div');
+    text.className = 'item-text';
+    text.textContent = item.text;
+
+    const meta = document.createElement('div');
+    meta.className = 'item-meta';
+    meta.textContent = L.comboLabel + ' ' + item.modifier + ' + ' + item.key.toUpperCase();
+
+    main.appendChild(text);
+    main.appendChild(meta);
+
+    const hotkey = document.createElement('div');
+    hotkey.className = 'item-hotkey';
+    const spanMod = document.createElement('span');
+    spanMod.className = 'key';
+    spanMod.textContent = item.modifier;
+    const spanPlus = document.createElement('span');
+    spanPlus.textContent = '+';
+    const spanKey = document.createElement('span');
+    spanKey.className = 'key';
+    spanKey.textContent = item.key.toUpperCase();
+    hotkey.appendChild(spanMod);
+    hotkey.appendChild(spanPlus);
+    hotkey.appendChild(spanKey);
+
+    const actions = document.createElement('div');
+    actions.className = 'item-actions';
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn-icon';
+    editBtn.innerHTML = '✎';
+    editBtn.addEventListener('click', (e) => { e.stopPropagation(); startEdit(index); });
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn-icon danger';
+    delBtn.innerHTML = '✕';
+    delBtn.addEventListener('click', (e) => { e.stopPropagation(); deletePhrase(index); });
+
+    actions.appendChild(editBtn);
+    actions.appendChild(delBtn);
+
+    div.appendChild(main);
+    div.appendChild(hotkey);
+    div.appendChild(actions);
+
+    listEl.appendChild(div);
+  });
+}
+
+function startEdit(index) {
+  const item = phrases[index];
+  editIndexInput.value = index;
+  textInput.value = item.text;
+  modifierInput.value = item.modifier;
+  keyInput.value = item.key.toUpperCase();
+  modeBadge.textContent = t().modeEdit;
+  submitLabel.textContent = t().submitSave;
+  showToast(t().toastEditMode);
+}
+
+function resetForm() {
+  editIndexInput.value = -1;
+  textInput.value = '';
+  keyInput.value = '';
+  modeBadge.textContent = t().modeAdd;
+  submitLabel.textContent = t().submitAdd;
+}
+
+function deletePhrase(index) {
+  const item = phrases[index];
+  if (!confirm(t().confirmDelete + ' ' + item.modifier + ' + ' + item.key.toUpperCase() + '?')) return;
+  phrases.splice(index, 1);
+  savePhrases();
+  renderList();
+  showToast(t().toastDeleted);
+  if (parseInt(editIndexInput.value, 10) === index) resetForm();
+}
+
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const L = t();
+  const text = textInput.value.trim();
+  const modifier = modifierInput.value;
+  const keyRaw = keyInput.value.trim();
+
+  if (!text) { showToast(L.toastEmptyText); return; }
+  if (!keyRaw) { showToast(L.toastEmptyKey); return; }
+
+  const key = keyRaw.toUpperCase();
+  const isLetter = /^[A-ZА-ЯЁA-ЯЁІЇЄА-ЯЁІЇЄ]$/i.test(key);
+  const isDigit = /^[0-9]$/.test(key);
+
+  if (!isLetter && !isDigit) { showToast(L.toastInvalidKey); return; }
+
+  const combo = modifier + '+' + key;
+  const existingIndex = phrases.findIndex(p => (p.modifier + '+' + p.key.toUpperCase()) === combo);
+  const editIndex = parseInt(editIndexInput.value, 10);
+
+  if (existingIndex !== -1 && existingIndex !== editIndex) { showToast(L.toastComboUsed); return; }
+
+  const item = { text, modifier, key };
+  if (editIndex >= 0) {
+    phrases[editIndex] = item;
+    showToast(L.toastUpdated);
+  } else {
+    phrases.push(item);
+    showToast(L.toastAdded);
+  }
+
+  savePhrases();
+  renderList();
+  resetForm();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  const key = e.key.length === 1 ? e.key.toUpperCase() : null;
+  if (!key) return;
+  let modifier = null;
+  if (e.ctrlKey && !e.altKey) modifier = 'Ctrl';
+  else if (e.altKey && !e.ctrlKey) modifier = 'Alt';
+  else return;
+  const match = phrases.find(p => p.modifier === modifier && p.key.toUpperCase() === key);
+  if (!match) return;
+  e.preventDefault();
+  copyText(match.text, modifier + ' + ' + key);
+});
+
+phrases = loadPhrases();
+applyLang();
+</script>
+</body>
+</html>
