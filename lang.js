@@ -67,7 +67,7 @@ const translations = {
     deleteRow: 'Delete row',
     paletteTitle: 'Select color from palette'
   },
-  uk: {
+  ua: {
     langBtn: '🇺🇦 UA',
     backBtn: '← Назад',
     backBtnText: 'Назад',
@@ -106,7 +106,7 @@ const translations = {
 const languages = [
   { code: 'pl', name: 'Polski', flag: 'pl' },
   { code: 'en', name: 'English', flag: 'gb' },
-  { code: 'uk', name: 'Українська', flag: 'ua' }
+  { code: 'ua', name: 'Українська', flag: 'ua' }
 ];
 
 let currentLang = localStorage.getItem('qrLang') || 'pl';
@@ -134,9 +134,10 @@ function setLanguage(lang) {
   
   // Обновляем placeholder
   const codeInput = document.querySelector('#codeTable tbody input[type="text"]');
-  if (codeInput) {
+  if (codeInput && translations[lang].placeholder) {
     codeInput.placeholder = translations[lang].placeholder;
-  }
+}
+
   
   // Обновляем select options
   document.querySelectorAll('#bgShape option').forEach(opt => {
