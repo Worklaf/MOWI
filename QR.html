@@ -90,7 +90,7 @@
             position: absolute; top: 20px; left: 200px;
             background: rgba(31,31,31,0.9); padding: 10px 14px;
             border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-            display: flex; align-items: center; gap: 8px; z-index: 150; font-size: 14px;
+            display: flex; align-items: center; gap: 8px; z-index: 99999 !important; font-size: 14px;
         }
         #languageSwitcher .flag-icon { font-size: 22px; line-height: 1; }
         #languageSwitcher select {
@@ -172,7 +172,8 @@
         #qrOverlay {
             display: none; position: fixed; inset: 0;
             background: rgba(0,0,0,0.95);
-            z-index: 9999; flex-direction: column; align-items: center;
+            z-index: 99999 !important; /* ВЫШЕ ВСЕХ СЛОЕВ */
+            flex-direction: column; align-items: center;
             justify-content: space-between; cursor: pointer;
             transition: background 0.4s;
         }
@@ -1060,6 +1061,20 @@
             box-shadow: 0 4px 15px rgba(139, 92, 246,0.4), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2);
             text-shadow: 0 1px 2px rgba(0,0,0,0.3);
         ">🏷️ <span id="workTextBtnText">Партии</span></button>
+        <button id="workWeightRegionBtn" onclick="startWeightAreaSelection()" style="
+            background: linear-gradient(145deg, #8b5cf6 0%, #7c3aed 50%, #8b5cf6 100%);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(139, 92, 246,0.4), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        ">⚖️ <span id="workWeightBtnText">Waga</span></button>
         <button id="resetBtn" class="btn-small" style="
             background: linear-gradient(145deg, #dc2626 0%, #b91c1c 50%, #dc2626 100%);
             color: white;
@@ -1097,7 +1112,7 @@
     <div class="qr-overlay-body">
 
         <!-- Тумблер SINGLE/MULTI MODE -->
-        <div id="overlayModeSwitcher" style="position: absolute; top: 20px; left: 20px; background: rgba(31,31,31,0.9); padding: 10px 16px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); display: flex; align-items: center; gap: 10px; z-index: 150; font-size: 14px;">
+        <div id="overlayModeSwitcher" style="position: absolute; top: 20px; left: 20px; background: rgba(31,31,31,0.9); padding: 10px 14px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); display: flex; align-items: center; gap: 8px; z-index: 99999 !important; font-size: 14px;">
             <span style="color:#f87171; font-size:13px; font-weight:600;">SINGLE</span>
             <label class="switch">
                 <input type="checkbox" id="overlayModeToggle">
@@ -1183,8 +1198,16 @@ let storedSingleRegion = null; // Отдельное сохранение для
 let storedMultiRegion = null;  // Отдельное сохранение для MULTI MODE
 let storedTextRegion = null;   // Сохранение для текстовой области (названия партий)
 let partyNames = [];           // Массив для хранения названий партий
-let isCapturing   = false, isProcessing = false, isVideoMode = false;
+let partyWeights = [];          // Массив для хранения весов партий
+let isSelectingMultiRegion = false; // Флаг для отслеживания выделения MULTI области
+let isSelectingTextRegion = false; // Флаг для отслеживания выделения текстовой области
+let isSelectingWeightArea = false; // Флаг для отслеживания выделения области веса
+let weightRegions = [];           // Массив для хранения WEIGHT областей
+let currentWeightIndex = -1;   // Текущий индекс WEIGHT области
 let isHistoryVisible = true;
+let isCapturing   = false;
+let isProcessing  = false; // Восстанавливаем переменную isProcessing
+let isVideoMode   = false;
 let isMultiMode   = false;
 let multiRegions  = [];
 let multiCodes    = [];
@@ -1208,6 +1231,7 @@ const cardsBtn          = document.getElementById('cardsBtn');
 const resetBtn          = document.getElementById('resetBtn');
 const textRegionBtn     = document.getElementById('textRegionBtn');
 const workTextRegionBtn = document.getElementById('workTextRegionBtn');
+const workWeightRegionBtn = document.getElementById('workWeightRegionBtn');
 const overlayHintEl     = document.getElementById('hint');
 const spaceHintEl       = document.getElementById('spaceHint');
 const captureBtnText    = document.getElementById('captureBtnText');
@@ -1241,7 +1265,9 @@ const STORAGE_KEY_MULTI_REGIONS = 'maxqr_multiRegions';
 const STORAGE_KEY_SINGLE_REGION = 'maxqr_singleRegion'; // Для SINGLE MODE
 const STORAGE_KEY_MULTI_REGION = 'maxqr_multiRegion';  // Для MULTI MODE
 const STORAGE_KEY_TEXT_REGION = 'maxqr_textRegion';    // Для текстовой области (названия партий)
+const STORAGE_KEY_WEIGHT_REGION = 'maxqr_weightRegion';  // Для области веса партий
 const STORAGE_KEY_PARTY_NAMES = 'maxqr_partyNames';      // Для массива названий партий
+const STORAGE_KEY_PARTY_WEIGHTS = 'maxqr_partyWeights';  // Для массива весов партий
 
 /* ══════════════════════════════════════════════
    MULTI MODE INITIALIZATION
@@ -1393,10 +1419,41 @@ function updateWorkModeToggle() {
     window.updateTextButtons();
     
     // Автоматически генерируем QR коды только при ручном переключении
-    if (isMultiMode && storedMultiRegion && window.manualModeSwitch) {
-        console.log('🚀 Автоматическая генерация MULTI QR кодов...');
-        console.log('📊 Использую MULTI координаты:', storedMultiRegion);
-        setTimeout(() => processMultiRegionAsLines(storedMultiRegion), 300);
+    if (isMultiMode && window.manualModeSwitch) {
+        console.log('🚀 MULTI MODE активирован (быстрый)');
+        
+        // Сначала распознаем партии если есть текстовая область
+        if (storedTextRegion) {
+            console.log('📝 Автоматически распознаю партии из сохраненной области...');
+            setTimeout(() => {
+                processTextRegion(storedTextRegion);
+            }, 200);
+        }
+        
+        // Затем распознаем веса если есть WEIGHT области
+        if (weightRegions && weightRegions.length > 0) {
+            console.log('⚖️ Автоматически распознаю веса из сохраненных областей...');
+            setTimeout(() => {
+                // Распознаем каждую WEIGHT область
+                weightRegions.forEach((region, index) => {
+                    setTimeout(() => {
+                        console.log(`⚖️ Распознаю WEIGHT область ${index + 1}...`);
+                        processWeightArea(region);
+                    }, index * 500); // Задержка между областями
+                });
+            }, 400);
+        }
+        
+        // Затем генерируем QR коды если есть MULTI область
+        if (storedMultiRegion) {
+            console.log('🚀 Автоматически запускаю генерацию QR кодов...');
+            setTimeout(() => {
+                processMultiRegionAsLines(storedMultiRegion);
+            }, 1000); // Запускаем после распознавания весов
+        } else {
+            console.log('⚠️ MULTI область не найдена, нужно выделить вручную');
+            setStatus('Выделите QR область для генерации кодов');
+        }
     } else if (!isMultiMode && storedSingleRegion && window.manualModeSwitch) {
         console.log('🚀 Автоматическая генерация SINGLE QR кода...');
         console.log('📊 Использую SINGLE координаты:', storedSingleRegion);
@@ -1565,12 +1622,15 @@ const translations = {
         spaceHint:'Naciśnij SPACJĘ dla kolejnego zrzutu',
         captureBtnText:'NOWY ZRZUT',
         statusSelectNew:'⚠️ Wybierz okno ponownie',
-        // Новые переводы для кнопки партий
+        // Новые переводы для кнопки партий и веса
         partyBtn:'🏷️ Partie',
         partyBtnSaved:'🏷️ Partie (✓)',
+        weightBtn:'⚖️ Waga',
+        weightBtnSaved:'⚖️ Waga (✓)',
         needMultiMode:'Przełącz się w MULTI MODE aby zaznaczyć tekst partii',
         needMultiModeConsole:'⚠️ Musisz przełączyć się w MULTI MODE do pracy z tekstem partii',
         textAreaSaved:'Obszar tekstowy zapisany',
+        weightAreaSaved:'Obszar wagi zapisany',
     },
     uk: {
         startTitle:'MAX QR READER', startSubtitle:'Оберіть джерело зображення',
@@ -1589,12 +1649,15 @@ const translations = {
         spaceHint:'Натисніть ПРОБІЛ для нового зображення',
         captureBtnText:'НОВИЙ ЗНІМОК',
         statusSelectNew:'⚠️ Оберіть вікно знову',
-        // Нові переклади для кнопки партій
+        // Нові переклади для кнопки партій і ваги
         partyBtn:'🏷️ Партії',
         partyBtnSaved:'🏷️ Партії (✓)',
+        weightBtn:'⚖️ Вага',
+        weightBtnSaved:'⚖️ Вага (✓)',
         needMultiMode:'Переключіться в MULTI MODE для виділення тексту партій',
         needMultiModeConsole:'⚠️ Потрібно переключитися в MULTI MODE для роботи з текстом партій',
         textAreaSaved:'Текстова область збережена',
+        weightAreaSaved:'Область ваги збережена',
     },
     en: {
         startTitle:'MAX QR READER', startSubtitle:'Choose image source',
@@ -1612,12 +1675,15 @@ const translations = {
         spaceHint:'Press SPACE for next capture',
         captureBtnText:'NEW CAPTURE',
         statusSelectNew:'⚠️ Select window again',
-        // New translations for party button
+        // New translations for party button and weight button
         partyBtn:'🏷️ Parties',
         partyBtnSaved:'🏷️ Parties (✓)',
+        weightBtn:'⚖️ Weight',
+        weightBtnSaved:'⚖️ Weight (✓)',
         needMultiMode:'Switch to MULTI MODE to select party text',
         needMultiModeConsole:'⚠️ You need to switch to MULTI MODE to work with party text',
         textAreaSaved:'Text area saved',
+        weightAreaSaved:'Weight area saved',
     }
 };
 const ocrLangMap = { pl:'pol', uk:'ukr', en:'eng' };
@@ -1715,6 +1781,11 @@ function startTextRegionSelection() {
         if (imgDataSnapshot) {
             ctx.putImageData(imgDataSnapshot, 0, 0);
         }
+        
+        // Рисуем все сохраненные области + новую область текста
+        redrawCanvasWithRegions();
+        
+        // Рисуем новую область текста (синяя рамка)
         ctx.strokeStyle = '#3b82f6';
         ctx.lineWidth = 2;
         ctx.setLineDash([5, 5]);
@@ -1741,8 +1812,8 @@ function startTextRegionSelection() {
             setStatus(t('textAreaSaved'));
             
             // Обновляем кнопку
-            if (textRegionBtn) {
-                textRegionBtn.textContent = t('partyBtnSaved');
+            if (workTextRegionBtn) {
+                workTextRegionBtn.textContent = t('partyBtnSaved');
             }
             
             // Перерисовываем рамки
@@ -1761,11 +1832,363 @@ function startTextRegionSelection() {
     };
 }
 
+// Независимая система для WEIGHT областей
+function startWeightAreaSelection() {
+    // Проверяем что мы не в режиме обработки QR кодов
+    if (isProcessing) {
+        console.warn('⚠️ Нельзя выделеть WEIGHT область во время обработки QR кодов!');
+        setStatus('Дождитесь завершения обработки QR кодов');
+        return;
+    }
+    
+    // Проверяем что мы не в режиме выделения QR кодов
+    if (isSelectingMultiRegion) {
+        console.warn('⚠️ Нельзя выделеть WEIGHT область во время выделения MULTI области!');
+        setStatus('Сначала завершите выделение MULTI области');
+        return;
+    }
+    
+    // Проверяем что мы не в режиме выделения текстовой области
+    if (isSelectingTextRegion) {
+        console.warn('⚠️ Нельзя выделеть WEIGHT область во время выделения текстовой области!');
+        setStatus('Сначала завершите выделение текстовой области');
+        return;
+    }
+    
+    // Если уже выделяем WEIGHT область, завершаем ее
+    if (isSelectingWeightArea) {
+        console.log('⚖️ Завершаем предыдущее выделение WEIGHT области...');
+        isSelectingWeightArea = false;
+        isDrawing = false;
+        startX = startY = null;
+        mainCanvas.onmousedown = mainCanvas.onmousemove = mainCanvas.onmouseup = null;
+        qrOverlay.style.pointerEvents = 'auto';
+        redrawCanvasWithRegions();
+    }
+    
+    console.log('⚖️ Начинаю выделение WEIGHT области...');
+    setStatus('Выделите WEIGHT область (независимая от PARTY и MULTI)');
+    
+    // Устанавливаем флаг что мы выделяем WEIGHT область
+    isSelectingWeightArea = true;
+    
+    // Блокируем другие элементы
+    qrOverlay.style.pointerEvents = 'none';
+    
+    // Начинаем выделение
+    isDrawing = true;
+    startX = startY = null;
+    
+    mainCanvas.onmousedown = function(e) {
+        if (!isDrawing) return;
+        const rect = mainCanvas.getBoundingClientRect();
+        startX = e.clientX - rect.left;
+        startY = e.clientY - rect.top;
+        // Проверяем что canvas готов перед созданием снимка
+        if (mainCanvas.width && mainCanvas.height) {
+            imgDataSnapshot = ctx.getImageData(0, 0, mainCanvas.width, mainCanvas.height);
+        }
+    };
+    
+    mainCanvas.onmousemove = function(e) {
+        if (!isDrawing || startX === null) return;
+        const rect = mainCanvas.getBoundingClientRect();
+        const currentX = e.clientX - rect.left;
+        const currentY = e.clientY - rect.top;
+        
+        // Восстанавливаем изображение только если есть снимок
+        if (imgDataSnapshot) {
+            ctx.putImageData(imgDataSnapshot, 0, 0);
+        }
+        
+        // Рисуем все сохраненные области + новую WEIGHT область
+        redrawCanvasWithRegions();
+        
+       // Рисуем новую WEIGHT область (ЯРКО-ФИОЛЕТОВАЯ рамка)
+        ctx.strokeStyle = '#8b5cf6'; // Фиолетовый цвет
+        ctx.lineWidth = 3; // Толщина линии
+        ctx.setLineDash([]); // <-- ДЕЛАЕТ ЛИНИЮ СПЛОШНОЙ
+        ctx.strokeRect(startX, startY, currentX - startX, currentY - startY);
+
+        
+        // Отладка: проверяем что цвет применился
+        console.log('🎨 WEIGHT выделение: цвет =', ctx.strokeStyle, 'толщина =', ctx.lineWidth);
+    };
+    
+    mainCanvas.onmouseup = function(e) {
+        if (!isDrawing || startX === null) return;
+        const rect = mainCanvas.getBoundingClientRect();
+        const endX = e.clientX - rect.left;
+        const endY = e.clientY - rect.top;
+        
+        const region = {
+            x: Math.min(startX, endX),
+            y: Math.min(startY, endY),
+            w: Math.abs(endX - startX),
+            h: Math.abs(endY - startY)
+        };
+        
+        if (region.w > 10 && region.h > 10) {
+            // Добавляем новую WEIGHT область
+            weightRegions.push(region);
+            currentWeightIndex = weightRegions.length - 1;
+            
+            console.log('⚖️ Добавлена WEIGHT область:', region);
+            console.log('⚖️ Всего WEIGHT областей:', weightRegions.length);
+            setStatus('WEIGHT область добавлена');
+            
+            // Сохраняем в localStorage
+            localStorage.setItem(STORAGE_KEY_WEIGHT_REGION, JSON.stringify(weightRegions));
+            
+            // Обновляем кнопку
+            if (workWeightRegionBtn) {
+                workWeightRegionBtn.textContent = t('weightBtnSaved');
+            }
+        }
+        
+        // Сбрасываем состояние
+        isDrawing = false;
+        startX = startY = null;
+        mainCanvas.onmousedown = mainCanvas.onmousemove = mainCanvas.onmouseup = null;
+        qrOverlay.style.pointerEvents = 'auto';
+        
+        // Перерисовываем все области
+        redrawCanvasWithRegions();
+        
+        // Автоматически запускаем OCR для WEIGHT области
+        if (region.w > 10 && region.h > 10) {
+            setTimeout(() => processWeightArea(region), 300);
+        }
+    };
+}
+
+function redrawCanvasWithRegions() {
+    // Восстанавливаем изображение из снимка если есть и canvas готов
+    if (imgDataSnapshot && mainCanvas.width && mainCanvas.height) {
+        ctx.putImageData(imgDataSnapshot, 0, 0);
+    }
+    
+    // Рисуем сохраненную область QR кодов (SINGLE/MULTI)
+    if (storedRegion) {
+        ctx.strokeStyle = '#22c55e';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([8, 4]);
+        ctx.strokeRect(storedRegion.x, storedRegion.y, storedRegion.w, storedRegion.h);
+    }
+    
+    // Рисуем сохраненную текстовую область (названия партий)
+    if (storedTextRegion) {
+        ctx.strokeStyle = '#3b82f6';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.strokeRect(storedTextRegion.x, storedTextRegion.y, storedTextRegion.w, storedTextRegion.h);
+    }
+    
+    // Рисуем все WEIGHT области (ЯРКИЕ ФИОЛЕТОВЫЕ рамки)
+    weightRegions.forEach((region, index) => {
+        ctx.strokeStyle = '#8b5cf6'; // Фиолетовый цвет
+        ctx.lineWidth = 3; // Увеличиваем толщину
+        ctx.setLineDash([8, 4]); // Яркий пунктир
+        ctx.strokeRect(region.x, region.y, region.w, region.h);
+        
+        // Добавляем номер области
+        ctx.fillStyle = '#8b5cf6';
+        ctx.font = 'bold 14px Arial';
+        ctx.fillText(`W${index + 1}`, region.x + 5, region.y - 5);
+        
+        // Отладка
+        console.log(`🎨 WEIGHT область ${index + 1}: цвет = ${ctx.strokeStyle}`);
+    });
+}
+
+async function processWeightArea(region) {
+    if (!region) return;
+    
+    console.log('⚖️ Начинаю OCR WEIGHT области:', region);
+    setStatus('Распознавание WEIGHT области...');
+    
+    // Очищаем старые веса перед новым распознаванием
+    partyWeights = [];
+    localStorage.removeItem(STORAGE_KEY_PARTY_WEIGHTS);
+    console.log('⚖️ Очистил старые веса перед новым распознаванием');
+    
+    try {
+        // Создаем временный canvas для WEIGHT области
+        const weightCanvas = document.createElement('canvas');
+        weightCanvas.width = region.w;
+        weightCanvas.height = region.h;
+        const weightCtx = weightCanvas.getContext('2d');
+        
+        // Копируем WEIGHT область
+        try {
+            weightCtx.drawImage(mainCanvas, region.x, region.y, region.w, region.h, 0, 0, region.w, region.h);
+        } catch (error) {
+            console.error('❌ Ошибка копирования WEIGHT области:', error);
+            return;
+        }
+        
+        // Агрессивная предобработка для WEIGHT (только цифры)
+        function preprocessWeightImage(imageData) {
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+            
+            // Увеличиваем контрастность для цифр
+            const factor = 2.5;
+            for (let i = 0; i < data.length; i += 4) {
+                const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+                const adjusted = Math.min(255, Math.max(0, (gray - 128) * factor + 128));
+                
+                if (adjusted < 160) {
+                    data[i] = data[i + 1] = data[i + 2] = 0;     // Черные цифры
+                } else {
+                    data[i] = data[i + 1] = data[i + 2] = 255;   // Белый фон
+                }
+            }
+            
+            return imageData;
+        }
+        
+        // Получаем изображение для OCR
+        const imageData = preprocessWeightImage(weightCtx.getImageData(0, 0, region.w, region.h));
+        
+        // Увеличиваем изображение для лучшего OCR
+        const scaleFactor = 3.5; // Максимальное увеличение для цифр
+        const scaledCanvas = document.createElement('canvas');
+        scaledCanvas.width = Math.floor(region.w * scaleFactor);
+        scaledCanvas.height = Math.floor(region.h * scaleFactor);
+        const scaledCtx = scaledCanvas.getContext('2d');
+        scaledCtx.imageSmoothingEnabled = false;
+        scaledCtx.drawImage(weightCanvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
+        
+        console.log('⚖️ Увеличил WEIGHT область в', scaleFactor, 'раз для OCR');
+        
+        // Выполняем OCR только для цифр
+        if (typeof Tesseract === 'undefined') {
+            console.error('❌ Tesseract не загружен!');
+            setStatus('Ошибка: Tesseract не загружен');
+            return;
+        }
+        
+        const result = await Tesseract.recognize(scaledCanvas, ocrLangMap[currentLang] || 'eng', {
+            tessedit_char_whitelist: '0123456789.,-',
+            tessedit_pagesegmode: '7', // Режим для распознавания отдельных символов
+            tessedit_ocr_engine_mode: '1',
+            tessedit_zero_rejection: '0',
+            tessedit_char_blacklist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+        });
+        
+        // Обрабатываем распознанный текст
+        const text = result.data.text || '';
+        console.log('⚖️ Распознанный WEIGHT текст:', text);
+        console.log('⚖️ Уверенность OCR:', result.data.confidence);
+        
+        // Извлекаем веса (ищем цифры)
+        const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+        
+        const newWeights = lines
+            .map(line => {
+                // Извлекаем только цифры и знаки препинания
+                const weight = line.replace(/[^0-9.,.-]/g, '').trim();
+                return weight;
+            })
+            .filter(weight => {
+                // Фильтруем валидные веса
+                if (!weight || weight.length === 0) return false;
+                
+                // Проверяем что есть хотя бы одна цифра
+                if (!/\d/.test(weight)) return false;
+                
+                // Проверяем что вес не слишком длинный
+                if (weight.length > 10) return false;
+                
+                return true;
+            });
+        
+        console.log('⚖️ Распознанные WEIGHT веса:', newWeights);
+        console.log('⚖️ Всего WEIGHT весов распознано:', newWeights.length);
+        
+        // Добавляем веса к общему массиву
+        partyWeights.push(...newWeights);
+        
+        // Сохраняем веса в localStorage
+        localStorage.setItem(STORAGE_KEY_PARTY_WEIGHTS, JSON.stringify(partyWeights));
+        
+        // Сопоставляем веса с партиями если есть
+        if (partyNames.length > 0 && partyWeights.length > 0) {
+            matchWeightsWithParties();
+        }
+        
+        setStatus('statusDone');
+        
+    } catch (err) {
+        console.error('❌ OCR ошибка при распознавании WEIGHT:', err);
+        setStatus('statusFail');
+    }
+}
+
+function matchWeightsWithParties() {
+    console.log('🔗 Сопоставляю веса с партиями...');
+    console.log('🔗 Партии:', partyNames);
+    console.log('🔗 Веса:', partyWeights);
+    
+    // Сопоставляем веса с партиями по порядку
+    const minLength = Math.min(partyNames.length, partyWeights.length);
+    
+    for (let i = 0; i < minLength; i++) {
+        console.log(`🔗 Партия ${i + 1}: "${partyNames[i]}" -> Вес: "${partyWeights[i]}"`);
+    }
+    
+    // Если весов меньше чем партий, добавляем пустые значения
+    while (partyWeights.length < partyNames.length) {
+        partyWeights.push('');
+    }
+    
+    console.log('🔗 Итоговое сопоставление:');
+    for (let i = 0; i < partyNames.length; i++) {
+        console.log(`  ${i + 1}. "${partyNames[i]}" -> "${partyWeights[i] || 'нет веса'}"`);
+    }
+}
+
+function clearAllWeightAreas() {
+    weightRegions = [];
+    currentWeightIndex = -1;
+    isSelectingWeightArea = false;
+    localStorage.removeItem(STORAGE_KEY_WEIGHT_REGION);
+    console.log('⚖️ Все WEIGHT области очищены');
+    setStatus('WEIGHT области очищены');
+    
+    // Перерисовываем canvas без областей
+    if (mainCanvas.width && mainCanvas.height) {
+        imgDataSnapshot = ctx.getImageData(0, 0, mainCanvas.width, mainCanvas.height);
+        ctx.putImageData(imgDataSnapshot, 0, 0);
+    }
+}
+
+// Загрузка сохраненных WEIGHT областей при старте
+function loadWeightRegions() {
+    const saved = localStorage.getItem(STORAGE_KEY_WEIGHT_REGION);
+    if (saved) {
+        try {
+            weightRegions = JSON.parse(saved);
+            console.log('⚖️ Загружены сохраненные WEIGHT области:', weightRegions.length);
+        } catch (e) {
+            console.error('❌ Ошибка загрузки WEIGHT областей:', e);
+            weightRegions = [];
+        }
+    }
+}
+
 async function processTextRegion(region) {
     if (!region) return;
     
     console.log('📝 Начинаю OCR текстовой области:', region);
     setStatus('Распознавание текста партий...');
+    
+    // Очищаем старые результаты при новом выделении
+    partyNames = [];
+    multiCodes = [];
+    console.log('🧹 Очистил старые партии и QR коды перед новым распознаванием');
     
     try {
         // Создаем временный canvas для текстовой области
@@ -1775,23 +2198,58 @@ async function processTextRegion(region) {
         const textCtx = textCanvas.getContext('2d');
         
         // Копируем область текста
-        textCtx.drawImage(mainCanvas, region.x, region.y, region.w, region.h, 0, 0, region.w, region.h);
-        
-        // Получаем изображение для OCR
-        const imageData = textCtx.getImageData(0, 0, region.w, region.h);
-        
-        // Улучшаем контрастность для лучшего распознавания текста
-        const data = imageData.data;
-        for (let i = 0; i < data.length; i += 4) {
-            const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
-            // Более агрессивная бинаризация
-            const enhanced = gray < 200 ? 0 : 255; // Порог 200 вместо 128
-            data[i] = enhanced;     // R
-            data[i + 1] = enhanced; // G
-            data[i + 2] = enhanced; // B
+        try {
+            textCtx.drawImage(mainCanvas, region.x, region.y, region.w, region.h, 0, 0, region.w, region.h);
+        } catch (error) {
+            console.error('❌ Ошибка копирования области текста:', error);
+            return;
         }
         
-        textCtx.putImageData(imageData, 0, 0);
+        // Нормализуем фон для лучшего OCR
+        function normalizeBackground(imageData) {
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                // Если пиксель почти белый (близко к #FFFFFF), делаем его светло-серым (#F8F8F8)
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                
+                if (r > 245 && g > 245 && b > 245) {
+                    data[i] = 248;     // R
+                    data[i + 1] = 248; // G
+                    data[i + 2] = 248; // B
+                }
+            }
+            return imageData;
+        }
+
+        // Агрессивная предобработка для текста
+        function preprocessTextImage(imageData) {
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+            
+            // Нормализуем фон сначала
+            normalizeBackground(imageData);
+            
+            // Увеличиваем контрастность
+            const factor = 1.8;
+            for (let i = 0; i < data.length; i += 4) {
+                const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+                const adjusted = Math.min(255, Math.max(0, (gray - 128) * factor + 128));
+                
+                if (adjusted < 200) {
+                    data[i] = data[i + 1] = data[i + 2] = 0;     // Черный текст
+                } else {
+                    data[i] = data[i + 1] = data[i + 2] = 255;   // Белый фон
+                }
+            }
+            
+            return imageData;
+        }
+        
+        // Получаем изображение для OCR
+        const imageData = preprocessTextImage(textCtx.getImageData(0, 0, region.w, region.h));
         
         // Увеличиваем изображение для лучшего OCR
         const scaleFactor = 2.0;
@@ -1805,9 +2263,20 @@ async function processTextRegion(region) {
         console.log('📝 Увеличил текстовую область в', scaleFactor, 'раз для OCR');
         
         // Выполняем OCR с расширенным whitelist для текста
+        if (typeof Tesseract === 'undefined') {
+            console.error('❌ Tesseract не загружен!');
+            setStatus('Ошибка: Tesseract не загружен');
+            return;
+        }
+        
         const result = await Tesseract.recognize(scaledCanvas, ocrLangMap[currentLang] || 'eng', {
-            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя .-_/()[]',
-            tessedit_pagesegmode: '6' // Режим для распознавания текста как единых блоков
+            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя /-_/()[]',
+            tessedit_pagesegmode: '6', // Режим для распознавания текста как единых блоков
+            tessedit_ocr_engine_mode: '1',
+            tessedit_zero_rejection: '0',
+            tessedit_char_blacklist: '|',
+            tessedit_load_freq_dawg: '1',
+            tessedit_load_system_dawg: '1'
         });
         
         // Обрабатываем распознанный текст
@@ -1817,7 +2286,7 @@ async function processTextRegion(region) {
         
         const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
         
-        // Фильтруем и очищаем названия партий
+        // Фильтруем и очищаем названия партий - сохраняем все включая дубликаты
         partyNames = lines
             .map(name => name.trim())
             .filter(name => {
@@ -1830,74 +2299,39 @@ async function processTextRegion(region) {
                 // Убираем строки с только символами пунктуации
                 if (/^[|\-\s\.:]+$/.test(name)) return false;
                 
-                // Убираем дубликаты и очень похожие строки
-                return true;
+                // Убираем строки с только спецсимволами и без букв/цифр
+                if (/^[^\w\d\/]+$/.test(name)) return false;
+                
+                // Убираем строки которые не содержат букв или цифр (мусор)
+                if (!/[a-zA-Z0-9]/.test(name)) return false;
+                
+                // Проверяем что строка содержит хотя бы одну букву (партии должны иметь буквы)
+                if (!/[a-zA-Z]/.test(name)) return false;
+                
+                return true; // Сохраняем все остальные строки включая дубликаты
             })
             .map(name => {
                 // Очищаем от лишних символов в начале и конце
                 return name.replace(/^[|\-\s\.:]+|[|\-\s\.:]+$/g, '').trim();
             })
-            .filter(name => name.length > 0)
-            // Убираем дубликаты и очень похожие строки
-            .filter((name, index, arr) => {
-                // Проверяем на точные дубликаты
-                const exactDuplicate = arr.indexOf(name) !== index;
-                if (exactDuplicate) return false;
-                
-                // Проверяем на очень похожие строки (более 80% совпадения)
-                for (let i = 0; i < index; i++) {
-                    const similarity = calculateSimilarity(name, arr[i]);
-                    if (similarity > 0.8) return false; // 80% похожесть
-                }
-                
-                return true;
-            });
+            .filter(name => name.length > 0);
+        // НИКАКОЙ ФИЛЬТРАЦИИ ДУБЛИКАТОВ - сохраняем все как есть
         
-        // Функция для расчета похожести строк
-        function calculateSimilarity(str1, str2) {
-            const longer = str1.length > str2.length ? str1 : str2;
-            const shorter = str1.length > str2.length ? str2 : str1;
-            
-            if (longer.length === 0) return 1.0;
-            
-            const editDistance = levenshteinDistance(longer, shorter);
-            return (longer.length - editDistance) / longer.length;
-        }
-        
-        // Функция для расчета расстояния Левенштейна
-        function levenshteinDistance(str1, str2) {
-            const matrix = [];
-            
-            for (let i = 0; i <= str2.length; i++) {
-                matrix[i] = [i];
-            }
-            
-            for (let j = 0; j <= str1.length; j++) {
-                matrix[0][j] = j;
-            }
-            
-            for (let i = 1; i <= str2.length; i++) {
-                for (let j = 1; j <= str1.length; j++) {
-                    if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
-                        matrix[i][j] = matrix[i - 1][j - 1];
-                    } else {
-                        matrix[i][j] = Math.min(
-                            matrix[i - 1][j - 1] + 1,
-                            matrix[i][j - 1] + 1,
-                            matrix[i - 1][j] + 1
-                        );
-                    }
-                }
-            }
-            
-            return matrix[str2.length][str1.length];
-        }
-        
-        // Сохраняем в localStorage
-        localStorage.setItem(STORAGE_KEY_PARTY_NAMES, JSON.stringify(partyNames));
+        // Корректируем OCR ошибки
+        partyNames = partyNames.map(name => {
+            // Исправляем常见的 OCR ошибки
+            return name
+                .replace(/IL\//g, 'L/')  // IL/ → L/
+                .replace(/1J/g, '1')     // Убираем лишние J
+                .replace(/JGGC/g, 'GGC') // JGGC → GGC
+                .replace(/I/g, 'L');     // I → L (в контексте партий)
+        });
         
         console.log('📝 Распознано названий партий:', partyNames.length);
         console.log('📝 Список партий:', partyNames);
+        
+        // НЕ сохраняем партии в localStorage - они распознаются заново каждый раз
+        // localStorage.setItem(STORAGE_KEY_PARTY_NAMES, JSON.stringify(partyNames));
         
         if (partyNames.length > 0) {
             setStatus(`Найдено партий: ${partyNames.length}`);
@@ -1908,11 +2342,27 @@ async function processTextRegion(region) {
         // Если есть QR коды, сопоставляем их с партиями
         if (multiCodes.length > 0) {
             await matchCodesWithParties();
+        } else {
+            // Если QR кодов нет, но есть партии - запускаем генерацию QR кодов
+            if (partyNames.length > 0) {
+                console.log('🔄 Есть партии но нет QR кодов, запускаю автоматическую генерацию...');
+                // Автоматически запускаем MULTI режим для генерации QR кодов
+                setTimeout(() => {
+                    if (storedMultiRegion) {
+                        console.log('🚀 Автоматически запускаю генерацию QR кодов...');
+                        processMultiRegionAsLines(storedMultiRegion);
+                    } else {
+                        console.log('⚠️ MULTI область не найдена, нужно выделить вручную');
+                        setStatus('Выделите QR область для генерации кодов');
+                    }
+                }, 500);
+            }
         }
-        
     } catch (error) {
         console.error('❌ Ошибка OCR текста:', error);
         setStatus('Ошибка распознавания текста');
+    } finally {
+        isProcessing = false;
     }
 }
 
@@ -1922,58 +2372,127 @@ async function matchCodesWithParties() {
         return;
     }
     
-    console.log('🔗 Начинаю сопоставление QR кодов с партиями...');
+    console.log('🔗 Начинаю сопоставление QR кодов с партиями по координатам...');
     console.log('📊 QR коды:', multiCodes.length);
     console.log('📝 Партии:', partyNames.length);
     console.log('📝 Текущие QR коды:', multiCodes);
     console.log('📝 Текущие партии:', partyNames);
     
-    // Создаем массив сопоставлений
+    // ЗАГРУЖАЕМ ВЕСА ПЕРЕД СОПОСТАВЛЕНИЕМ!
+    try {
+        const storedWeights = JSON.parse(localStorage.getItem(STORAGE_KEY_WEIGHT_REGION) || '[]');
+        partyWeights = [];
+        
+        // Если есть WEIGHT области, запускаем OCR для получения весов
+        if (storedWeights && storedWeights.length > 0) {
+            console.log('⚖️ Найдены WEIGHT области, загружаю веса...');
+            
+            // Загружаем сохраненные веса
+            const savedWeights = JSON.parse(localStorage.getItem(STORAGE_KEY_PARTY_WEIGHTS) || '[]');
+            partyWeights = savedWeights;
+            
+            console.log('⚖️ Загруженные веса:', partyWeights);
+        } else {
+            console.log('⚖️ WEIGHT областей нет, веса не загружены');
+        }
+    } catch (error) {
+        console.error('⚖️ Ошибка загрузки весов:', error);
+        partyWeights = [];
+    }
+    
+    // Сопоставляем по координатам - партия слева, QR код справа
     const matchedCodes = [];
     
-    // Умное сопоставление: распределяем QR коды по партиям равномерно
-    const codesPerParty = Math.floor(multiCodes.length / partyNames.length);
-    const remainingCodes = multiCodes.length % partyNames.length;
+    // Сортируем QR коды по Y координате для правильного сопоставлениява, QR код справа
+    const sortedQRCodes = multiCodes
+        .map((code, index) => ({
+            ...code,
+            originalIndex: index,
+            y: typeof code === 'object' ? code.y : 0,
+            x: typeof code === 'object' ? code.x : 0
+        }))
+        .sort((a, b) => a.y - b.y);
     
-    console.log(`📊 Распределение: ${codesPerParty} кодов на партию, ${remainingCodes} остаток`);
+    console.log('📊 Отсортированные QR коды по Y:', sortedQRCodes);
     
-    let codeIndex = 0;
-    
+    // Сопоставляем каждую партию с ближайшим QR кодом по Y координате
     partyNames.forEach((partyName, partyIndex) => {
-        // Количество кодов для этой партии
-        const codesForThisParty = codesPerParty + (partyIndex < remainingCodes ? 1 : 0);
+        // Находим QR код с ближайшей Y координатой
+        let closestQR = null;
+        let minDistance = Infinity;
         
-        console.log(`📊 Партия "${partyName}" получает ${codesForThisParty} кодов`);
+        sortedQRCodes.forEach((qrCode, qrIndex) => {
+            // Проверяем не занят ли уже этот QR код
+            const isAlreadyUsed = matchedCodes.some(matched => 
+                matched.originalIndex === qrCode.originalIndex
+            );
+            
+            if (!isAlreadyUsed) {
+                const distance = Math.abs(qrCode.y - (partyIndex * 30)); // Примерная Y координата партии
+                
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestQR = qrCode;
+                }
+            }
+        });
         
-        // Добавляем коды для этой партии
-        for (let i = 0; i < codesForThisParty && codeIndex < multiCodes.length; i++) {
-            const qrCode = multiCodes[codeIndex];
-            const qrValue = typeof qrCode === 'object' ? qrCode.code : qrCode;
+        if (closestQR && closestQR.code) {
+            const qrValue = closestQR.code;
+            const weightValue = partyWeights[partyIndex] || ''; // Получаем вес для этой партии
             
             matchedCodes.push({
                 code: qrValue,
                 party: partyName,
-                x: typeof qrCode === 'object' ? qrCode.x : 0,
-                y: typeof qrCode === 'object' ? qrCode.y : 0,
-                index: codeIndex + 1
+                weight: weightValue, // Добавляем вес!
+                x: closestQR.x,
+                y: closestQR.y,
+                index: partyIndex + 1,
+                originalIndex: closestQR.originalIndex
             });
             
-            console.log(`✅ Код ${codeIndex + 1} (${qrValue}) → Партия "${partyName}"`);
-            codeIndex++;
+            console.log(`✅ Партия "${partyName}" (${partyIndex + 1}) → QR код ${qrValue} (Y: ${closestQR.y}) Вес: ${weightValue || 'нет'}`);
+        } else {
+            // Если QR код не найден, пропускаем партию (не генерируем QR код)
+            console.log(`⚠️ Для партии "${partyName}" (${partyIndex + 1}) не найден QR код, пропускаем`);
         }
     });
+    
+    // Добавляем оставшиеся QR коды без партий
+    sortedQRCodes.forEach(qrCode => {
+        const isAlreadyUsed = matchedCodes.some(matched => 
+            matched.originalIndex === qrCode.originalIndex
+        );
+        
+        if (!isAlreadyUsed && qrCode.code) {
+            const qrValue = qrCode.code;
+            matchedCodes.push({
+                code: qrValue,
+                party: 'Без партии',
+                x: qrCode.x,
+                y: qrCode.y,
+                index: matchedCodes.length + 1,
+                originalIndex: qrCode.originalIndex
+            });
+            
+            console.log(`📊 Добавлен QR код без партии: ${qrValue}`);
+        }
+    });
+    
+    // Сортируем результат по Y координате для правильного порядка
+    matchedCodes.sort((a, b) => a.y - b.y);
     
     // Обновляем multiCodes с сопоставленными партиями
     multiCodes = matchedCodes;
     
     console.log('✅ Сопоставление завершено:');
     matchedCodes.forEach((item, index) => {
-        console.log(`${index + 1}. ${item.code} → ${item.party}`);
+        console.log(`${index + 1}. ${item.party} → ${item.code} (Y: ${item.y})`);
     });
     
     // Обновляем отображение результатов
     updateMultiQrOverlay();
-    setStatus(`QR коды сопоставлены с ${partyNames.length} партиями`);
+    setStatus(`QR коды сопоставлены с ${partyNames.length} партиями по координатам`);
 }
 
 modeToggle.addEventListener('change', () => {
@@ -2028,17 +2547,16 @@ function loadStoredRegion() {
         
         // Загружаем текстовую область
         const textR = JSON.parse(localStorage.getItem(STORAGE_KEY_TEXT_REGION)||'null');
-        if (textR && isFinite(textR.x) && isFinite(textR.y) && isFinite(textR.w) && isFinite(textR.h)) {
-            storedTextRegion = textR;
-            console.log('📝 Загружена текстовая область:', storedTextRegion);
-        }
+        storedTextRegion = (textR && isFinite(textR.x) && isFinite(textR.y) && isFinite(textR.w) && isFinite(textR.h)) ? textR : null;
         
-        // Загружаем названия партий
-        const names = JSON.parse(localStorage.getItem(STORAGE_KEY_PARTY_NAMES)||'null');
-        if (names && Array.isArray(names)) {
-            partyNames = names;
-            console.log('📝 Загружены названия партий:', partyNames.length, partyNames);
-        }
+        // Загружаем WEIGHT области
+        loadWeightRegions();
+        
+        // Загружаем названия партий - НЕ ЗАГРУЖАЕМ, очищаем localStorage
+        console.log('🧹 Очищаю localStorage от партий...');
+        localStorage.removeItem(STORAGE_KEY_PARTY_NAMES);
+        partyNames = [];
+        console.log('📝 Партии очищены из localStorage. Будут распознаваться заново при каждом включении MULTI');
     } catch { 
         storedRegion = null;
         storedSingleRegion = null;
@@ -2145,6 +2663,12 @@ mainCanvas.addEventListener('mousedown', e => {
 });
 mainCanvas.addEventListener('mousemove', e => {
     if(!isDrawing) return;
+    
+    // НЕ рисуем желтые рамки при выделении текстовой области или веса
+    if (isSelectingTextRegion || isSelectingWeightArea) {
+        return;
+    }
+    
     const rect = mainCanvas.getBoundingClientRect();
     const scaleX = mainCanvas.width / rect.width;
     const scaleY = mainCanvas.height / rect.height;
@@ -2152,7 +2676,10 @@ mainCanvas.addEventListener('mousemove', e => {
     const currentX = (e.clientX - rect.left) * scaleX;
     const currentY = (e.clientY - rect.top) * scaleY;
     
-    ctx.putImageData(imgDataSnapshot, 0, 0);
+    // Проверяем что imgDataSnapshot существует перед putImageData
+    if (imgDataSnapshot) {
+        ctx.putImageData(imgDataSnapshot, 0, 0);
+    }
     ctx.strokeStyle = '#facc15';
     ctx.lineWidth = 5;
     ctx.strokeRect(startX, startY, currentX - startX, currentY - startY);
@@ -2205,6 +2732,41 @@ mainCanvas.addEventListener('mouseup', async e => {
                 
                 // Сбрасываем флаг
                 window.isSelectingTextRegion = false;
+                return;
+            }
+            
+            // Проверяем если это выделение WEIGHT области (ВТОРАЯ ПРОВЕРКА!)
+            if (isSelectingWeightArea) {
+                console.log('⚖️ Это выделение WEIGHT области, сохраняю как вес...');
+                
+                // Очищаем старые WEIGHT области перед добавлением новой
+                weightRegions = [];
+                currentWeightIndex = 0;
+                
+                // Добавляем новую WEIGHT область
+                weightRegions.push(region);
+                currentWeightIndex = weightRegions.length - 1;
+                
+                console.log('⚖️ Добавлена WEIGHT область:', region);
+                console.log('⚖️ Всего WEIGHT областей:', weightRegions.length);
+                setStatus('WEIGHT область добавлена');
+                
+                // Сохраняем в localStorage
+                localStorage.setItem(STORAGE_KEY_WEIGHT_REGION, JSON.stringify(weightRegions));
+                
+                // Обновляем кнопку
+                if (workWeightRegionBtn) {
+                    workWeightRegionBtn.textContent = t('weightBtnSaved');
+                }
+                
+                // Перерисовываем все области
+                redrawCanvasWithRegions();
+                
+                // Автоматически запускаем OCR для WEIGHT области
+                setTimeout(() => processWeightArea(region), 300);
+                
+                // Сбрасываем флаг
+                isSelectingWeightArea = false;
                 return;
             }
             
@@ -2374,26 +2936,81 @@ async function processMultiRegionAsLines(region) {
         console.log('🔍 MULTI OCR текст:', result.data.text);
         console.log('🔍 MULTI OCR уверенность:', result.data.confidence);
         
-        // Разбираем результат на строки
-        const ocrLines = result.data.text.split('\n');
+        // Умная коррекция OCR ошибок (улучшенная версия для разных форматов)
+        function correctOcrErrors(text) {
+            console.log(`🔤 Начальная OCR коррекция: "${text}"`);
+            
+            let corrected = text;
+            
+            // 1. Сначала исправляем самые частые ошибки (агрессивно)
+            corrected = corrected.replace(/G/g, '6'); // G → 6 (самая частая ошибка)
+            corrected = corrected.replace(/O/g, '0'); // O → 0
+            corrected = corrected.replace(/I/g, '1'); // I → 1
+            corrected = corrected.replace(/l/g, '1'); // l → 1
+            corrected = corrected.replace(/S/g, '5'); // S → 5
+            corrected = corrected.replace(/Z/g, '2'); // Z → 2
+            corrected = corrected.replace(/B/g, '8'); // B → 8
+            corrected = corrected.replace(/T/g, '7'); // T → 7
+            corrected = corrected.replace(/A/g, '4'); // A → 4
+            
+            // 2. Убираем мусор и пробелы
+            corrected = corrected.replace(/\s+/g, ''); // Убираем все пробелы
+            corrected = corrected.replace(/\)/g, ''); // Убираем случайные )
+            corrected = corrected.replace(/\[/g, '('); // [ → (
+            corrected = corrected.replace(/\]/g, ')'); // ] → )
+            corrected = corrected.replace(/—/g, '-'); // — → -
+            corrected = corrected.replace(/—/g, '-'); // — → -
+            corrected = corrected.replace(/\|/g, '/'); // | → /
+            
+            // 3. Восстанавливаем структуру партий (улучшенная для разных форматов)
+            corrected = restorePartyStructure(corrected);
+            
+            // 4. Применяем специфические паттерны
+            corrected = applySpecificPatterns(corrected);
+            
+            // 5. Финальная очистка
+            corrected = corrected.replace(/([^/])\s*\//g, '$1/'); // Убираем пробелы перед /
+            corrected = corrected.replace(/\/\s*([^/])/g, '/$1'); // Убираем пробелы после /
+            
+            console.log(`🔤 Финальная OCR коррекция: "${text}" → "${corrected}"`);
+            return corrected;
+        }
+        // Обрабатываем OCR результат и создаем QR коды
         const allCodes = [];
         
-        ocrLines.forEach(line => {
-            const code = line.replace(/\D/g, '').trim();
-            if (code.length >= 4) {
-                allCodes.push(code);
-                console.log(`✅ Добавлен код (УЛЬТРА): ${code}`);
+        // Разбираем OCR результат по строкам
+        const ocrLines = result.data.text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+        
+        console.log('📝 OCR распознал строк:', ocrLines.length);
+        console.log('📝 OCR строки:', ocrLines);
+        
+        ocrLines.forEach((line, index) => {
+            // Проверяем что line это строка
+            const lineText = typeof line === 'string' ? line : String(line);
+            const cleanCode = lineText.replace(/\D/g, '').trim();
+            
+            console.log(`🔍 Обрабатываю строку ${index + 1}: "${lineText}" → "${cleanCode}"`);
+            
+            if (cleanCode && cleanCode.length >= 4) {
+                // Создаем QR код с правильными координатами
+                const qrCode = {
+                    code: cleanCode,
+                    x: 0, // Будет обновлено при сопоставлении
+                    y: index * 30, // Y координата по порядку строк
+                    index: index + 1
+                };
+                
+                allCodes.push(qrCode);
+                console.log(`✅ Добавлен QR код ${index + 1}: ${cleanCode} (Y: ${qrCode.y})`);
+            } else {
+                console.log(`⏭ Пропускаю строку ${index + 1}: "${lineText}" (не является QR кодом)`);
             }
         });
         
-        console.log(`🎉 УЛЬТРА БЫСТРЫЙ результат: ${allCodes.length} кодов`);
-        
-        // Сохраняем результаты
-        multiRegions = lines;
         multiCodes = allCodes;
         saveMultiRegions();
         
-        console.log(`🎉 Итого найдено кодов: ${allCodes.length} (${allCodes.length})`, allCodes);
+        console.log(`🎉 Итого найдено кодов: ${allCodes.length}`, allCodes);
         
         if (allCodes.length > 0) {
             setStatus('MULTI: Готово!');
@@ -2740,6 +3357,62 @@ function closeMultiQrOverlay() {
 function createMultiQrItem(code, index) {
     // Получаем текущую тему
     const currentTheme = parseInt(localStorage.getItem('qrModalTheme') || '0');
+    
+    // Определяем elementThemes с одинаковыми цветами для веса и партии
+    const elementThemes = [
+        { // Galaxy theme
+            index: {
+                bg: 'linear-gradient(145deg, #3b82f6 0%, #2563eb 50%, #3b82f6 100%)',
+                shadow: '0 3px 12px rgba(59, 130, 246, 0.6)',
+                border: 'rgba(59, 130, 246, 0.3)'
+            },
+            weight: {
+                bg: 'linear-gradient(145deg, #dc2626 0%, #b91c1c 50%, #dc2626 100%)',
+                shadow: '0 3px 12px rgba(220, 38, 38, 0.6)',
+                border: 'rgba(220, 38, 38, 0.3)'
+            },
+            party: {
+                bg: 'linear-gradient(145deg, #059669 0%, #047857 50%, #059669 100%)',
+                shadow: '0 3px 12px rgba(5, 150, 105, 0.6)',
+                border: 'rgba(5, 150, 105, 0.3)'
+            }
+        },
+        { // Cyborg theme  
+            index: {
+                bg: 'linear-gradient(145deg, #06b6d4 0%, #0891b2 50%, #06b6d4 100%)',
+                shadow: '0 3px 12px rgba(6, 182, 212, 0.6)',
+                border: 'rgba(6, 182, 212, 0.3)'
+            },
+            weight: {
+                bg: 'linear-gradient(145deg, #dc2626 0%, #b91c1c 50%, #dc2626 100%)',
+                shadow: '0 3px 12px rgba(220, 38, 38, 0.6)',
+                border: 'rgba(220, 38, 38, 0.3)'
+            },
+            party: {
+                bg: 'linear-gradient(145deg, #059669 0%, #047857 50%, #059669 100%)',
+                shadow: '0 3px 12px rgba(5, 150, 105, 0.6)',
+                border: 'rgba(5, 150, 105, 0.3)'
+            }
+        },
+        { // White theme
+            index: {
+                bg: 'linear-gradient(145deg, #64748b 0%, #475569 50%, #64748b 100%)',
+                shadow: '0 3px 12px rgba(100, 116, 139, 0.6)',
+                border: 'rgba(100, 116, 139, 0.3)'
+            },
+            weight: {
+                bg: 'linear-gradient(145deg, #dc2626 0%, #b91c1c 50%, #dc2626 100%)',
+                shadow: '0 3px 12px rgba(220, 38, 38, 0.6)',
+                border: 'rgba(220, 38, 38, 0.3)'
+            },
+            party: {
+                bg: 'linear-gradient(145deg, #059669 0%, #047857 50%, #059669 100%)',
+                shadow: '0 3px 12px rgba(5, 150, 105, 0.6)',
+                border: 'rgba(5, 150, 105, 0.3)'
+            }
+        }
+    ];
+    
     const themes = [
         { name: 'Galaxy', bg: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e, #0f0c29)', accent: '#9d4edd' },
         { name: 'Cyborg', bg: 'linear-gradient(135deg, #0f0f0f, #1a1a1a, #262626, #333333, #404040)', accent: '#ff6b35' },
@@ -2808,15 +3481,13 @@ function createMultiQrItem(code, index) {
     // Добавляем название партии если есть - В ОДНОЙ СТРОКЕ С НОМЕРОМ
     const qrValue = typeof code === 'object' ? code.code : code;
     const partyName = typeof code === 'object' ? code.party : null;
+    const weightValue = typeof code === 'object' ? code.weight : null;
     
     if (partyName) {
-        // Создаем контейнер для номера и партии в одной строке
+        // Создаем контейнер для индекса и партии в одной строке
         const topContainer = document.createElement('div');
         topContainer.style.cssText = `
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            right: 8px;
+            position: absolute; top: 5px; left: 5px; right: 5px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -2824,33 +3495,63 @@ function createMultiQrItem(code, index) {
             z-index: 10;
         `;
         
-        // Название партии
+        topContainer.appendChild(indexBadge);
+        
+        // Создаем partyBadge
         const partyBadge = document.createElement('div');
         partyBadge.className = 'party-badge';
+        
+        const partyTheme = elementThemes[currentTheme].party;
+        
         partyBadge.style.cssText = `
-            background: linear-gradient(145deg, 
-                ${selectedTheme.accent} 0%, 
-                ${selectedTheme.accent}cc 50%, 
-                ${selectedTheme.accent}dd 100%);
+            background: ${partyTheme.bg};
             color: white;
             padding: 6px 10px;
             border-radius: 12px;
             font-size: 14px;
             font-weight: bold;
             box-shadow: 
-                0 3px 12px ${selectedTheme.accent}60,
+                ${partyTheme.shadow},
                 0 0 0 2px rgba(255,255,255,0.2),
                 inset 0 1px 2px rgba(255,255,255,0.3),
                 inset 0 -1px 2px rgba(0,0,0,0.2);
             text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.3);
+            border: 1px solid ${partyTheme.border};
             position: relative;
             overflow: hidden;
         `;
         partyBadge.textContent = partyName;
         
-        topContainer.appendChild(indexBadge);
+        // Поле для веса если есть - ПОСЛЕ номера, ПЕРЕД партией
+        if (weightValue) {
+            const weightBadge = document.createElement('div');
+            weightBadge.className = 'weight-badge';
+            
+            const weightTheme = elementThemes[currentTheme].weight;
+            
+            weightBadge.style.cssText = `
+                background: ${weightTheme.bg};
+                color: white;
+                padding: 6px 10px;
+                border-radius: 12px;
+                font-size: 14px;
+                font-weight: bold;
+                box-shadow: 
+                    ${weightTheme.shadow},
+                    0 0 0 2px rgba(255,255,255,0.2),
+                    inset 0 1px 2px rgba(255,255,255,0.3),
+                    inset 0 -1px 2px rgba(0,0,0,0.2);
+                text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+                border: 1px solid ${weightTheme.border};
+                position: relative;
+                overflow: hidden;
+            `;
+            weightBadge.textContent = `⚖️ ${weightValue} KG`;
+            topContainer.appendChild(weightBadge);
+        }
+        
         topContainer.appendChild(partyBadge);
+        
         item.appendChild(topContainer);
     } else {
         // Если нет партии, добавляем только номер слева
@@ -3481,6 +4182,64 @@ function createIndependentQrViewer(initialCode) {
         overflow: hidden;
     `;
     
+    // Контейнер для партии и веса
+    const partyWeightContainer = document.createElement('div');
+    partyWeightContainer.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        justify-content: center;
+        margin-bottom: 15px;
+    `;
+    
+    // Вес (если есть)
+    const weightBadge = document.createElement('div');
+    weightBadge.id = 'independentWeightBadge';
+    
+    // Получаем текущую тему для веса
+    const weightModalTheme = parseInt(localStorage.getItem('qrModalTheme') || '0');
+    const weightThemes = [
+        { // Galaxy theme
+            bg: 'linear-gradient(135deg, rgba(157, 78, 221, 0.95) 0%, rgba(124, 58, 237, 0.9) 50%, rgba(157, 78, 221, 0.95) 100%)',
+            shadow: '0 8px 32px rgba(157, 78, 221, 0.4)',
+            border: 'rgba(157, 78, 221, 0.3)'
+        },
+        { // Cyborg theme  
+            bg: 'linear-gradient(135deg, rgba(255, 107, 53, 0.95) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(255, 107, 53, 0.95) 100%)',
+            shadow: '0 8px 32px rgba(255, 107, 53, 0.4)',
+            border: 'rgba(255, 107, 53, 0.3)'
+        },
+        { // White theme
+            bg: 'linear-gradient(135deg, rgba(108, 117, 125, 0.95) 0%, rgba(73, 80, 87, 0.9) 50%, rgba(108, 117, 125, 0.95) 100%)',
+            shadow: '0 8px 32px rgba(108, 117, 125, 0.4)',
+            border: 'rgba(108, 117, 125, 0.3)'
+        }
+    ];
+    
+    const weightTheme = weightThemes[weightModalTheme];
+    
+    weightBadge.style.cssText = `
+        background: ${weightTheme.bg};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 20px;
+        font-size: 20px;
+        font-weight: bold;
+        box-shadow: 
+            ${weightTheme.shadow},
+            0 0 0 2px rgba(255,255,255,0.1),
+            inset 0 2px 8px rgba(255,255,255,0.2),
+            inset 0 -2px 8px rgba(0,0,0,0.2);
+        z-index: 20;
+        letter-spacing: 1px;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        border: 1px solid ${weightTheme.border};
+        backdrop-filter: blur(10px);
+        position: relative;
+        overflow: hidden;
+        display: none;
+    `;
+    
     // Добавляем внутренний блеск для значка партии
     const partyInnerGlow = document.createElement('div');
     partyInnerGlow.style.cssText = `
@@ -3497,6 +4256,27 @@ function createIndependentQrViewer(initialCode) {
         pointer-events: none;
     `;
     partyBadge.appendChild(partyInnerGlow);
+    
+    // Добавляем внутренний блеск для веса
+    const weightInnerGlow = document.createElement('div');
+    weightInnerGlow.style.cssText = `
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, 
+            transparent 30%,
+            rgba(255,255,255,0.1) 50%,
+            transparent 70%);
+        animation: shimmer 3s ease-in-out infinite;
+        pointer-events: none;
+    `;
+    weightBadge.appendChild(weightInnerGlow);
+    
+    // Собираем контейнер для партии и веса
+    partyWeightContainer.appendChild(partyBadge);
+    partyWeightContainer.appendChild(weightBadge);
     
     // QR код
     const qrCanvas = document.createElement('canvas');
@@ -3562,7 +4342,7 @@ function createIndependentQrViewer(initialCode) {
     codeText.appendChild(codeInnerGlow);
     
     // Собираем все вместе
-    qrBox.appendChild(partyBadge);
+    qrBox.appendChild(partyWeightContainer);
     qrBox.appendChild(qrCanvas);
     qrBox.appendChild(codeText);
     innerContainer.appendChild(closeBtn);
@@ -3582,6 +4362,65 @@ function createIndependentQrViewer(initialCode) {
         const code = multiCodes[currentIdx];
         const qrValue = typeof code === 'object' ? code.code : code;
         const partyName = typeof code === 'object' ? code.party : null;
+        const weightValue = typeof code === 'object' ? code.weight : null;
+        
+        // Получаем текущую тему для модального окна
+        const currentTheme = parseInt(localStorage.getItem('qrModalTheme') || '0');
+        
+        // Определяем elementThemes для модального окна с одинаковыми цветами
+        const elementThemes = [
+            { // Galaxy theme
+                index: {
+                    bg: 'linear-gradient(145deg, #3b82f6 0%, #2563eb 50%, #3b82f6 100%)',
+                    shadow: '0 3px 12px rgba(59, 130, 246, 0.6)',
+                    border: 'rgba(59, 130, 246, 0.3)'
+                },
+                weight: {
+                    bg: 'linear-gradient(145deg, #dc2626 0%, #b91c1c 50%, #dc2626 100%)',
+                    shadow: '0 3px 12px rgba(220, 38, 38, 0.6)',
+                    border: 'rgba(220, 38, 38, 0.3)'
+                },
+                party: {
+                    bg: 'linear-gradient(145deg, #059669 0%, #047857 50%, #059669 100%)',
+                    shadow: '0 3px 12px rgba(5, 150, 105, 0.6)',
+                    border: 'rgba(5, 150, 105, 0.3)'
+                }
+            },
+            { // Cyborg theme  
+                index: {
+                    bg: 'linear-gradient(145deg, #06b6d4 0%, #0891b2 50%, #06b6d4 100%)',
+                    shadow: '0 3px 12px rgba(6, 182, 212, 0.6)',
+                    border: 'rgba(6, 182, 212, 0.3)'
+                },
+                weight: {
+                    bg: 'linear-gradient(145deg, #dc2626 0%, #b91c1c 50%, #dc2626 100%)',
+                    shadow: '0 3px 12px rgba(220, 38, 38, 0.6)',
+                    border: 'rgba(220, 38, 38, 0.3)'
+                },
+                party: {
+                    bg: 'linear-gradient(145deg, #059669 0%, #047857 50%, #059669 100%)',
+                    shadow: '0 3px 12px rgba(5, 150, 105, 0.6)',
+                    border: 'rgba(5, 150, 105, 0.3)'
+                }
+            },
+            { // White theme
+                index: {
+                    bg: 'linear-gradient(145deg, #64748b 0%, #475569 50%, #64748b 100%)',
+                    shadow: '0 3px 12px rgba(100, 116, 139, 0.6)',
+                    border: 'rgba(100, 116, 139, 0.3)'
+                },
+                weight: {
+                    bg: 'linear-gradient(145deg, #dc2626 0%, #b91c1c 50%, #dc2626 100%)',
+                    shadow: '0 3px 12px rgba(220, 38, 38, 0.6)',
+                    border: 'rgba(220, 38, 38, 0.3)'
+                },
+                party: {
+                    bg: 'linear-gradient(145deg, #059669 0%, #047857 50%, #059669 100%)',
+                    shadow: '0 3px 12px rgba(5, 150, 105, 0.6)',
+                    border: 'rgba(5, 150, 105, 0.3)'
+                }
+            }
+        ];
         
         // Обновляем QR код
         new QRious({
@@ -3594,8 +4433,64 @@ function createIndependentQrViewer(initialCode) {
         if (partyName) {
             partyBadge.textContent = partyName;
             partyBadge.style.display = 'block';
+            
+            // Обновляем стили партии согласно текущей теме
+            const partyTheme = elementThemes[currentTheme].party;
+            partyBadge.style.cssText = `
+                background: ${partyTheme.bg};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 20px;
+                font-size: 20px;
+                font-weight: bold;
+                box-shadow: 
+                    ${partyTheme.shadow},
+                    0 0 0 2px rgba(255,255,255,0.1),
+                    inset 0 2px 8px rgba(255,255,255,0.2),
+                    inset 0 -2px 8px rgba(0,0,0,0.2);
+                z-index: 20;
+                letter-spacing: 1px;
+                text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+                border: 1px solid ${partyTheme.border};
+                backdrop-filter: blur(10px);
+                position: relative;
+                overflow: hidden;
+                display: block;
+            `;
         } else {
             partyBadge.style.display = 'none';
+        }
+        
+        // Обновляем вес
+        if (weightValue) {
+            weightBadge.textContent = `⚖️ ${weightValue} KG`;
+            weightBadge.style.display = 'block';
+            
+            // Обновляем стили веса согласно текущей теме
+            const weightTheme = elementThemes[currentTheme].weight;
+            weightBadge.style.cssText = `
+                background: ${weightTheme.bg};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 20px;
+                font-size: 20px;
+                font-weight: bold;
+                box-shadow: 
+                    ${weightTheme.shadow},
+                    0 0 0 2px rgba(255,255,255,0.1),
+                    inset 0 2px 8px rgba(255,255,255,0.2),
+                    inset 0 -2px 8px rgba(0,0,0,0.2);
+                z-index: 20;
+                letter-spacing: 1px;
+                text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+                border: 1px solid ${weightTheme.border};
+                backdrop-filter: blur(10px);
+                position: relative;
+                overflow: hidden;
+                display: block;
+            `;
+        } else {
+            weightBadge.style.display = 'none';
         }
         
         // Обновляем цифровой код
@@ -3737,49 +4632,18 @@ function showAllCodesViewer() {
         };
         
         item.onmouseleave = () => {
-            item.style.transform = 'scale(1)';
-            item.style.boxShadow = '0 12px 35px rgba(0,0,0,0.4)';
-            item.style.borderColor = `${selectedTheme.accent}20`;
-        };
-        
-        // Индекс с премиум стилем
-        const indexBadge = document.createElement('div');
-        indexBadge.style.cssText = `
-            position: absolute; top: 10px; left: 10px;
-            background: linear-gradient(135deg, 
-                ${selectedTheme.accent}dd 0%, 
-                ${selectedTheme.accent}99 50%, 
-                ${selectedTheme.accent}dd 100%);
-            color: white;
-            font-size: 14px; font-weight: bold;
-            padding: 6px 10px; border-radius: 25px;
-            box-shadow: 
-                0 3px 12px ${selectedTheme.accent}60,
-                0 0 0 2px rgba(255,255,255,0.2),
-                inset 0 1px 2px rgba(255,255,255,0.3),
-                inset 0 -1px 2px rgba(0,0,0,0.2);
-            z-index: 10;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.3);
-        `;
-        indexBadge.textContent = index + 1;
-        item.appendChild(indexBadge);
-        
-        // QR код с премиум стилем
-        const canvasContainer = document.createElement('div');
-        canvasContainer.style.cssText = `
-            background: white;
-            padding: 8px;
-            border-radius: 15px;
-            box-shadow: 
+            item.style.background = 'white';
+            item.style.padding = '8px';
+            item.style.borderRadius = '15px';
+            item.style.boxShadow = `
                 0 6px 20px rgba(0,0,0,0.2),
                 0 0 0 2px rgba(255,255,255,0.3),
-                inset 0 1px 3px rgba(255,255,255,0.4);
-            margin: 5px auto;
-            width: fit-content;
-            position: relative;
-            overflow: hidden;
-        `;
+                inset 0 1px 3px rgba(255,255,255,0.4)`;
+            item.style.margin = '5px auto';
+            item.style.width = 'fit-content';
+            item.style.position = 'relative';
+            item.style.overflow = 'hidden';
+        };
         
         // Добавляем внутренний блеск для QR контейнера
         const qrInnerGlow = document.createElement('div');
@@ -4209,10 +5073,28 @@ function drawPermanentRegions() {
         ctx.fillText('PARTIA', storedTextRegion.x + 8, storedTextRegion.y - 7);
     }
     
+    // Рисуем рамки для WEIGHT областей (фиолетовые) - всегда видны в обоих режимах
+    weightRegions.forEach((region, index) => {
+        ctx.strokeStyle = '#8b5cf6'; // Фиолетовый
+        ctx.lineWidth = 3;
+        ctx.setLineDash([]); // <-- ДЕЛАЕТ ЛИНИЮ СПЛОШНОЙ
+        ctx.shadowColor = '#8b5cf6';
+        ctx.shadowBlur = 8;
+        ctx.strokeRect(region.x, region.y, region.w, region.h);
+        ctx.shadowBlur = 0;
+        
+        // Метка для WEIGHT области с фоном
+        ctx.fillStyle = '#8b5cf6';
+        ctx.fillRect(region.x + 5, region.y - 20, 60, 18);
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 12px Arial';
+        ctx.fillText("WAGA", region.x + 8, region.y - 7);
+    });
+    
     // Сбрасываем стили для рисования
     ctx.setLineDash([]);
-    ctx.lineWidth = 5;
-    ctx.strokeStyle = '#facc15';
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#000000'; // Черный цвет по умолчанию
     ctx.shadowBlur = 0;
 }
 
@@ -4277,8 +5159,7 @@ async function processRegion(r) {
     if (activeStream && captureVideo.readyState >= 2) ctx.drawImage(captureVideo, 0, 0);
     
     // Автоматически увеличиваем изображение для лучшего распознавания
-    const scaleFactor = 1.46; // Идеальный масштаб по вашим тестам
-    
+    const scaleFactor = 2.5; // Увеличиваем для ускорения OCR
     previewCanvas.width = Math.floor(r.w * scaleFactor);
     previewCanvas.height = Math.floor(r.h * scaleFactor);
     
@@ -4321,19 +5202,28 @@ async function processRegion(r) {
                 variantCtx.drawImage(variants[i], 0, 0);
             }
             
-            const result = await Tesseract.recognize(variantCanvas, ocrLangMap[currentLang] || 'eng',
-                { tessedit_char_whitelist: '0123456789' });
+            // Выполняем OCR с расширенным whitelist для текста
+            if (typeof Tesseract === 'undefined') {
+                console.error('❌ Tesseract не загружен в MULTI режиме!');
+                setStatus('Ошибка: Tesseract не загружен');
+                return;
+            }
+            
+            const result = await Tesseract.recognize(variantCanvas, ocrLangMap[currentLang] || 'eng', {
+                tessedit_char_whitelist: '0123456789',
+                tessedit_pagesegmode: '6'
+            });    
             
             const digits = (result.data.text || '').replace(/\D/g, '').trim();
             const confidence = result.data.confidence || 0;
             
             console.log(`📊 SINGLE Вариант ${i + 1}: "${digits}" (уверенность: ${confidence}%)`);
             
-            // Выбираем результат с наибольшей уверенностью и длиной
+            // Выбираем результат с приоритетом длины (20 цифр = правильный результат)
             if (digits.length >= 4) {
-                // Даем приоритет более длинным кодам даже при меньшей уверенности
-                const score = digits.length * 10 + confidence;
-                const currentBestScore = bestResult.length * 10 + maxConfidence;
+                // Даем приоритет длине - 20 цифр это правильный результат
+                const score = digits.length * 100 + confidence; // Длина важнее уверенности
+                const currentBestScore = bestResult.length * 100 + maxConfidence;
                 
                 if (score > currentBestScore) {
                     bestResult = digits;
@@ -4398,12 +5288,9 @@ function enhanceImageForOCR(imgData) {
     return new ImageData(d, width, height);
 }
 
-// Функция для создания нескольких вариантов изображения
+// Функция для создания вариантов изображения - только рабочий вариант 2
 function createImageVariants(originalData) {
     const variants = [];
-    
-    // Вариант 1: Оригинальная обработка
-    variants.push(toBlackWhite(originalData, HARDCODED_THRESHOLD));
     
     // Вариант 2: Специальный для белого текста на синем/темном фоне (лучший!)
     const whiteOnDarkCanvas = document.createElement('canvas');
@@ -4420,9 +5307,6 @@ function createImageVariants(originalData) {
     whiteOnDarkCtx.filter = 'invert(75%) brightness(110%) contrast(200%)';
     whiteOnDarkCtx.drawImage(tempCanvas, 0, 0);
     variants.push(whiteOnDarkCanvas);
-    
-    // Вариант 3: Агрессивное улучшение
-    variants.push(enhanceImageForOCR(originalData));
     
     return variants;
 }
@@ -4557,14 +5441,12 @@ initMultiMode(); // Затем инициализируем режим и обн
 function initTextButtons() {
     const buttonText = storedTextRegion ? t('partyBtnSaved') : t('partyBtn');
     
-    // Основная кнопка в overlay - УДАЛЕНА
-    // if (textRegionBtn) {
-    //     textRegionBtn.style.display = 'inline-block';
-    //     textRegionBtn.textContent = buttonText;
-    //     console.log('🔵 Основная кнопка текстовой области инициализирована');
-    // } else {
-    //     console.log('❌ Основная кнопка textRegionBtn не найдена!');
-    // }
+    // Основная кнопка в overlay - ВОЗВРАЩАЕМ ОБРАТНО!
+    if (textRegionBtn) {
+        textRegionBtn.style.display = 'inline-block';
+        textRegionBtn.textContent = t('partyBtn');
+        console.log('🔄 Возвращаем кнопку выделения текстовой области - нужна для разных форматов партий!');
+    }
     
     // Кнопка в рабочей панели
     if (workTextRegionBtn) {
@@ -4576,6 +5458,21 @@ function initTextButtons() {
     } else {
         console.log('❌ Рабочая кнопка workTextRegionBtn не найдена!');
     }
+    
+    // Кнопка веса в рабочей панели
+    if (workWeightRegionBtn) {
+        const weightSpan = document.getElementById('workWeightBtnText');
+        const weightButtonText = weightRegions.length > 0 ? t('weightBtnSaved') : t('weightBtn');
+        if (weightSpan) {
+            weightSpan.textContent = weightButtonText.replace('⚖️ ', ''); // Убираем эмодзи
+        }
+        console.log('⚖️ Рабочая кнопка веса инициализирована');
+    } else {
+        console.log('❌ Рабочая кнопка workWeightRegionBtn не найдена!');
+    }
+    
+    // Загружаем сохраненные WEIGHT области
+    loadWeightRegions();
 }
 
 initTextButtons();
