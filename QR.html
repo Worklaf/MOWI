@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <title>Strona tymczasowo niedostępna</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #050816;
+      --card-bg: #0f172a;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.15);
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --danger: #f97373;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, #1e293b 0, #020617 55%, #000 100%);
+      color: var(--text-main);
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.08), transparent 55%);
+      pointer-events: none;
+    }
+
+    .card {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      padding: 28px 26px 24px;
+      border-radius: 18px;
+      background: linear-gradient(145deg, #020617, #020617 40%, #020617 60%, #020617);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 0.9),
+        0 18px 45px rgba(15, 23, 42, 0.9),
+        0 0 80px rgba(56, 189, 248, 0.25);
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background:
+        radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.18), transparent 55%),
+        radial-gradient(circle at 100% 0, rgba(59, 130, 246, 0.16), transparent 55%);
+      opacity: 0.7;
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    .card-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      color: var(--text-muted);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--danger);
+      box-shadow: 0 0 12px rgba(248, 113, 113, 0.9);
+    }
+
+    .badge-text-strong {
+      color: #e5e7eb;
+      font-weight: 600;
+    }
+
+    .title {
+      margin-top: 18px;
+      font-size: 24px;
+      line-height: 1.25;
+      font-weight: 650;
+      letter-spacing: 0.02em;
+    }
+
+    .subtitle {
+      margin-top: 10px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    .panel {
+      margin-top: 20px;
+      padding: 14px 14px 12px;
+      border-radius: 14px;
+      background: radial-gradient(circle at top left, var(--accent-soft), rgba(15, 23, 42, 0.95));
+      border: 1px solid rgba(148, 163, 184, 0.5);
+    }
+
+    .panel-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e5e7eb;
+      margin-bottom: 6px;
+    }
+
+    .panel-text {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .footer {
+      margin-top: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .pill {
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .pill span {
+      color: #9ca3af;
+    }
+
+    @media (max-width: 520px) {
+      .card {
+        margin: 16px;
+        padding: 22px 18px 18px;
+      }
+      .title {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay"></div>
+
+  <div class="card">
+    <div class="card-inner">
+      <div class="badge">
+        <span class="badge-dot"></span>
+        <span class="badge-text-strong">Przerwa techniczna</span>
+        <span>tryb serwisowy</span>
+      </div>
+
+      <h1 class="title">
+        Strona jest tymczasowo niedostępna
+      </h1>
+
+      <p class="subtitle">
+        Dalsza praca jest niedostępna — serwis nie działa z powodu braku motywacji i wsparcia finansowego.  
+        Przepraszamy za utrudnienia.
+      </p>
+
+      <div class="panel">
+        <div class="panel-title">
+          Informacja
+        </div>
+        <div class="panel-text">
+          • Projekt został wstrzymany na czas nieokreślony.<br />
+          • Wszystkie funkcje serwisu są obecnie wyłączone.<br />
+          • Jeśli sytuacja się zmieni — strona wróci automatycznie.
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="pill">
+          Status: <span>offline / maintenance</span>
+        </div>
+        <div>
+          © 2026 Mykola Karpovets
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
