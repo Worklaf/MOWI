@@ -282,19 +282,19 @@
                 
                 switch(blockType) {
                     case '1':
-                        message = '⚠ Технические работы на сервере. Попробуйте позже.';
+                        message = '⚠ Server maintenance in progress. Please try again later.';
                         break;
                     case '2':
-                        message = '⚠ Обновление системы. Подключитесь позже.';
+                        message = '⚠ System update in progress. Please connect later.';
                         break;
                     case '3':
-                        message = '⚠ Критическая ошибка сервера. Свяжитесь с поддержкой.';
+                        message = '⚠ Critical server error. Please contact support.';
                         break;
                     case '4':
-                        message = prompt('Custom technical error message:', '⚠ Техническая ошибка сервера.');
+                        message = prompt('Custom technical error message:', '⚠ Server error.');
                         break;
                     default:
-                        message = '⚠ Техническая ошибка сервера.';
+                        message = '⚠ Server error.';
                 }
             }
 
@@ -388,19 +388,19 @@
             let message = '';
             switch(blockType) {
                 case '1':
-                    message = '⚠ Технические работы на сервере. Попробуйте позже.';
+                    message = '⚠ Server maintenance in progress. Please try again later.';
                     break;
                 case '2':
-                    message = '⚠ Обновление системы. Подключитесь позже.';
+                    message = '⚠ System update in progress. Please connect later.';
                     break;
                 case '3':
-                    message = '⚠ Критическая ошибка сервера. Свяжитесь с поддержкой.';
+                    message = '⚠ Critical server error. Please contact support.';
                     break;
                 case '4':
-                    message = prompt('Custom technical error message:', '⚠ Техническая ошибка сервера.');
+                    message = prompt('Custom technical error message:', '⚠ Server error.');
                     break;
                 default:
-                    message = '⚠ Техническая ошибка сервера.';
+                    message = '⚠ Server error.';
             }
             
             const blockData = {
@@ -412,7 +412,7 @@
             localStorage.setItem('offline_block', JSON.stringify(blockData));
             addLog('OFFLINE', 'BLOCK', `Set offline block for ${hours} hours: ${message}`);
             refreshLogs();
-            alert(`Офлайн блокировка установлена на ${hours} часов`);
+            alert(`Offline block set for ${hours} hours`);
         }
 
         function setPermanentBlock() {
@@ -421,19 +421,19 @@
             let message = '';
             switch(blockType) {
                 case '1':
-                    message = '⚠ Технические работы на сервере. Свяжитесь с поддержкой.';
+                    message = '⚠ Server maintenance in progress. Please contact support.';
                     break;
                 case '2':
-                    message = '⚠ Обновление системы. Требуется подключение к интернету.';
+                    message = '⚠ System update in progress. Internet connection required.';
                     break;
                 case '3':
-                    message = '⚠ Критическая ошибка сервера. Свяжитесь с поддержкой.';
+                    message = '⚠ Critical server error. Please contact support.';
                     break;
                 case '4':
-                    message = prompt('Custom technical error message:', '⚠ Техническая ошибка сервера.');
+                    message = prompt('Custom technical error message:', '⚠ Server error.');
                     break;
                 default:
-                    message = '⚠ Техническая ошибка сервера.';
+                    message = '⚠ Server error.';
             }
             
             if (message !== null) {
@@ -445,7 +445,7 @@
                 localStorage.setItem('offline_block', JSON.stringify(blockData));
                 addLog('OFFLINE', 'BLOCK', `Permanent block: ${message}`);
                 refreshLogs();
-                alert('Постоянная офлайн блокировка установлена');
+                alert('Permanent offline block set');
             }
         }
 
