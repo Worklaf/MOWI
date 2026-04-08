@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFL Paleta Block Control - GitHub Pages</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .device {
+            border: 1px solid #ddd;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+        .device:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .blocked {
+            background-color: #ffebee;
+            border-left: 4px solid #f44336;
+        }
+        .unblocked {
+            background-color: #e8f5e8;
+            border-left: 4px solid #4caf50;
+        }
+        .device-id {
+            font-weight: bold;
+            font-family: monospace;
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status.blocked-status {
+            background: #f44336;
+            color: white;
+        }
+        .status.active-status {
+            background: #4caf50;
+            color: white;
+        }
+        button {
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 2px;
+            transition: background 0.3s ease;
+        }
+        button:hover {
+            background: #1976d2;
+        }
+        button.danger {
+            background: #f44336;
+        }
+        button.danger:hover {
+            background: #d32f2f;
+        }
+        button.success {
+            background: #4caf50;
+        }
+        button.success:hover {
+            background: #388e3c;
+        }
+        .controls {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        textarea {
+            width: 100%;
+            height: 60px;
+            margin: 10px 0;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            resize: vertical;
+        }
+        .logs {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            padding: 8px;
+            margin: 2px 0;
+            background: #f8f9fa;
+            border-left: 3px solid #2196f3;
+            font-size: 12px;
+        }
+        .offline-controls {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .offline-controls h3 {
+            margin-top: 0;
+            color: #856404;
+        }
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 10px 0;
+        }
+        .quick-actions button {
+            flex: 1;
+            min-width: 120px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            .quick-actions {
+                flex-direction: column;
+            }
+            .quick-actions button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>ð NFL Paleta Block Control</h1>
+            <p>Remote device management via GitHub Pages</p>
+        </div>
+
+        <div class="controls">
+            <h2>Global Controls</h2>
+            <div class="quick-actions">
+                <button onclick="blockAll()" class="danger">Block All</button>
+                <button onclick="unblockAll()" class="success">Unblock All</button>
+                <button onclick="exportConfig()">Export Config</button>
+                <button onclick="importConfig()">Import Config</button>
+            </div>
+            <textarea id="globalMessage" placeholder="Block message for all devices..."></textarea>
+        </div>
+
+        <div class="offline-controls">
+            <h3>ð± Offline Mode Controls</h3>
+            <p>These controls work without internet connection using localStorage:</p>
+            <div class="quick-actions">
+                <button onclick="setOfflineBlock(1)" class="danger">Block 1 Hour</button>
+                <button onclick="setOfflineBlock(24)" class="danger">Block 1 Day</button>
+                <button onclick="setOfflineBlock(168)" class="danger">Block 1 Week</button>
+                <button onclick="setPermanentBlock()" class="danger">Permanent Block</button>
+                <button onclick="clearOfflineBlock()" class="success">Clear All Blocks</button>
+            </div>
+        </div>
+
+        <div>
+            <h2>Device List</h2>
+            <button onclick="refreshDevices()">Refresh Devices</button>
+            <button onclick="addTestDevice()">Add Test Device</button>
+            <div id="deviceList"></div>
+        </div>
+
+        <div class="logs">
+            <h2>Recent Logs</h2>
+            <button onclick="refreshLogs()">Refresh Logs</button>
+            <button onclick="clearLogs()">Clear Logs</button>
+            <div id="logList"></div>
+        </div>
+    </div>
+
+    <script>
+        // Storage key for device data
+        const STORAGE_KEY = 'nfl_paleta_devices';
+        const LOGS_KEY = 'nfl_paleta_logs';
+
+        // Initialize data
+        function initializeData() {
+            if (!localStorage.getItem(STORAGE_KEY)) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({}));
+            }
+            if (!localStorage.getItem(LOGS_KEY)) {
+                localStorage.setItem(LOGS_KEY, JSON.stringify([]));
+            }
+        }
+
+        // Device management functions
+        function getDevices() {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        }
+
+        function saveDevices(devices) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(devices));
+        }
+
+        function addLog(deviceId, action, message) {
+            const logs = JSON.parse(localStorage.getItem(LOGS_KEY) || '[]');
+            logs.unshift({
+                device_id: deviceId,
+                action: action,
+                message: message,
+                timestamp: new Date().toISOString()
+            });
+            // Keep only last 100 logs
+            if (logs.length > 100) {
+                logs.splice(100);
+            }
+            localStorage.setItem(LOGS_KEY, JSON.stringify(logs));
+        }
+
+        function refreshDevices() {
+            const devices = getDevices();
+            const deviceList = document.getElementById('deviceList');
+            deviceList.innerHTML = '';
+
+            Object.keys(devices).forEach(deviceId => {
+                const device = devices[deviceId];
+                const div = document.createElement('div');
+                div.className = device.blocked ? 'device blocked' : 'device unblocked';
+                div.innerHTML = `
+                    <div>
+                        <span class="device-id">${deviceId}</span>
+                        <span class="status ${device.blocked ? 'blocked-status' : 'active-status'}">
+                            ${device.blocked ? 'ð´ BLOCKED' : 'ð¢ ACTIVE'}
+                        </span>
+                    </div>
+                    <div><strong>Message:</strong> ${device.message || 'No message'}</div>
+                    <div><small>Last seen: ${device.last_seen || 'Never'}</small></div>
+                    <div><small>Created: ${device.created_at || 'Unknown'}</small></div>
+                    <div style="margin-top: 10px;">
+                        <button onclick="toggleBlock('${deviceId}', ${device.blocked})" 
+                                class="${device.blocked ? 'success' : 'danger'}">
+                            ${device.blocked ? 'Unblock' : 'Block'}
+                        </button>
+                        <button onclick="deleteDevice('${deviceId}')" class="danger">Delete</button>
+                    </div>
+                `;
+                deviceList.appendChild(div);
+            });
+
+            if (Object.keys(devices).length === 0) {
+                deviceList.innerHTML = '<p>No devices registered yet. Devices will appear here when they connect.</p>';
+            }
+        }
+
+        function toggleBlock(deviceId, isBlocked) {
+            const devices = getDevices();
+            const action = isBlocked ? 'UNBLOCK' : 'BLOCK';
+            
+            let message = '';
+            if (!isBlocked) {
+                const blockType = prompt('Select block type:\n1. Server maintenance\n2. System update\n3. Technical error\n4. Custom message', '1');
+                
+                switch(blockType) {
+                    case '1':
+                        message = '⚠ Технические работы на сервере. Попробуйте позже.';
+                        break;
+                    case '2':
+                        message = '⚠ Обновление системы. Подключитесь позже.';
+                        break;
+                    case '3':
+                        message = '⚠ Критическая ошибка сервера. Свяжитесь с поддержкой.';
+                        break;
+                    case '4':
+                        message = prompt('Custom technical error message:', '⚠ Техническая ошибка сервера.');
+                        break;
+                    default:
+                        message = '⚠ Техническая ошибка сервера.';
+                }
+            }
+
+            if (isBlocked || message !== null) {
+                devices[deviceId] = {
+                    ...devices[deviceId],
+                    blocked: !isBlocked,
+                    message: message || '',
+                    last_seen: new Date().toISOString()
+                };
+
+                saveDevices(devices);
+                addLog(deviceId, action, message || '');
+                refreshDevices();
+                refreshLogs();
+            }
+        }
+
+        function deleteDevice(deviceId) {
+            if (confirm(`Delete device ${deviceId}?`)) {
+                const devices = getDevices();
+                delete devices[deviceId];
+                saveDevices(devices);
+                addLog(deviceId, 'DELETE', 'Device deleted');
+                refreshDevices();
+                refreshLogs();
+            }
+        }
+
+        function addTestDevice() {
+            const deviceId = 'test_' + Math.random().toString(36).substr(2, 9);
+            const devices = getDevices();
+            devices[deviceId] = {
+                blocked: false,
+                message: '',
+                created_at: new Date().toISOString(),
+                last_seen: new Date().toISOString()
+            };
+            saveDevices(devices);
+            addLog(deviceId, 'CREATE', 'Test device added');
+            refreshDevices();
+            refreshLogs();
+        }
+
+        // Global controls
+        function blockAll() {
+            const message = document.getElementById('globalMessage').value || 'All devices blocked';
+            const devices = getDevices();
+            
+            Object.keys(devices).forEach(deviceId => {
+                devices[deviceId] = {
+                    ...devices[deviceId],
+                    blocked: true,
+                    message: message,
+                    last_seen: new Date().toISOString()
+                };
+                addLog(deviceId, 'BLOCK', message);
+            });
+
+            saveDevices(devices);
+            refreshDevices();
+            refreshLogs();
+            alert('All devices blocked');
+        }
+
+        function unblockAll() {
+            const devices = getDevices();
+            
+            Object.keys(devices).forEach(deviceId => {
+                if (devices[deviceId].blocked) {
+                    devices[deviceId] = {
+                        ...devices[deviceId],
+                        blocked: false,
+                        message: '',
+                        last_seen: new Date().toISOString()
+                    };
+                    addLog(deviceId, 'UNBLOCK', 'Device unblocked');
+                }
+            });
+
+            saveDevices(devices);
+            refreshDevices();
+            refreshLogs();
+            alert('All devices unblocked');
+        }
+
+        // Offline mode controls
+        function setOfflineBlock(hours) {
+            const blockType = prompt('Select offline block type:\n1. Server maintenance\n2. System update\n3. Technical error\n4. Custom message', '1');
+            
+            let message = '';
+            switch(blockType) {
+                case '1':
+                    message = '⚠ Технические работы на сервере. Попробуйте позже.';
+                    break;
+                case '2':
+                    message = '⚠ Обновление системы. Подключитесь позже.';
+                    break;
+                case '3':
+                    message = '⚠ Критическая ошибка сервера. Свяжитесь с поддержкой.';
+                    break;
+                case '4':
+                    message = prompt('Custom technical error message:', '⚠ Техническая ошибка сервера.');
+                    break;
+                default:
+                    message = '⚠ Техническая ошибка сервера.';
+            }
+            
+            const blockData = {
+                type: 'temporary',
+                hours: hours,
+                message: message,
+                timestamp: Date.now()
+            };
+            localStorage.setItem('offline_block', JSON.stringify(blockData));
+            addLog('OFFLINE', 'BLOCK', `Set offline block for ${hours} hours: ${message}`);
+            refreshLogs();
+            alert(`Офлайн блокировка установлена на ${hours} часов`);
+        }
+
+        function setPermanentBlock() {
+            const blockType = prompt('Select permanent block type:\n1. Server maintenance\n2. System update\n3. Technical error\n4. Custom message', '3');
+            
+            let message = '';
+            switch(blockType) {
+                case '1':
+                    message = '⚠ Технические работы на сервере. Свяжитесь с поддержкой.';
+                    break;
+                case '2':
+                    message = '⚠ Обновление системы. Требуется подключение к интернету.';
+                    break;
+                case '3':
+                    message = '⚠ Критическая ошибка сервера. Свяжитесь с поддержкой.';
+                    break;
+                case '4':
+                    message = prompt('Custom technical error message:', '⚠ Техническая ошибка сервера.');
+                    break;
+                default:
+                    message = '⚠ Техническая ошибка сервера.';
+            }
+            
+            if (message !== null) {
+                const blockData = {
+                    type: 'permanent',
+                    message: message,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem('offline_block', JSON.stringify(blockData));
+                addLog('OFFLINE', 'BLOCK', `Permanent block: ${message}`);
+                refreshLogs();
+                alert('Постоянная офлайн блокировка установлена');
+            }
+        }
+
+        function clearOfflineBlock() {
+            localStorage.removeItem('offline_block');
+            addLog('OFFLINE', 'CLEAR', 'Offline blocks cleared');
+            refreshLogs();
+            alert('Offline blocks cleared');
+        }
+
+        // Configuration management
+        function exportConfig() {
+            const config = {
+                devices: getDevices(),
+                logs: JSON.parse(localStorage.getItem(LOGS_KEY) || '[]'),
+                offline_block: localStorage.getItem('offline_block'),
+                export_timestamp: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(config, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `nfl_paleta_config_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importConfig() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'application/json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const config = JSON.parse(event.target.result);
+                        if (config.devices) {
+                            localStorage.setItem(STORAGE_KEY, JSON.stringify(config.devices));
+                        }
+                        if (config.logs) {
+                            localStorage.setItem(LOGS_KEY, JSON.stringify(config.logs));
+                        }
+                        if (config.offline_block) {
+                            localStorage.setItem('offline_block', config.offline_block);
+                        }
+                        refreshDevices();
+                        refreshLogs();
+                        alert('Configuration imported successfully');
+                    } catch (error) {
+                        alert('Error importing configuration: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        // Logs management
+        function refreshLogs() {
+            const logs = JSON.parse(localStorage.getItem(LOGS_KEY) || '[]');
+            const logList = document.getElementById('logList');
+            logList.innerHTML = '';
+
+            logs.forEach(log => {
+                const div = document.createElement('div');
+                div.className = 'log-entry';
+                div.innerHTML = `
+                    <strong>${log.action}</strong> - ${log.device_id}<br>
+                    <small>${log.message}</small><br>
+                    <small>${new Date(log.timestamp).toLocaleString()}</small>
+                `;
+                logList.appendChild(div);
+            });
+
+            if (logs.length === 0) {
+                logList.innerHTML = '<p>No logs yet.</p>';
+            }
+        }
+
+        function clearLogs() {
+            if (confirm('Clear all logs?')) {
+                localStorage.setItem(LOGS_KEY, JSON.stringify([]));
+                refreshLogs();
+            }
+        }
+
+        // API endpoint simulation for mobile app
+        function handleBlockStatusRequest(requestData) {
+            const devices = getDevices();
+            const deviceId = requestData.device_id;
+            
+            // Update device last seen
+            if (!devices[deviceId]) {
+                devices[deviceId] = {
+                    blocked: false,
+                    message: '',
+                    created_at: new Date().toISOString(),
+                    last_seen: new Date().toISOString()
+                };
+            } else {
+                devices[deviceId].last_seen = new Date().toISOString();
+            }
+            
+            saveDevices(devices);
+            addLog(deviceId, 'HEARTBEAT', 'Device checked in');
+            
+            return {
+                blocked: devices[deviceId].blocked,
+                message: devices[deviceId].message || '',
+                timestamp: new Date().toISOString()
+            };
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            initializeData();
+            refreshDevices();
+            refreshLogs();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(() => {
+                refreshDevices();
+                refreshLogs();
+            }, 30000);
+        };
+
+        // Make API available globally for mobile app simulation
+        window.NFLPaletaAPI = {
+            handleBlockStatusRequest: handleBlockStatusRequest
+        };
+    </script>
+</body>
+</html>
