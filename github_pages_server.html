@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NFL Paleta Block Control - GitHub Pages</title>
+    <title>NFL Paleta Device Management System</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -156,30 +156,30 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>ð NFL Paleta Block Control</h1>
-            <p>Remote device management via GitHub Pages</p>
+            <h1>ðŸ”’ NFL Paleta Device Management System</h1>
+            <p>Monitor and manage connected devices. Devices report status every 30 seconds.</p>
         </div>
 
         <div class="controls">
             <h2>Global Controls</h2>
             <div class="quick-actions">
-                <button onclick="blockAll()" class="danger">Block All</button>
-                <button onclick="unblockAll()" class="success">Unblock All</button>
+                <button onclick="blockAll()" class="danger">Disable All</button>
+                <button onclick="unblockAll()" class="success">Enable All</button>
                 <button onclick="exportConfig()">Export Config</button>
                 <button onclick="importConfig()">Import Config</button>
             </div>
-            <textarea id="globalMessage" placeholder="Block message for all devices..."></textarea>
+            <textarea id="globalMessage" placeholder="Status message for all devices..."></textarea>
         </div>
 
         <div class="offline-controls">
-            <h3>ð± Offline Mode Controls</h3>
-            <p>These controls work without internet connection using localStorage:</p>
+            <h2>Offline Configuration</h2>
+            <p>Configure device behavior when offline. Settings apply when devices lose internet connection.</p>
             <div class="quick-actions">
-                <button onclick="setOfflineBlock(1)" class="danger">Block 1 Hour</button>
-                <button onclick="setOfflineBlock(24)" class="danger">Block 1 Day</button>
-                <button onclick="setOfflineBlock(168)" class="danger">Block 1 Week</button>
-                <button onclick="setPermanentBlock()" class="danger">Permanent Block</button>
-                <button onclick="clearOfflineBlock()" class="success">Clear All Blocks</button>
+                <button onclick="setOfflineBlock(1)" class="danger">Disable 1 Hour</button>
+                <button onclick="setOfflineBlock(24)" class="danger">Disable 1 Day</button>
+                <button onclick="setOfflineBlock(168)" class="danger">Disable 1 Week</button>
+                <button onclick="setPermanentBlock()" class="danger">Permanent Disable</button>
+                <button onclick="clearOfflineBlock()" class="success">Enable All</button>
             </div>
         </div>
 
@@ -190,8 +190,19 @@
             <div id="deviceList"></div>
         </div>
 
+        <div class="debug-section">
+            <h2>Debug Information</h2>
+            <div id="debugInfo">
+                <p><strong>Current Time:</strong> <span id="currentTime"></span></p>
+                <p><strong>Total Requests:</strong> <span id="requestCount">0</span></p>
+                <p><strong>Last Request:</strong> <span id="lastRequest">None</span></p>
+                <p><strong>Server Status:</strong> <span id="serverStatus">Active</span></p>
+            </div>
+            <button onclick="clearDebugInfo()">Clear Debug</button>
+        </div>
+
         <div class="logs">
-            <h2>Recent Logs</h2>
+            <h2>Activity Logs</h2>
             <button onclick="refreshLogs()">Refresh Logs</button>
             <button onclick="clearLogs()">Clear Logs</button>
             <div id="logList"></div>
@@ -259,7 +270,7 @@
                     <div style="margin-top: 10px;">
                         <button onclick="toggleBlock('${deviceId}', ${device.blocked})" 
                                 class="${device.blocked ? 'success' : 'danger'}">
-                            ${device.blocked ? 'Unblock' : 'Block'}
+                            ${device.blocked ? 'Enable' : 'Disable'}
                         </button>
                         <button onclick="deleteDevice('${deviceId}')" class="danger">Delete</button>
                     </div>
@@ -268,7 +279,7 @@
             });
 
             if (Object.keys(devices).length === 0) {
-                deviceList.innerHTML = '<p>No devices registered yet. Devices will appear here when they connect.</p>';
+                deviceList.innerHTML = '<p>No devices connected yet. Devices will appear here when they connect.</p>';
             }
         }
 
@@ -534,10 +545,19 @@
             }
         }
 
+        // Debug tracking
+        let requestCount = 0;
+        let lastRequestTime = null;
+
         // API endpoint simulation for mobile app
         function handleBlockStatusRequest(requestData) {
             const devices = getDevices();
             const deviceId = requestData.device_id;
+            
+            // Update debug info
+            requestCount++;
+            lastRequestTime = new Date();
+            updateDebugInfo();
             
             // Update device last seen
             if (!devices[deviceId]) {
@@ -547,12 +567,13 @@
                     created_at: new Date().toISOString(),
                     last_seen: new Date().toISOString()
                 };
+                addLog(deviceId, 'REGISTER', 'New device registered');
             } else {
                 devices[deviceId].last_seen = new Date().toISOString();
+                addLog(deviceId, 'HEARTBEAT', 'Device checked in');
             }
             
             saveDevices(devices);
-            addLog(deviceId, 'HEARTBEAT', 'Device checked in');
             
             return {
                 blocked: devices[deviceId].blocked,
@@ -561,16 +582,31 @@
             };
         }
 
+        function updateDebugInfo() {
+            document.getElementById('currentTime').textContent = new Date().toLocaleString();
+            document.getElementById('requestCount').textContent = requestCount;
+            document.getElementById('lastRequest').textContent = lastRequestTime ? lastRequestTime.toLocaleString() : 'None';
+            document.getElementById('serverStatus').textContent = 'Active';
+        }
+
+        function clearDebugInfo() {
+            requestCount = 0;
+            lastRequestTime = null;
+            updateDebugInfo();
+        }
+
         // Initialize on load
         window.onload = function() {
             initializeData();
             refreshDevices();
             refreshLogs();
+            updateDebugInfo();
             
             // Auto-refresh every 30 seconds
             setInterval(() => {
                 refreshDevices();
                 refreshLogs();
+                updateDebugInfo();
             }, 30000);
         };
 
