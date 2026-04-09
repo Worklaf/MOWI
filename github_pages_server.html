@@ -667,7 +667,7 @@
             const response = handleBlockStatusRequest(testData);
             console.log('API response:', response);
             
-            alert(`Test API Request Sent!\n\nDevice ID: ${testDeviceId}\nResponse: ${JSON.stringify(response, null, 2)}`);
+            alert('Test API Request Sent!\n\nDevice ID: ' + testDeviceId + '\nResponse: ' + JSON.stringify(response, null, 2));
             
             // Refresh the device list to show the test device
             refreshDevices();
