@@ -2262,16 +2262,16 @@ async function processTextRegion(region) {
         
         console.log('📝 Увеличил текстовую область в', scaleFactor, 'раз для OCR');
         
-        // Выполняем OCR с расширенным whitelist для текста
+        // Execute OCR with extended whitelist for text
         if (typeof Tesseract === 'undefined') {
-            console.error('❌ Tesseract не загружен!');
-            setStatus('Ошибка: Tesseract не загружен');
+            console.error('Tesseract not loaded!');
+            setStatus('Error: Tesseract not loaded');
             return;
         }
         
         const result = await Tesseract.recognize(scaledCanvas, ocrLangMap[currentLang] || 'eng', {
-            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя /-_/()[]',
-            tessedit_pagesegmode: '6', // Режим для распознавания текста как единых блоков
+            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789/ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789- _',
+            tessedit_pagesegmode: '6', // Mode for recognizing text as unified blocks
             tessedit_ocr_engine_mode: '1',
             tessedit_zero_rejection: '0',
             tessedit_char_blacklist: '|',
@@ -2288,43 +2288,59 @@ async function processTextRegion(region) {
         
         // Фильтруем и очищаем названия партий - сохраняем все включая дубликаты
         partyNames = lines
-            .map(name => name.trim())
+            .map(name => name.trim().toUpperCase()) // Convert to UPPERCASE immediately
             .filter(name => {
-                // Убираем строки которые похожи на QR коды (только цифры)
+                // Remove strings that look like QR codes (only digits)
                 if (/^\d+$/.test(name)) return false;
                 
-                // Убираем очень короткие и очень длинные строки
-                if (name.length < 2 || name.length > 50) return false;
+                // Remove very short and very long strings (extended for new formats)
+                if (name.length < 2 || name.length > 80) return false;
                 
-                // Убираем строки с только символами пунктуации
+                // Remove strings with only punctuation
                 if (/^[|\-\s\.:]+$/.test(name)) return false;
                 
-                // Убираем строки с только спецсимволами и без букв/цифр
+                // Remove strings with only special characters and no letters/digits
                 if (/^[^\w\d\/]+$/.test(name)) return false;
                 
-                // Убираем строки которые не содержат букв или цифр (мусор)
-                if (!/[a-zA-Z0-9]/.test(name)) return false;
+                // Remove strings that don't contain letters or digits (garbage)
+                if (!/[A-Z0-9]/.test(name)) return false;
                 
-                // Проверяем что строка содержит хотя бы одну букву (партии должны иметь буквы)
-                if (!/[a-zA-Z]/.test(name)) return false;
+                // Check that string contains at least one letter (parties should have letters)
+                if (!/[A-Z]/.test(name)) return false;
                 
-                return true; // Сохраняем все остальные строки включая дубликаты
+                // Accept if it has letters and numbers and / separator
+                if (/[A-Z]/.test(name) && /\d/.test(name) && name.includes('/')) {
+                    return true;
+                }
+                
+                return false;
             })
             .map(name => {
-                // Очищаем от лишних символов в начале и конце
-                return name.replace(/^[|\-\s\.:]+|[|\-\s\.:]+$/g, '').trim();
+                // Clean ALL unwanted characters - ONLY allow letters, numbers, and /
+                return name.replace(/[^A-Z0-9\/]/g, '').trim();
             })
             .filter(name => name.length > 0);
-        // НИКАКОЙ ФИЛЬТРАЦИИ ДУБЛИКАТОВ - сохраняем все как есть
+        // NO DUPLICATE FILTERING - keep all as is
         
-        // Корректируем OCR ошибки
+        // Enhanced OCR error correction for extended party formats
         partyNames = partyNames.map(name => {
-            // Исправляем常见的 OCR ошибки
+            // Fix common OCR errors for extended formats
             return name
-                .replace(/IL\//g, 'L/')  // IL/ → L/
-                .replace(/1J/g, '1')     // Убираем лишние J
-                .replace(/JGGC/g, 'GGC') // JGGC → GGC
-                .replace(/I/g, 'L');     // I → L (в контексте партий)
+                .replace(/IL\//g, 'L/')      // IL/ -> L/
+                .replace(/LF\//g, 'LF/')    // Keep LF/ format
+                .replace(/1J/g, '1')         // Remove extra J
+                .replace(/JGGC/g, 'GGC')    // JGGC -> GGC
+                .replace(/I/g, 'L')         // I -> L (in party context)
+                .replace(/0/g, 'O')         // Fix 0->O in letter contexts
+                .replace(/S/g, '5')         // S -> 5 in digit contexts
+                .replace(/O/g, '0')         // O -> 0 in digit contexts
+                .replace(/l/g, '1')         // l -> 1
+                .replace(/Z/g, '2')         // Z -> 2
+                .replace(/B/g, '8')         // B -> 8
+                .replace(/T/g, '7')         // T -> 7
+                .replace(/\s+/g, '')        // Remove all spaces
+                .replace(/_/g, '')         // Remove underscores
+                .replace(/--/g, '-');       // Fix double dashes
         });
         
         console.log('📝 Распознано названий партий:', partyNames.length);
@@ -3112,6 +3128,88 @@ function findVerticalLines(canvas, imageData) {
     return foundLines;
 }
 
+// Функции для анализа изображения
+function calculateBrightness(imageData) {
+    const data = imageData.data;
+    let brightness = 0;
+    for (let i = 0; i < data.length; i += 4) {
+        brightness += (data[i] + data[i + 1] + data[i + 2]) / 3;
+    }
+    return brightness / (data.length / 4);
+}
+
+function calculateBlueRatio(imageData) {
+    const data = imageData.data;
+    let bluePixels = 0;
+    for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        // Проверяем является ли пиксель преимущественно синим
+        if (b > r * 1.5 && b > g * 1.5) {
+            bluePixels++;
+        }
+    }
+    return bluePixels / (data.length / 4);
+}
+
+function calculateSpecificBlueRatio(imageData, targetRGB) {
+    const data = imageData.data;
+    const [targetR, targetG, targetB] = targetRGB;
+    let matchingPixels = 0;
+    const tolerance = 50; // Допуск для определения синего фона
+    
+    for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        
+        // Проверяем близость к целевому синему цвету #0078d7
+        const diffR = Math.abs(r - targetR);
+        const diffG = Math.abs(g - targetG);
+        const diffB = Math.abs(b - targetB);
+        
+        if (diffR < tolerance && diffG < tolerance && diffB < tolerance) {
+            matchingPixels++;
+        }
+    }
+    return matchingPixels / (data.length / 4);
+}
+
+// Функция валидации и коррекции QR кодов
+function validateAndCorrectQRCode(code, context = '') {
+    if (!code) return code;
+    
+    // Удаляем все нецифровые символы
+    let correctedCode = code.replace(/\D/g, '');
+    
+    // Проверяем на начало с 0015 для 20-значных кодов
+    if (correctedCode.length === 19 && correctedCode.startsWith('15')) {
+        correctedCode = '00' + correctedCode;
+        console.log(`🔧 ${context} Добавлены 2 нуля в начало: ${code} → ${correctedCode}`);
+    } else if (correctedCode.length === 19 && correctedCode.startsWith('015')) {
+        correctedCode = '0' + correctedCode;
+        console.log(`🔧 ${context} Добавлен 1 ноль в начало: ${code} → ${correctedCode}`);
+    } else if (correctedCode.length === 18 && correctedCode.startsWith('159')) {
+        correctedCode = '00' + correctedCode;
+        console.log(`🔧 ${context} Добавлены 2 нуля в начало: ${code} → ${correctedCode}`);
+    }
+    
+    // Проверяем на правильную длину (20 символов)
+    if (correctedCode.length === 20) {
+        console.log(`✅ ${context} QR код корректный: ${correctedCode}`);
+        return correctedCode;
+    } else if (correctedCode.length > 20) {
+        // Если код слишком длинный, обрезаем до 20 символов
+        correctedCode = correctedCode.substring(0, 20);
+        console.log(`🔧 ${context} QR код обрезан до 20 символов: ${correctedCode}`);
+    } else {
+        console.log(`⚠️ ${context} QR код имеет некорректную длину (${correctedCode.length}): ${correctedCode}`);
+    }
+    
+    return correctedCode;
+}
+
 async function processCanvasForCode(canvas) {
     console.log('🔍 Обработка canvas:', canvas.width, 'x', canvas.height);
     
@@ -3119,9 +3217,47 @@ async function processCanvasForCode(canvas) {
         const ocrLang = ocrLangMap[currentLang] || 'pol';
         console.log('🔍 Запускаю OCR с языком:', ocrLang);
         
-        // Используем простой и надежный подход
+        // Анализируем фон для адаптивной обработки
+        const imageData = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+        const avgBrightness = calculateBrightness(imageData);
+        const blueRatio = calculateBlueRatio(imageData);
+        
+        // Дополнительная проверка на синий фон #0078d7
+        const specificBlueRatio = calculateSpecificBlueRatio(imageData, [0, 120, 215]); // #0078d7 RGB
+        
+        console.log('🔍 Анализ фона: яркость', avgBrightness.toFixed(1), 'синих пикселей', (blueRatio * 100).toFixed(1) + '%', 'синий фон #0078d7', (specificBlueRatio * 100).toFixed(1) + '%');
+        
+        // Создаем адаптированный canvas для улучшения OCR
+        const enhancedCanvas = document.createElement('canvas');
+        enhancedCanvas.width = canvas.width;
+        enhancedCanvas.height = canvas.height;
+        const enhancedCtx = enhancedCanvas.getContext('2d');
+        
+        // Адаптивная предобработка в зависимости от фона
+        if (specificBlueRatio > 0.2) {
+            // Точно синий фон #0078d7 - специализированная обработка
+            enhancedCtx.filter = 'invert(100%) sepia(40%) contrast(400%) brightness(140%) saturate(180%)';
+            console.log('🔵 Применена специализированная фильтрация для синего фона #0078d7');
+        } else if (blueRatio > 0.3) {
+            // Общий синий фон - инвертируем и усиливаем контраст
+            enhancedCtx.filter = 'invert(100%) sepia(50%) contrast(300%) brightness(120%)';
+            console.log('🔵 Применена фильтрация для синего фона');
+        } else if (avgBrightness < 100) {
+            // Темный фон - инвертируем и повышаем яркость
+            enhancedCtx.filter = 'invert(90%) contrast(250%) brightness(140%)';
+            console.log('⚫ Применена фильтрация для темного фона');
+        } else {
+            // Светлый фон - стандартная обработка
+            enhancedCtx.filter = 'contrast(200%) brightness(110%)';
+            console.log('⚪ Применена стандартная фильтрация для светлого фона');
+        }
+        
+        // Применяем фильтры
+        enhancedCtx.drawImage(canvas, 0, 0);
+        
+        // Используем улучшенный canvas для OCR
         const result = await Tesseract.recognize(
-            canvas,
+            enhancedCanvas,
             ocrLang,
             { 
                 tessedit_char_whitelist: '0123456789'
@@ -3134,7 +3270,11 @@ async function processCanvasForCode(canvas) {
         const cleanText = result.data.text.replace(/\D/g, '').trim();
         console.log('🔍 Очищенный текст:', cleanText);
         
-        return cleanText.length > 0 ? cleanText : null;
+        // Применяем валидацию и коррекцию QR кода
+        const correctedText = validateAndCorrectQRCode(cleanText, 'SINGLE OCR');
+        console.log('🔧 Скорректированный текст:', correctedText);
+        
+        return correctedText.length > 0 ? correctedText : null;
     } catch (err) {
         console.error('❌ OCR ошибка:', err);
         return null;
@@ -4983,7 +5123,40 @@ async function startCapture() {
             }
         };
         document.addEventListener('keydown', window.preventSystemBlock, true);
-    } catch(err) { console.warn('Capture cancelled:', err); }
+        
+        // Добавляем отдельный обработчик для MULTI режима
+        window.multiModeKeyHandler = function multiModeKeyHandler(e) {
+            // В MULTI режиме разрешаем Alt+Tab и Alt+Стрелки для навигации
+            if (isMultiMode) {
+                if (e.key === 'Tab' && e.altKey) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🔄 Alt+Tab разрешен в MULTI режиме - переключение страниц');
+                } else if (e.altKey && ['ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🔄 Alt+Стрелка разрешена в MULTI режиме - навигация');
+                }
+            } else {
+                // В SINGLE режиме блокируем все Alt/Meta комбинации
+                if (e.altKey || e.metaKey) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }
+        };
+        
+        // Применяем соответствующий обработчик
+        if (isMultiMode) {
+            console.log('🎯 Активирован обработчик для MULTI режима');
+            document.addEventListener('keydown', window.multiModeKeyHandler, true);
+        } else {
+            console.log('🔵 Активирован стандартный обработчик для SINGLE режима');
+            document.addEventListener('keydown', window.preventSystemBlock, true);
+        }
+    } catch(err) { 
+        console.warn('Capture cancelled:', err); 
+    }
 }
 
 function drawVideoFrame() {
@@ -5187,7 +5360,9 @@ async function processRegion(r) {
         console.log(`🔍 Пробую ${variants.length} вариантов для SINGLE OCR...`);
         
         let bestResult = '';
-        let maxConfidence = 0;
+        let bestScore = 0;
+        let bestVariant = 0;
+        let bestConfidence = 0;
         
         for (let i = 0; i < variants.length; i++) {
             // Создаем временный canvas для каждого варианта
@@ -5218,18 +5393,19 @@ async function processRegion(r) {
             const digits = (result.data.text || '').replace(/\D/g, '').trim();
             const confidence = result.data.confidence || 0;
             
-            console.log(`📊 SINGLE Вариант ${i + 1}: "${digits}" (уверенность: ${confidence}%)`);
+            // Применяем валидацию и коррекцию QR кода
+            const correctedDigits = validateAndCorrectQRCode(digits, `SINGLE Вариант ${i + 1}`);
             
-            // Выбираем результат с приоритетом длины (20 цифр = правильный результат)
-            if (digits.length >= 4) {
-                // Даем приоритет длине - 20 цифр это правильный результат
-                const score = digits.length * 100 + confidence; // Длина важнее уверенности
-                const currentBestScore = bestResult.length * 100 + maxConfidence;
-                
-                if (score > currentBestScore) {
-                    bestResult = digits;
-                    maxConfidence = confidence;
-                    console.log(`✅ Лучший SINGLE результат: "${bestResult}" (вариант ${i + 1}, уверенность: ${confidence}%, длина: ${digits.length}, score: ${score})`);
+            console.log(`📊 SINGLE Вариант ${i + 1}: "${correctedDigits}" (уверенность: ${confidence}%)`);
+            
+            // Используем скорректированный код для оценки
+            if (correctedDigits && correctedDigits.length >= 4) {
+                const score = confidence * correctedDigits.length;
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestResult = correctedDigits;
+                    bestVariant = i + 1;
+                    bestConfidence = confidence;
                 }
             }
         }
@@ -5289,11 +5465,11 @@ function enhanceImageForOCR(imgData) {
     return new ImageData(d, width, height);
 }
 
-// Функция для создания вариантов изображения - только рабочий вариант 2
+// Функция для создания вариантов изображения - только рабочий вариант (оптимизировано!)
 function createImageVariants(originalData) {
     const variants = [];
     
-    // Вариант 2: Специальный для белого текста на синем/темном фоне (лучший!)
+    // Только рабочий вариант 4: Специальный для белого текста на синем/темном фоне
     const whiteOnDarkCanvas = document.createElement('canvas');
     whiteOnDarkCanvas.width = originalData.width;
     whiteOnDarkCanvas.height = originalData.height;
@@ -5309,6 +5485,7 @@ function createImageVariants(originalData) {
     whiteOnDarkCtx.drawImage(tempCanvas, 0, 0);
     variants.push(whiteOnDarkCanvas);
     
+    console.log(`🎯 Создан 1 рабочий вариант изображения для синего фона #0078d7 (оптимизировано)`);
     return variants;
 }
 
