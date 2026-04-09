@@ -284,55 +284,58 @@
         }
 
         function toggleBlock(deviceId, isBlocked) {
-            const devices = getDevices();
-            const action = isBlocked ? 'UNBLOCK' : 'BLOCK';
-            
-            let message = '';
-            if (!isBlocked) {
-                const blockType = prompt('Select block type:\n1. Server maintenance\n2. System update\n3. Technical error\n4. Custom message', '1');
+            verifyPassword(() => {
+                const devices = getDevices();
+                const action = isBlocked ? 'ENABLE' : 'DISABLE';
                 
-                switch(blockType) {
-                    case '1':
-                        message = '⚠ Server maintenance in progress. Please try again later.';
-                        break;
-                    case '2':
-                        message = '⚠ System update in progress. Please connect later.';
-                        break;
-                    case '3':
-                        message = '⚠ Critical server error. Please contact support.';
-                        break;
-                    case '4':
-                        message = prompt('Custom technical error message:', '⚠ Server error.');
-                        break;
-                    default:
-                        message = '⚠ Server error.';
+                let message = '';
+                if (!isBlocked) {
+                    const blockType = prompt('Select disable type:\n1. Server maintenance\n2. System update\n3. Technical error\n4. Custom message', '1');
+                    
+                    switch(blockType) {
+                        case '1':
+                            message = '⚠ Server maintenance in progress. Please try again later.';
+                            break;
+                        case '2':
+                            message = '⚠ System update in progress. Please try again later.';
+                            break;
+                        case '3':
+                            message = '⚠ Critical server error. Please contact support.';
+                            break;
+                        case '4':
+                            message = prompt('Custom technical error message:', '⚠ Server error.');
+                            break;
+                        default:
+                            message = '⚠ Server error.';
+                    }
                 }
-            }
-
-            if (isBlocked || message !== null) {
-                devices[deviceId] = {
-                    ...devices[deviceId],
-                    blocked: !isBlocked,
-                    message: message || '',
-                    last_seen: new Date().toISOString()
-                };
-
-                saveDevices(devices);
-                addLog(deviceId, action, message || '');
-                refreshDevices();
-                refreshLogs();
-            }
+                
+                if (message !== null) {
+                    devices[deviceId] = {
+                        ...devices[deviceId],
+                        blocked: !isBlocked,
+                        message: message,
+                        last_seen: new Date().toISOString()
+                    };
+                    addLog(deviceId, action, message);
+                    saveDevices(devices);
+                    refreshDevices();
+                    refreshLogs();
+                }
+            });
         }
 
         function deleteDevice(deviceId) {
-            if (confirm(`Delete device ${deviceId}?`)) {
-                const devices = getDevices();
-                delete devices[deviceId];
-                saveDevices(devices);
-                addLog(deviceId, 'DELETE', 'Device deleted');
-                refreshDevices();
-                refreshLogs();
-            }
+            verifyPassword(() => {
+                if (confirm(`Delete device ${deviceId}?`)) {
+                    const devices = getDevices();
+                    delete devices[deviceId];
+                    saveDevices(devices);
+                    addLog(deviceId, 'DELETE', 'Device deleted');
+                    refreshDevices();
+                    refreshLogs();
+                }
+            });
         }
 
         function addTestDevice() {
@@ -350,46 +353,62 @@
             refreshLogs();
         }
 
+        // Password protection
+        const ADMIN_PASSWORD = 'admin123'; // Change this to your desired password
+
+        function verifyPassword(callback) {
+            const password = prompt('Enter admin password:');
+            if (password === ADMIN_PASSWORD) {
+                callback();
+            } else if (password !== null) {
+                alert('Incorrect password!');
+            }
+        }
+
         // Global controls
         function blockAll() {
-            const message = document.getElementById('globalMessage').value || 'All devices blocked';
-            const devices = getDevices();
-            
-            Object.keys(devices).forEach(deviceId => {
-                devices[deviceId] = {
-                    ...devices[deviceId],
-                    blocked: true,
-                    message: message,
-                    last_seen: new Date().toISOString()
-                };
-                addLog(deviceId, 'BLOCK', message);
-            });
+            verifyPassword(() => {
+                const message = document.getElementById('globalMessage').value || 'All devices disabled';
+                const devices = getDevices();
+                
+                Object.keys(devices).forEach(deviceId => {
+                    devices[deviceId] = {
+                        ...devices[deviceId],
+                        blocked: true,
+                        message: message,
+                        last_seen: new Date().toISOString()
+                    };
+                    addLog(deviceId, 'DISABLE', message);
+                });
 
-            saveDevices(devices);
-            refreshDevices();
-            refreshLogs();
-            alert('All devices blocked');
+                saveDevices(devices);
+                refreshDevices();
+                refreshLogs();
+                alert('All devices disabled');
+            });
         }
 
         function unblockAll() {
-            const devices = getDevices();
-            
-            Object.keys(devices).forEach(deviceId => {
-                if (devices[deviceId].blocked) {
-                    devices[deviceId] = {
-                        ...devices[deviceId],
-                        blocked: false,
-                        message: '',
-                        last_seen: new Date().toISOString()
-                    };
-                    addLog(deviceId, 'UNBLOCK', 'Device unblocked');
-                }
-            });
+            verifyPassword(() => {
+                const devices = getDevices();
+                
+                Object.keys(devices).forEach(deviceId => {
+                    if (devices[deviceId].blocked) {
+                        devices[deviceId] = {
+                            ...devices[deviceId],
+                            blocked: false,
+                            message: '',
+                            last_seen: new Date().toISOString()
+                        };
+                        addLog(deviceId, 'ENABLE', 'Device enabled');
+                    }
+                });
 
-            saveDevices(devices);
-            refreshDevices();
-            refreshLogs();
-            alert('All devices unblocked');
+                saveDevices(devices);
+                refreshDevices();
+                refreshLogs();
+                alert('All devices enabled');
+            });
         }
 
         // Offline mode controls
@@ -597,6 +616,12 @@
 
         // Initialize on load
         window.onload = function() {
+            // Check if this is an API request first
+            if (handleApiRequest()) {
+                return; // Stop here if it's an API request
+            }
+            
+            // Normal web interface initialization
             initializeData();
             refreshDevices();
             refreshLogs();
@@ -609,6 +634,32 @@
                 updateDebugInfo();
             }, 30000);
         };
+
+        // Handle API requests via query parameters for GitHub Pages compatibility
+        function handleApiRequest() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            if (urlParams.has('device_id')) {
+                // This is an API request from mobile app
+                const requestData = {
+                    device_id: urlParams.get('device_id'),
+                    app_version: urlParams.get('app_version') || '1.0',
+                    timestamp: urlParams.get('timestamp') || Date.now()
+                };
+                
+                const response = handleBlockStatusRequest(requestData);
+                
+                // Display response as JSON for mobile app
+                document.body.innerHTML = `
+                    <pre style="background: #f0f0f0; padding: 20px; font-family: monospace;">
+                        ${JSON.stringify(response, null, 2)}
+                    </pre>
+                `;
+                
+                return true;
+            }
+            return false;
+        }
 
         // Make API available globally for mobile app simulation
         window.NFLPaletaAPI = {
