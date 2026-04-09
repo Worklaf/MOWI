@@ -264,24 +264,23 @@
                 const device = devices[deviceId];
                 const div = document.createElement('div');
                 div.className = device.blocked ? 'device blocked' : 'device unblocked';
-                div.innerHTML = `
-                    <div>
-                        <span class="device-id">${deviceId}</span>
-                        <span class="status ${device.blocked ? 'blocked-status' : 'active-status'}">
-                            ${device.blocked ? 'ð´ BLOCKED' : 'ð¢ ACTIVE'}
-                        </span>
-                    </div>
-                    <div><strong>Message:</strong> ${device.message || 'No message'}</div>
-                    <div><small>Last seen: ${device.last_seen || 'Never'}</small></div>
-                    <div><small>Created: ${device.created_at || 'Unknown'}</small></div>
-                    <div style="margin-top: 10px;">
-                        <button onclick="toggleBlock('${deviceId}', ${device.blocked})" 
-                                class="${device.blocked ? 'success' : 'danger'}">
-                            ${device.blocked ? 'Enable' : 'Disable'}
-                        </button>
-                        <button onclick="deleteDevice('${deviceId}')" class="danger">Delete</button>
-                    </div>
-                `;
+                div.innerHTML = '<div>' +
+                        '<span class="device-id">' + deviceId + '</span>' +
+                        '<span class="status ' + (device.blocked ? 'blocked-status' : 'active-status') + '">' +
+                            (device.blocked ? '🔴 BLOCKED' : '🟢 ACTIVE') +
+                        '</span>' +
+                    '</div>' +
+                    '<div><strong>Message:</strong> ' + (device.message || 'No message') + '</div>' +
+                    '<div><small>Last seen: ' + (device.last_seen || 'Never') + '</small></div>' +
+                    '<div><small>Created: ' + (device.created_at || 'Unknown') + '</small></div>' +
+                    '<div style="margin-top: 10px;">' +
+                        '<button onclick="toggleBlock(\'' + deviceId + '\', ' + device.blocked + ')" ' +
+                                'class="' + (device.blocked ? 'success' : 'danger') + '">' +
+                            (device.blocked ? 'Enable' : 'Disable') +
+                        '</button>' +
+                        '<button onclick="deleteDevice(\'' + deviceId + '\')" class="danger">Delete</button>' +
+                    '</div>' +
+                '';
                 deviceList.appendChild(div);
             });
 
@@ -334,7 +333,7 @@
 
         function deleteDevice(deviceId) {
             verifyPassword(() => {
-                if (confirm(`Delete device ${deviceId}?`)) {
+                if (confirm('Delete device ' + deviceId + '?')) {
                     const devices = getDevices();
                     delete devices[deviceId];
                     saveDevices(devices);
@@ -445,9 +444,9 @@
                 timestamp: Date.now()
             };
             localStorage.setItem('offline_block', JSON.stringify(blockData));
-            addLog('OFFLINE', 'BLOCK', `Set offline block for ${hours} hours: ${message}`);
+            addLog('OFFLINE', 'BLOCK', 'Set offline block for ' + hours + ' hours: ' + message);
             refreshLogs();
-            alert(`Offline block set for ${hours} hours`);
+            alert('Offline block set for ' + hours + ' hours');
         }
 
         function setPermanentBlock() {
@@ -478,7 +477,7 @@
                     timestamp: Date.now()
                 };
                 localStorage.setItem('offline_block', JSON.stringify(blockData));
-                addLog('OFFLINE', 'BLOCK', `Permanent block: ${message}`);
+                addLog('OFFLINE', 'BLOCK', 'Permanent block: ' + message);
                 refreshLogs();
                 alert('Permanent offline block set');
             }
@@ -504,7 +503,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `nfl_paleta_config_${new Date().toISOString().split('T')[0]}.json`;
+            a.download = 'nfl_paleta_config_' + new Date().toISOString().split('T')[0] + '.json';
             a.click();
             URL.revokeObjectURL(url);
         }
@@ -549,11 +548,9 @@
             logs.forEach(log => {
                 const div = document.createElement('div');
                 div.className = 'log-entry';
-                div.innerHTML = `
-                    <strong>${log.action}</strong> - ${log.device_id}<br>
-                    <small>${log.message}</small><br>
-                    <small>${new Date(log.timestamp).toLocaleString()}</small>
-                `;
+                div.innerHTML = '<strong>' + log.action + '</strong> - ' + log.device_id + '<br>' +
+                    '<small>' + log.message + '</small><br>' +
+                    '<small>' + new Date(log.timestamp).toLocaleString() + '</small>';
                 logList.appendChild(div);
             });
 
@@ -595,12 +592,12 @@
                     created_at: new Date().toISOString(),
                     last_seen: new Date().toISOString()
                 };
-                addLog(deviceId, 'REGISTER', `New device registered (Global: ${globalBlocked ? 'BLOCKED' : 'UNBLOCKED'})`);
+                addLog(deviceId, 'REGISTER', 'New device registered (Global: ' + (globalBlocked ? 'BLOCKED' : 'UNBLOCKED') + ')');
             } else {
                 devices[deviceId].last_seen = new Date().toISOString();
                 devices[deviceId].blocked = globalBlocked;
                 devices[deviceId].message = globalMessage;
-                addLog(deviceId, 'HEARTBEAT', `Device checked in (Global: ${globalBlocked ? 'BLOCKED' : 'UNBLOCKED'})`);
+                addLog(deviceId, 'HEARTBEAT', 'Device checked in (Global: ' + (globalBlocked ? 'BLOCKED' : 'UNBLOCKED') + ')');
             }
             
             saveDevices(devices);
@@ -624,7 +621,7 @@
         function setGlobalBlockStatus(blocked, message = '') {
             localStorage.setItem('global_blocked', blocked.toString());
             localStorage.setItem('global_block_message', message);
-            addLog('SYSTEM', 'GLOBAL_BLOCK', `Global status changed to: ${blocked ? 'BLOCKED' : 'UNBLOCKED'}`);
+            addLog('SYSTEM', 'GLOBAL_BLOCK', 'Global status changed to: ' + (blocked ? 'BLOCKED' : 'UNBLOCKED'));
         }
 
         function updateDebugInfo() {
@@ -715,11 +712,9 @@
                 const response = handleBlockStatusRequest(requestData);
                 
                 // Display response as JSON for mobile app
-                document.body.innerHTML = `
-                    <pre style="background: #f0f0f0; padding: 20px; font-family: monospace;">
-                        ${JSON.stringify(response, null, 2)}
-                    </pre>
-                `;
+                document.body.innerHTML = '<pre style="background: #f0f0f0; padding: 20px; font-family: monospace;">' +
+                        JSON.stringify(response, null, 2) +
+                    '</pre>';
                 
                 return true;
             }
