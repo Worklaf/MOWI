@@ -162,6 +162,10 @@
 
         <div class="controls">
             <h2>Global Controls</h2>
+            <div class="global-status" id="globalStatus">
+                <strong>Current Status:</strong> 
+                <span id="globalStatusText" style="color: green;">ENABLED</span>
+            </div>
             <div class="quick-actions">
                 <button onclick="blockAll()" class="danger">Disable All</button>
                 <button onclick="unblockAll()" class="success">Enable All</button>
@@ -386,7 +390,8 @@
                 
                 saveDevices(devices);
                 refreshDevices();
-                Toast('Global block activated - All applications blocked');
+                updateGlobalStatus(); // Update status display
+                alert('Global block activated - All applications blocked');
             });
         }
 
@@ -406,6 +411,7 @@
                 saveDevices(devices);
                 refreshDevices();
                 refreshLogs();
+                updateGlobalStatus(); // Update status display
                 alert('All devices enabled');
             });
         }
@@ -628,6 +634,21 @@
             document.getElementById('serverStatus').textContent = 'Active';
         }
 
+        function updateGlobalStatus() {
+            const isBlocked = getGlobalBlockStatus();
+            const message = getGlobalBlockMessage();
+            const statusText = document.getElementById('globalStatusText');
+            
+            if (isBlocked) {
+                statusText.textContent = 'BLOCKED';
+                statusText.style.color = 'red';
+                statusText.innerHTML += ' - ' + message;
+            } else {
+                statusText.textContent = 'ENABLED';
+                statusText.style.color = 'green';
+            }
+        }
+
         function clearDebugInfo() {
             requestCount = 0;
             lastRequestTime = null;
@@ -655,7 +676,7 @@
         // Initialize on load
         window.onload = function() {
             // Check if this is an API request first
-            if (handleApiRequest()) {
+            if (handleApiRequest() === true) {
                 return; // Stop here if it's an API request
             }
             
@@ -664,12 +685,18 @@
             refreshDevices();
             refreshLogs();
             updateDebugInfo();
+            updateGlobalStatus(); // Update global status display
+            
+            // Show current global status in console
+            console.log('Global block status:', getGlobalBlockStatus());
+            console.log('Global block message:', getGlobalBlockMessage());
             
             // Auto-refresh every 30 seconds
             setInterval(() => {
                 refreshDevices();
                 refreshLogs();
                 updateDebugInfo();
+                updateGlobalStatus(); // Update status on refresh
             }, 30000);
         };
 
