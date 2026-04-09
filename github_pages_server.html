@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NFL Paleta Device Management System</title>
+    <title>NFL Paleta Global Control System</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -198,7 +198,10 @@
                 <p><strong>Last Request:</strong> <span id="lastRequest">None</span></p>
                 <p><strong>Server Status:</strong> <span id="serverStatus">Active</span></p>
             </div>
-            <button onclick="clearDebugInfo()">Clear Debug</button>
+            <div style="margin-top: 10px;">
+                <button onclick="testApiRequest()">Test API Request</button>
+                <button onclick="clearDebugInfo()">Clear Debug</button>
+            </div>
         </div>
 
         <div class="logs">
@@ -365,45 +368,41 @@
             }
         }
 
-        // Global controls
+        // Global controls - GLOBAL BLOCKING SYSTEM
         function blockAll() {
             verifyPassword(() => {
-                const message = document.getElementById('globalMessage').value || 'All devices disabled';
-                const devices = getDevices();
+                const message = document.getElementById('globalMessage').value || 'Application blocked by administrator';
                 
+                // Set global block status
+                setGlobalBlockStatus(true, message);
+                
+                // Update all existing devices to reflect global status
+                const devices = getDevices();
                 Object.keys(devices).forEach(deviceId => {
-                    devices[deviceId] = {
-                        ...devices[deviceId],
-                        blocked: true,
-                        message: message,
-                        last_seen: new Date().toISOString()
-                    };
-                    addLog(deviceId, 'DISABLE', message);
+                    devices[deviceId].blocked = true;
+                    devices[deviceId].message = message;
+                    addLog(deviceId, 'GLOBAL_BLOCK', message);
                 });
-
+                
                 saveDevices(devices);
                 refreshDevices();
-                refreshLogs();
-                alert('All devices disabled');
+                Toast('Global block activated - All applications blocked');
             });
         }
 
         function unblockAll() {
             verifyPassword(() => {
-                const devices = getDevices();
+                // Set global block status to false
+                setGlobalBlockStatus(false, '');
                 
+                // Update all existing devices to reflect global status
+                const devices = getDevices();
                 Object.keys(devices).forEach(deviceId => {
-                    if (devices[deviceId].blocked) {
-                        devices[deviceId] = {
-                            ...devices[deviceId],
-                            blocked: false,
-                            message: '',
-                            last_seen: new Date().toISOString()
-                        };
-                        addLog(deviceId, 'ENABLE', 'Device enabled');
-                    }
+                    devices[deviceId].blocked = false;
+                    devices[deviceId].message = '';
+                    addLog(deviceId, 'GLOBAL_UNBLOCK', 'Application enabled globally');
                 });
-
+                
                 saveDevices(devices);
                 refreshDevices();
                 refreshLogs();
@@ -568,7 +567,7 @@
         let requestCount = 0;
         let lastRequestTime = null;
 
-        // API endpoint simulation for mobile app
+        // API endpoint simulation for mobile app - GLOBAL BLOCKING
         function handleBlockStatusRequest(requestData) {
             const devices = getDevices();
             const deviceId = requestData.device_id;
@@ -578,27 +577,48 @@
             lastRequestTime = new Date();
             updateDebugInfo();
             
-            // Update device last seen
+            // Get global block status
+            const globalBlocked = getGlobalBlockStatus();
+            const globalMessage = getGlobalBlockMessage();
+            
+            // Update device last seen for tracking
             if (!devices[deviceId]) {
                 devices[deviceId] = {
-                    blocked: false,
-                    message: '',
+                    blocked: globalBlocked,
+                    message: globalMessage,
                     created_at: new Date().toISOString(),
                     last_seen: new Date().toISOString()
                 };
-                addLog(deviceId, 'REGISTER', 'New device registered');
+                addLog(deviceId, 'REGISTER', `New device registered (Global: ${globalBlocked ? 'BLOCKED' : 'UNBLOCKED'})`);
             } else {
                 devices[deviceId].last_seen = new Date().toISOString();
-                addLog(deviceId, 'HEARTBEAT', 'Device checked in');
+                devices[deviceId].blocked = globalBlocked;
+                devices[deviceId].message = globalMessage;
+                addLog(deviceId, 'HEARTBEAT', `Device checked in (Global: ${globalBlocked ? 'BLOCKED' : 'UNBLOCKED'})`);
             }
             
             saveDevices(devices);
             
             return {
-                blocked: devices[deviceId].blocked,
-                message: devices[deviceId].message || '',
+                blocked: globalBlocked,
+                message: globalMessage,
                 timestamp: new Date().toISOString()
             };
+        }
+
+        // Global blocking functions
+        function getGlobalBlockStatus() {
+            return localStorage.getItem('global_blocked') === 'true';
+        }
+
+        function getGlobalBlockMessage() {
+            return localStorage.getItem('global_block_message') || 'Application blocked by administrator';
+        }
+
+        function setGlobalBlockStatus(blocked, message = '') {
+            localStorage.setItem('global_blocked', blocked.toString());
+            localStorage.setItem('global_block_message', message);
+            addLog('SYSTEM', 'GLOBAL_BLOCK', `Global status changed to: ${blocked ? 'BLOCKED' : 'UNBLOCKED'}`);
         }
 
         function updateDebugInfo() {
@@ -612,6 +632,24 @@
             requestCount = 0;
             lastRequestTime = null;
             updateDebugInfo();
+        }
+
+        function testApiRequest() {
+            const testDeviceId = 'test_' + Math.random().toString(36).substr(2, 9);
+            const testData = {
+                device_id: testDeviceId,
+                app_version: '1.0',
+                timestamp: Date.now()
+            };
+            
+            console.log('Testing API request with:', testData);
+            const response = handleBlockStatusRequest(testData);
+            console.log('API response:', response);
+            
+            alert(`Test API Request Sent!\n\nDevice ID: ${testDeviceId}\nResponse: ${JSON.stringify(response, null, 2)}`);
+            
+            // Refresh the device list to show the test device
+            refreshDevices();
         }
 
         // Initialize on load
