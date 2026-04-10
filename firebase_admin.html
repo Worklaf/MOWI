@@ -83,6 +83,63 @@
             color: #333;
         }
         
+        .block-type-selector {
+            margin-bottom: 20px;
+        }
+        
+        .block-type-selector select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+        
+        .block-type-selector select:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        
+        .custom-message {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 15px;
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .block-preview {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 20px;
+        }
+        
+        .block-preview h4 {
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .block-preview p {
+            color: #666;
+            font-size: 14px;
+            margin: 0;
+        }
+        
+        .block-preview .code {
+            font-family: monospace;
+            color: #ff6b35;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        
         .global-controls {
             display: flex;
             gap: 15px;
@@ -98,24 +155,44 @@
             cursor: pointer;
             transition: all 0.3s;
             font-weight: 600;
+            margin-right: 10px;
+        }
+        
+        .btn:last-child {
+            margin-right: 0;
+        }
+        
+        .btn-block {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+        }
+        
+        .btn-block:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+        }
+        
+        .btn-unblock {
+            background: linear-gradient(135deg, #4caf50, #45a049);
+            color: white;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+        
+        .btn-unblock:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
         }
         
         .btn-danger {
-            background: #f44336;
+            background: linear-gradient(135deg, #ff6b35, #e74c3c);
             color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
         }
         
         .btn-danger:hover {
-            background: #d32f2f;
-        }
-        
-        .btn-success {
-            background: #4caf50;
-            color: white;
-        }
-        
-        .btn-success:hover {
-            background: #388e3c;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
         }
         
         .btn-primary {
@@ -311,14 +388,47 @@
                 <button class="btn btn-primary" onclick="verifyAdmin()">Verify</button>
             </div>
             
-            <input type="text" class="message-input" id="globalMessage" 
-                   placeholder="Enter block message (e.g., 'App maintenance in progress')">
+            <div class="block-type-selector">
+                <label><strong>Block Type:</strong></label>
+                <select id="globalBlockType" onchange="updateBlockPreview()">
+                    <option value="">-- Select Block Type --</option>
+                    <optgroup label="🔴 System Errors">
+                        <option value="ERR_500">Server Error (ERR_500)</option>
+                        <option value="ERR_NET">Network Error (ERR_NET)</option>
+                        <option value="ERR_DB">Database Error (ERR_DB)</option>
+                        <option value="ERR_AUTH">Authentication Error (ERR_AUTH)</option>
+                        <option value="SYNC_ERR">Sync Error (SYNC_ERR)</option>
+                    </optgroup>
+                    <optgroup label="🟡 Administrative">
+                        <option value="ADMIN_BLOCK">Admin Block (ADMIN_BLOCK)</option>
+                        <option value="LICENSE_EXP">License Expired (LICENSE_EXP)</option>
+                        <option value="VERSION_OLD">Version Outdated (VERSION_OLD)</option>
+                        <option value="MAINTENANCE">Maintenance (MAINTENANCE)</option>
+                        <option value="USER_SUSP">User Suspended (USER_SUSP)</option>
+                    </optgroup>
+                    <optgroup label="🚨 Critical">
+                        <option value="SYS_CRASH">System Crash (SYS_CRASH)</option>
+                        <option value="CORRUPT">Data Corruption (CORRUPT)</option>
+                        <option value="SECURITY">Security Breach (SECURITY)</option>
+                    </optgroup>
+                </select>
+            </div>
+            
+            <div class="block-preview" id="blockPreview" style="display: none;">
+                <h4 id="previewTitle">Preview</h4>
+                <p id="previewDescription">Select a block type to see preview</p>
+                <div class="code" id="previewCode">Code: --</div>
+            </div>
+            
+            <textarea class="custom-message" id="globalMessage" 
+                      placeholder="Enter custom block message (optional - will use default if empty)">
+            </textarea>
             
             <div class="global-controls">
                 <button class="btn btn-danger" onclick="blockAllDevices()">
                     🔴 Block All Devices
                 </button>
-                <button class="btn btn-success" onclick="unblockAllDevices()">
+                <button class="btn btn-unblock" onclick="unblockAllDevices()">
                     🟢 Unblock All Devices
                 </button>
                 <button class="btn btn-primary" onclick="refreshData()">
@@ -409,26 +519,76 @@
             return true;
         }
         
+        // Block type definitions
+        const blockTypes = {
+            'ERR_500': { title: 'Ошибка сервера', description: 'Сервер временно недоступен. Пожалуйста, попробуйте позже.' },
+            'ERR_NET': { title: 'Ошибка сети', description: 'Отсутствует подключение к интернету. Проверьте соединение.' },
+            'ERR_DB': { title: 'Ошибка базы данных', description: 'Не удалось получить данные. Обратитесь в поддержку.' },
+            'ERR_AUTH': { title: 'Ошибка аутентификации', description: 'Сессия истекла. Войдите в систему заново.' },
+            'SYNC_ERR': { title: 'Ошибка синхронизации', description: 'Не удалось синхронизировать данные. Проверьте подключение.' },
+            'ADMIN_BLOCK': { title: 'Обслуживание системы', description: 'Приложение временно заблокировано администратором.' },
+            'LICENSE_EXP': { title: 'Лицензия истекла', description: 'Срок действия лицензии истёк. Обновите приложение.' },
+            'VERSION_OLD': { title: 'Обновите приложение', description: 'Версия приложения устарела. Установите последнюю версию.' },
+            'MAINTENANCE': { title: 'Технические работы', description: 'Проводятся технические работы. Попробуйте позже.' },
+            'USER_SUSP': { title: 'Аккаунт заблокирован', description: 'Ваш аккаунт временно заблокирован. Свяжитесь с поддержкой.' },
+            'SYS_CRASH': { title: 'Системный сбой', description: 'Обнаружен системный сбой. Перезапустите приложение.' },
+            'CORRUPT': { title: 'Повреждение данных', description: 'Обнаружено повреждение данных. Переустановите приложение.' },
+            'SECURITY': { title: 'Угроза безопасности', description: 'Обнаружена угроза безопасности. Доступ ограничен.' }
+        };
+        
+        // Update block preview
+        function updateBlockPreview() {
+            const select = document.getElementById('globalBlockType');
+            const preview = document.getElementById('blockPreview');
+            const title = document.getElementById('previewTitle');
+            const description = document.getElementById('previewDescription');
+            const code = document.getElementById('previewCode');
+            
+            if (select.value && blockTypes[select.value]) {
+                const type = blockTypes[select.value];
+                title.textContent = type.title;
+                description.textContent = type.description;
+                code.textContent = 'Код: ' + select.value;
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+        
         // Block all devices globally
         function blockAllDevices() {
             if (!checkAdminAccess()) return;
             
-            const message = document.getElementById('globalMessage').value || 
-                          'Application temporarily blocked by administrator';
+            const blockType = document.getElementById('globalBlockType').value;
+            const customMessage = document.getElementById('globalMessage').value;
+            
+            if (!blockType) {
+                alert('⚠️ Пожалуйста, выберите тип блокировки!');
+                return;
+            }
+            
+            let message = customMessage;
+            let title = blockTypes[blockType].title;
+            
+            // Используем кастомное сообщение если указано, иначе стандартное
+            if (!message) {
+                message = blockTypes[blockType].description;
+            }
             
             db.collection('config').doc('global').set({
                 blocked: true,
                 message: message,
+                blockType: blockType,
                 blockedAt: firebase.firestore.FieldValue.serverTimestamp(),
                 blockedBy: 'admin'
             })
             .then(() => {
-                addLog('Global', 'All devices blocked: ' + message);
-                alert('🔴 All devices blocked successfully!');
+                addLog('Global', 'All devices blocked with type: ' + blockType + ' - ' + title);
+                alert('🔴 Все устройства заблокированы!\\n\\nТип: ' + title + '\\nКод: ' + blockType);
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Error blocking devices: ' + error.message);
+                alert('Ошибка блокировки: ' + error.message);
             });
         }
         
@@ -456,20 +616,102 @@
         function blockDevice(deviceId) {
             if (!checkAdminAccess()) return;
             
-            const message = prompt('Enter block message:', 'Device blocked by admin');
-            if (message === null) return;
+            // Создаем диалог выбора типа блокировки
+            const dialog = document.createElement('div');
+            dialog.innerHTML = `
+                <div style="background: white; padding: 20px; border-radius: 8px; max-width: 400px;">
+                    <h3 style="margin-bottom: 15px;">Выберите тип блокировки устройства</h3>
+                    <select id="deviceBlockType" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">-- Выбрать тип --</option>
+                        <optgroup label="🔴 Системные ошибки">
+                            <option value="ERR_500">Ошибка сервера</option>
+                            <option value="ERR_NET">Ошибка сети</option>
+                            <option value="ERR_DB">Ошибка базы данных</option>
+                            <option value="ERR_AUTH">Ошибка аутентификации</option>
+                            <option value="SYNC_ERR">Ошибка синхронизации</option>
+                        </optgroup>
+                        <optgroup label="🟡 Административные">
+                            <option value="ADMIN_BLOCK">Блокировка администратором</option>
+                            <option value="LICENSE_EXP">Лицензия истекла</option>
+                            <option value="VERSION_OLD">Версия устарела</option>
+                            <option value="USER_SUSP">Пользователь заблокирован</option>
+                        </optgroup>
+                        <optgroup label="🚨 Критические">
+                            <option value="SYS_CRASH">Системный сбой</option>
+                            <option value="CORRUPT">Повреждение данных</option>
+                            <option value="SECURITY">Угроза безопасности</option>
+                        </optgroup>
+                    </select>
+                    <textarea id="deviceCustomMessage" placeholder="Кастомное сообщение (необязательно)" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; min-height: 60px; resize: vertical;"></textarea>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="confirmDeviceBlock('${deviceId}')" style="flex: 1; padding: 10px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer;">Заблокировать</button>
+                        <button onclick="closeDeviceBlockDialog()" style="flex: 1; padding: 10px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Отмена</button>
+                    </div>
+                </div>
+            `;
+            
+            dialog.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                background: rgba(0,0,0,0.5); display: flex; align-items: center; 
+                justify-content: center; z-index: 1000;
+            `;
+            
+            document.body.appendChild(dialog);
+        }
+        
+        // Confirm device block
+        function confirmDeviceBlock(deviceId) {
+            const blockType = document.getElementById('deviceBlockType').value;
+            const customMessage = document.getElementById('deviceCustomMessage').value;
+            
+            if (!blockType) {
+                alert('⚠️ Пожалуйста, выберите тип блокировки!');
+                return;
+            }
+            
+            let message = customMessage;
+            let title = '';
+            
+            if (!message) {
+                // Используем стандартное сообщение
+                const typeMap = {
+                    'ERR_500': 'Сервер временно недоступен. Пожалуйста, попробуйте позже.',
+                    'ERR_NET': 'Отсутствует подключение к интернету. Проверьте соединение.',
+                    'ERR_DB': 'Не удалось получить данные. Обратитесь в поддержку.',
+                    'ERR_AUTH': 'Сессия истекла. Войдите в систему заново.',
+                    'SYNC_ERR': 'Не удалось синхронизировать данные. Проверьте подключение.',
+                    'ADMIN_BLOCK': 'Приложение временно заблокировано администратором.',
+                    'LICENSE_EXP': 'Срок действия лицензии истёк. Обновите приложение.',
+                    'VERSION_OLD': 'Версия приложения устарела. Установите последнюю версию.',
+                    'USER_SUSP': 'Ваш аккаунт временно заблокирован. Свяжитесь с поддержкой.',
+                    'SYS_CRASH': 'Обнаружен системный сбой. Перезапустите приложение.',
+                    'CORRUPT': 'Обнаружено повреждение данных. Переустановите приложение.',
+                    'SECURITY': 'Обнаружена угроза безопасности. Доступ ограничен.'
+                };
+                message = typeMap[blockType] || 'Устройство заблокировано администратором.';
+            }
             
             db.collection('devices').doc(deviceId).update({
                 blocked: true,
                 message: message,
+                blockType: blockType,
                 blockTimestamp: firebase.firestore.FieldValue.serverTimestamp()
             })
             .then(() => {
-                addLog('Device', 'Blocked device: ' + deviceId);
+                addLog('Device', 'Blocked device: ' + deviceId + ' with type: ' + blockType);
+                closeDeviceBlockDialog();
             })
             .catch(error => {
                 alert('Error: ' + error.message);
             });
+        }
+        
+        // Close device block dialog
+        function closeDeviceBlockDialog() {
+            const dialog = document.querySelector('div[style*="position: fixed"]');
+            if (dialog) {
+                dialog.remove();
+            }
         }
         
         // Unblock individual device
