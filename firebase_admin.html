@@ -620,32 +620,32 @@
             const dialog = document.createElement('div');
             dialog.innerHTML = `
                 <div style="background: white; padding: 20px; border-radius: 8px; max-width: 400px;">
-                    <h3 style="margin-bottom: 15px;">Выберите тип блокировки устройства</h3>
+                    <h3 style="margin-bottom: 15px;">Select Device Block Type</h3>
                     <select id="deviceBlockType" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px;">
-                        <option value="">-- Выбрать тип --</option>
-                        <optgroup label="🔴 Системные ошибки">
-                            <option value="ERR_500">Ошибка сервера</option>
-                            <option value="ERR_NET">Ошибка сети</option>
-                            <option value="ERR_DB">Ошибка базы данных</option>
-                            <option value="ERR_AUTH">Ошибка аутентификации</option>
-                            <option value="SYNC_ERR">Ошибка синхронизации</option>
+                        <option value="">-- Select Type --</option>
+                        <optgroup label="🔴 System Errors">
+                            <option value="ERR_500">Server Error</option>
+                            <option value="ERR_NET">Network Error</option>
+                            <option value="ERR_DB">Database Error</option>
+                            <option value="ERR_AUTH">Authentication Error</option>
+                            <option value="SYNC_ERR">Sync Error</option>
                         </optgroup>
-                        <optgroup label="🟡 Административные">
-                            <option value="ADMIN_BLOCK">Блокировка администратором</option>
-                            <option value="LICENSE_EXP">Лицензия истекла</option>
-                            <option value="VERSION_OLD">Версия устарела</option>
-                            <option value="USER_SUSP">Пользователь заблокирован</option>
+                        <optgroup label="🟡 Administrative">
+                            <option value="ADMIN_BLOCK">Admin Block</option>
+                            <option value="LICENSE_EXP">License Expired</option>
+                            <option value="VERSION_OLD">Version Outdated</option>
+                            <option value="USER_SUSP">User Suspended</option>
                         </optgroup>
-                        <optgroup label="🚨 Критические">
-                            <option value="SYS_CRASH">Системный сбой</option>
-                            <option value="CORRUPT">Повреждение данных</option>
-                            <option value="SECURITY">Угроза безопасности</option>
+                        <optgroup label="🚨 Critical">
+                            <option value="SYS_CRASH">System Crash</option>
+                            <option value="CORRUPT">Data Corruption</option>
+                            <option value="SECURITY">Security Threat</option>
                         </optgroup>
                     </select>
-                    <textarea id="deviceCustomMessage" placeholder="Кастомное сообщение (необязательно)" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; min-height: 60px; resize: vertical;"></textarea>
+                    <textarea id="deviceCustomMessage" placeholder="Custom message (optional)" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; min-height: 60px; resize: vertical;"></textarea>
                     <div style="display: flex; gap: 10px;">
-                        <button onclick="confirmDeviceBlock('${deviceId}')" style="flex: 1; padding: 10px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer;">Заблокировать</button>
-                        <button onclick="closeDeviceBlockDialog()" style="flex: 1; padding: 10px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Отмена</button>
+                        <button onclick="confirmDeviceBlock('${deviceId}')" style="flex: 1; padding: 10px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer;">Block</button>
+                        <button onclick="closeDeviceBlockDialog()" style="flex: 1; padding: 10px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
                     </div>
                 </div>
             `;
@@ -665,7 +665,7 @@
             const customMessage = document.getElementById('deviceCustomMessage').value;
             
             if (!blockType) {
-                alert('⚠️ Пожалуйста, выберите тип блокировки!');
+                alert('⚠️ Please select a block type!');
                 return;
             }
             
@@ -673,22 +673,22 @@
             let title = '';
             
             if (!message) {
-                // Используем стандартное сообщение
+                // Use standard message
                 const typeMap = {
-                    'ERR_500': 'Сервер временно недоступен. Пожалуйста, попробуйте позже.',
-                    'ERR_NET': 'Отсутствует подключение к интернету. Проверьте соединение.',
-                    'ERR_DB': 'Не удалось получить данные. Обратитесь в поддержку.',
-                    'ERR_AUTH': 'Сессия истекла. Войдите в систему заново.',
-                    'SYNC_ERR': 'Не удалось синхронизировать данные. Проверьте подключение.',
-                    'ADMIN_BLOCK': 'Приложение временно заблокировано администратором.',
-                    'LICENSE_EXP': 'Срок действия лицензии истёк. Обновите приложение.',
-                    'VERSION_OLD': 'Версия приложения устарела. Установите последнюю версию.',
-                    'USER_SUSP': 'Ваш аккаунт временно заблокирован. Свяжитесь с поддержкой.',
-                    'SYS_CRASH': 'Обнаружен системный сбой. Перезапустите приложение.',
-                    'CORRUPT': 'Обнаружено повреждение данных. Переустановите приложение.',
-                    'SECURITY': 'Обнаружена угроза безопасности. Доступ ограничен.'
+                    'ERR_500': 'Server temporarily unavailable. Please try again later.',
+                    'ERR_NET': 'No internet connection. Check your connection.',
+                    'ERR_DB': 'Failed to retrieve data. Contact support.',
+                    'ERR_AUTH': 'Session expired. Please log in again.',
+                    'SYNC_ERR': 'Failed to sync data. Check your connection.',
+                    'ADMIN_BLOCK': 'Application temporarily blocked by administrator.',
+                    'LICENSE_EXP': 'License has expired. Update application.',
+                    'VERSION_OLD': 'Application version is outdated. Install latest version.',
+                    'USER_SUSP': 'Your account is temporarily suspended. Contact support.',
+                    'SYS_CRASH': 'System crash detected. Restart application.',
+                    'CORRUPT': 'Data corruption detected. Reinstall application.',
+                    'SECURITY': 'Security threat detected. Access restricted.'
                 };
-                message = typeMap[blockType] || 'Устройство заблокировано администратором.';
+                message = typeMap[blockType] || 'Device blocked by administrator.';
             }
             
             db.collection('devices').doc(deviceId).update({
