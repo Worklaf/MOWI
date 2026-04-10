@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFL Paleta Firebase Admin Panel</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .number {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .controls {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .controls h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .global-controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+        
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #388e3c;
+        }
+        
+        .btn-primary {
+            background: #2196f3;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #1976d2;
+        }
+        
+        .message-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        
+        .password-section {
+            background: #fff3e0;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .password-section input {
+            padding: 12px 15px;
+            border: 2px solid #ff9800;
+            border-radius: 6px;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        
+        .device-list {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .device-list h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .device-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        
+        .device-card:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .device-card.blocked {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+        }
+        
+        .device-card.active {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+        }
+        
+        .device-info h4 {
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .device-info p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .device-status {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .status-badge.blocked {
+            background: #f44336;
+            color: white;
+        }
+        
+        .status-badge.active {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .logs {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-top: 30px;
+        }
+        
+        .log-entry {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            z-index: 1000;
+        }
+        
+        .connection-status.connected {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .connection-status.disconnected {
+            background: #f44336;
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .device-card {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .device-status {
+                margin-top: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-status disconnected" id="connectionStatus">
+        Connecting...
+    </div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🔥 NFL Paleta Firebase Admin</h1>
+            <p>Real-time Device Management Panel</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Devices</h3>
+                <div class="number" id="totalDevices">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Active</h3>
+                <div class="number" id="activeDevices">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Blocked</h3>
+                <div class="number" id="blockedDevices">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Online Now</h3>
+                <div class="number" id="onlineDevices">0</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <h2>🔐 Global Controls</h2>
+            
+            <div class="password-section">
+                <label><strong>Admin Password Required:</strong></label><br><br>
+                <input type="password" id="adminPassword" placeholder="Enter password">
+                <button class="btn btn-primary" onclick="verifyAdmin()">Verify</button>
+            </div>
+            
+            <input type="text" class="message-input" id="globalMessage" 
+                   placeholder="Enter block message (e.g., 'App maintenance in progress')">
+            
+            <div class="global-controls">
+                <button class="btn btn-danger" onclick="blockAllDevices()">
+                    🔴 Block All Devices
+                </button>
+                <button class="btn btn-success" onclick="unblockAllDevices()">
+                    🟢 Unblock All Devices
+                </button>
+                <button class="btn btn-primary" onclick="refreshData()">
+                    🔄 Refresh
+                </button>
+            </div>
+        </div>
+        
+        <div class="device-list">
+            <h2>📱 Connected Devices</h2>
+            <div id="deviceContainer">
+                <p style="text-align: center; color: #999; padding: 40px;">
+                    No devices connected yet...
+                </p>
+            </div>
+        </div>
+        
+        <div class="logs">
+            <h2>📝 Activity Logs</h2>
+            <div id="logContainer">
+                <p style="color: #999;">Waiting for activity...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 🔥 Firebase Configuration - Firestore
+        const firebaseConfig = {
+            apiKey: "AIzaSyB0ZOFsh8tqSAuQYLjtG-DtE002LGULf6k",
+            authDomain: "nflpaleta-control.firebaseapp.com",
+            projectId: "nflpaleta-control",
+            storageBucket: "nflpaleta-control.firebasestorage.app",
+            messagingSenderId: "576502070754",
+            appId: "1:576502070754:web:abcdef123456"
+        };
+        
+        // Admin password (в продакшене должно быть на сервере!)
+        const ADMIN_PASSWORD = "admin123";
+        
+        let isAdminVerified = false;
+        let db;
+        
+        // Initialize Firebase
+        function initFirebase() {
+            try {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                updateConnectionStatus(true);
+                loadDevices();
+                addLog('System', 'Admin panel connected to Firebase Firestore');
+            } catch (error) {
+                console.error('Firebase init error:', error);
+                updateConnectionStatus(false);
+                alert('Error connecting to Firebase. Check console for details.');
+            }
+        }
+        
+        // Update connection status indicator
+        function updateConnectionStatus(connected) {
+            const status = document.getElementById('connectionStatus');
+            if (connected) {
+                status.textContent = '🟢 Connected to Firebase';
+                status.className = 'connection-status connected';
+            } else {
+                status.textContent = '🔴 Disconnected';
+                status.className = 'connection-status disconnected';
+            }
+        }
+        
+        // Verify admin password
+        function verifyAdmin() {
+            const password = document.getElementById('adminPassword').value;
+            if (password === ADMIN_PASSWORD) {
+                isAdminVerified = true;
+                alert('✅ Admin access granted!');
+                document.querySelector('.password-section').style.display = 'none';
+            } else {
+                alert('❌ Incorrect password!');
+            }
+        }
+        
+        // Check admin access
+        function checkAdminAccess() {
+            if (!isAdminVerified) {
+                alert('🔐 Please enter admin password first!');
+                return false;
+            }
+            return true;
+        }
+        
+        // Block all devices globally
+        function blockAllDevices() {
+            if (!checkAdminAccess()) return;
+            
+            const message = document.getElementById('globalMessage').value || 
+                          'Application temporarily blocked by administrator';
+            
+            db.collection('config').doc('global').set({
+                blocked: true,
+                message: message,
+                blockedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                blockedBy: 'admin'
+            })
+            .then(() => {
+                addLog('Global', 'All devices blocked: ' + message);
+                alert('🔴 All devices blocked successfully!');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error blocking devices: ' + error.message);
+            });
+        }
+        
+        // Unblock all devices globally
+        function unblockAllDevices() {
+            if (!checkAdminAccess()) return;
+            
+            db.collection('config').doc('global').set({
+                blocked: false,
+                message: '',
+                unblockedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                unblockedBy: 'admin'
+            })
+            .then(() => {
+                addLog('Global', 'All devices unblocked');
+                alert('🟢 All devices unblocked successfully!');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error unblocking devices: ' + error.message);
+            });
+        }
+        
+        // Block individual device
+        function blockDevice(deviceId) {
+            if (!checkAdminAccess()) return;
+            
+            const message = prompt('Enter block message:', 'Device blocked by admin');
+            if (message === null) return;
+            
+            db.collection('devices').doc(deviceId).update({
+                blocked: true,
+                message: message,
+                blockTimestamp: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(() => {
+                addLog('Device', 'Blocked device: ' + deviceId);
+            })
+            .catch(error => {
+                alert('Error: ' + error.message);
+            });
+        }
+        
+        // Unblock individual device
+        function unblockDevice(deviceId) {
+            if (!checkAdminAccess()) return;
+            
+            db.collection('devices').doc(deviceId).update({
+                blocked: false,
+                message: '',
+                unblockTimestamp: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(() => {
+                addLog('Device', 'Unblocked device: ' + deviceId);
+            })
+            .catch(error => {
+                alert('Error: ' + error.message);
+            });
+        }
+        
+        // Load and display devices
+        function loadDevices() {
+            db.collection('devices').onSnapshot((snapshot) => {
+                const devices = [];
+                let activeCount = 0;
+                let blockedCount = 0;
+                let onlineCount = 0;
+                const now = Date.now();
+                
+                snapshot.forEach((doc) => {
+                    const device = doc.data();
+                    device.id = doc.id;
+                    devices.push(device);
+                    
+                    if (device.blocked) {
+                        blockedCount++;
+                    } else {
+                        activeCount++;
+                    }
+                    
+                    // Consider online if checked in within last 5 minutes
+                    if (device.lastCheckIn && (now - device.lastCheckIn) < 300000) {
+                        onlineCount++;
+                    }
+                });
+                
+                // Update stats
+                document.getElementById('totalDevices').textContent = devices.length;
+                document.getElementById('activeDevices').textContent = activeCount;
+                document.getElementById('blockedDevices').textContent = blockedCount;
+                document.getElementById('onlineDevices').textContent = onlineCount;
+                
+                // Render devices
+                renderDevices(devices);
+            });
+        }
+        
+        // Render device list
+        function renderDevices(devices) {
+            const container = document.getElementById('deviceContainer');
+            
+            if (devices.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">No devices connected yet...</p>';
+                return;
+            }
+            
+            container.innerHTML = devices.map(device => {
+                const isBlocked = device.blocked;
+                const lastSeen = device.lastCheckIn ? 
+                    new Date(device.lastCheckIn).toLocaleString() : 'Never';
+                const isOnline = device.lastCheckIn && 
+                    (Date.now() - device.lastCheckIn) < 300000;
+                
+                return `
+                    <div class="device-card ${isBlocked ? 'blocked' : 'active'}">
+                        <div class="device-info">
+                            <h4>${device.deviceName || 'Unknown Device'}</h4>
+                            <p>ID: ${device.id.substring(0, 8)}...</p>
+                            <p>Last seen: ${lastSeen}</p>
+                            ${device.message ? '<p style="color: #f44336;"><strong>Message:</strong> ' + device.message + '</p>' : ''}
+                        </div>
+                        <div class="device-status">
+                            <span class="status-badge ${isBlocked ? 'blocked' : 'active'}">
+                                ${isBlocked ? '🔴 BLOCKED' : '🟢 ACTIVE'}
+                            </span>
+                            ${isOnline ? '<span style="color: #4caf50;">● Online</span>' : '<span style="color: #999;">○ Offline</span>'}
+                            <button class="btn ${isBlocked ? 'btn-success' : 'btn-danger'}" 
+                                    onclick="${isBlocked ? 'unblockDevice' : 'blockDevice'}('${device.id}')"
+                                    style="padding: 8px 16px; font-size: 14px;">
+                                ${isBlocked ? 'Unblock' : 'Block'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Add log entry
+        function addLog(type, message) {
+            const container = document.getElementById('logContainer');
+            const time = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<strong>[${time}] ${type}:</strong> ${message}`;
+            
+            if (container.children[0] && container.children[0].tagName === 'P') {
+                container.innerHTML = '';
+            }
+            
+            container.insertBefore(entry, container.firstChild);
+            
+            // Keep only last 50 logs
+            while (container.children.length > 50) {
+                container.removeChild(container.lastChild);
+            }
+        }
+        
+        // Refresh data manually
+        function refreshData() {
+            loadDevices();
+            addLog('System', 'Data refreshed manually');
+        }
+        
+        // Initialize on page load
+        window.onload = function() {
+            initFirebase();
+        };
+    </script>
+</body>
+</html>
