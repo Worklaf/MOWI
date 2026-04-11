@@ -280,14 +280,44 @@
             loadDevices();
         }
 
-        // Load devices from localStorage (simulating database)
-        function loadDevices() {
-            const stored = localStorage.getItem('nflpaleta_devices');
-            if (stored) {
-                try {
-                    devices = JSON.parse(stored);
-                } catch (e) {
-                    console.error('Error parsing stored devices:', e);
+        // GitHub API configuration
+        const GITHUB_TOKEN = "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";
+        const GITHUB_USERNAME = "Worklaf";
+        const GITHUB_REPO = "MOWI";
+        const GITHUB_API_URL = "https://api.github.com";
+        const DEVICES_FILE_PATH = "api/devices.json";
+
+        // Load devices from API or localStorage
+        async function loadDevices() {
+            try {
+                // Try to load from GitHub API first
+                const response = await fetch(`${GITHUB_API_URL}/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${DEVICES_FILE_PATH}`, {
+                    headers: {
+                        'Authorization': `token ${GITHUB_TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const content = atob(data.content);
+                    devices = JSON.parse(content).devices || {};
+                    console.log('Devices loaded from GitHub API:', devices);
+                } else {
+                    throw new Error('GitHub API not available');
+                }
+            } catch (e) {
+                console.log('Loading from localStorage as fallback:', e);
+                // Fallback to localStorage
+                const stored = localStorage.getItem('nflpaleta_devices');
+                if (stored) {
+                    try {
+                        devices = JSON.parse(stored);
+                    } catch (parseError) {
+                        console.error('Error parsing stored devices:', parseError);
+                        devices = {};
+                    }
+                } else {
                     devices = {};
                 }
             }
@@ -295,9 +325,56 @@
             updateStatistics();
         }
 
-        // Save devices to localStorage
-        function saveDevices() {
-            localStorage.setItem('nflpaleta_devices', JSON.stringify(devices));
+        // Save devices to GitHub API
+        async function saveDevices() {
+            try {
+                console.log('Saving devices to GitHub API...');
+                
+                const content = JSON.stringify({ devices: devices });
+                const encodedContent = btoa(content);
+                
+                // Get current file SHA
+                const getResponse = await fetch(`${GITHUB_API_URL}/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${DEVICES_FILE_PATH}`, {
+                    headers: {
+                        'Authorization': `token ${GITHUB_TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                const fileData = await getResponse.json();
+                const sha = fileData.sha;
+                
+                // Update file
+                const response = await fetch(`${GITHUB_API_URL}/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${DEVICES_FILE_PATH}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${GITHUB_TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `Update devices (${new Date().toISOString()})`,
+                        content: encodedContent,
+                        sha: sha,
+                        branch: 'main'
+                    })
+                });
+                
+                if (response.ok) {
+                    console.log('Devices saved to GitHub API successfully');
+                    showMessage('Devices saved successfully', 'success');
+                } else {
+                    console.error('Failed to save devices to GitHub API');
+                    // Fallback to localStorage
+                    localStorage.setItem('nflpaleta_devices', JSON.stringify(devices));
+                    showMessage('Failed to save to GitHub, saved locally', 'error');
+                }
+            } catch (e) {
+                console.error('Error saving devices:', e);
+                // Fallback to localStorage
+                localStorage.setItem('nflpaleta_devices', JSON.stringify(devices));
+                showMessage('Error saving devices, saved locally', 'error');
+            }
         }
 
         // API endpoint for Android apps
