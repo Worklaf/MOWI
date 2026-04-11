@@ -1,0 +1,20 @@
+{
+  "devices": {
+    "example_device_123": {
+      "deviceId": "example_device_123",
+      "deviceName": "Samsung Galaxy S21",
+      "manufacturer": "Samsung",
+      "model": "Galaxy S21",
+      "isActive": true,
+      "isScanningEnabled": true,
+      "licenseStatus": "trial",
+      "licenseExpiry": 0,
+      "lastSeen": 1648780800000,
+      "appVersion": "1.0",
+      "androidVersion": "12",
+      "isBlocked": false,
+      "blockReason": "",
+      "blockDate": 0
+    }
+  }
+}
