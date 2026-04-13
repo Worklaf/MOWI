@@ -1,0 +1,2210 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>MAX QR Cards Studio</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- <link rel="icon" type="image/svg+xml" href="mowi-favicon.svg"> -->
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css">
+<!-- Подключаем языковой файл -->
+<script src="lang.js"></script>
+<style>
+  :root{
+    --bg:#0b0f14;
+    --panel:#141a22;
+    --panel-2:#1b2330;
+    --text:#e5e7eb;
+    --muted:#94a3b8;
+    --accent:#2563eb;
+    --accent-2:#1d4ed8;
+    --accent-hover:#3b82f6;
+    --danger:#dc2626;
+    --border:#273244;
+    --glow:0 10px 30px rgba(0,0,0,0.55);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:0;
+    font-family:'Segoe UI',system-ui,Arial,sans-serif;
+    background:radial-gradient(1200px 700px at 10% 0%, #0f172a 0%, #0b0f14 60%);
+    color:var(--text);
+    min-height:100vh;
+  }
+  header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 20px;
+    background:rgba(20,26,34,0.9);
+    border-bottom:1px solid var(--border);
+    box-shadow:var(--glow);
+    position:sticky; top:0; z-index:20;
+    backdrop-filter:blur(8px);
+    gap:12px;
+  }
+  
+  /* ========== Стили для кнопки Назад/Главная ========== */
+  .home-btn {
+    display:flex; align-items:center; gap:8px;
+    background:linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+    color:#fff; border:none; border-radius:10px;
+    padding:10px 18px; font-size:14px; font-weight:600; cursor:pointer;
+    box-shadow:0 4px 14px rgba(37,99,235,0.4);
+    transition:all .2s ease;
+    text-decoration:none;
+    white-space:nowrap;
+  }
+  .home-btn:hover {
+    background:linear-gradient(135deg, var(--accent-hover) 0%, var(--accent) 100%);
+    transform:translateY(-1px);
+    box-shadow:0 6px 20px rgba(37,99,235,0.5);
+  }
+  .home-btn:active {
+    transform:translateY(0);
+    box-shadow:0 2px 8px rgba(37,99,235,0.3);
+  }
+  .home-btn svg {
+    width:18px;
+    height:18px;
+    fill:currentColor;
+  }
+  
+  /* Адаптив для мобильных */
+  @media (max-width: 600px) {
+    .home-btn {
+      padding:10px 14px;
+    }
+    .home-btn span {
+      display:none;
+    }
+    .home-btn {
+      padding:10px 12px;
+    }
+  }
+  
+  header h1{
+    margin:0; font-size:18px; letter-spacing:0.5px;
+    flex:1; text-align:center;
+  }
+  .header-controls{display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end}
+  
+  /* ========== Кнопка языка с выпадающим списком ========== */
+  .lang-dropdown-wrapper{
+    position:relative;
+    display:inline-block;
+  }
+  .lang-btn{
+    background:#334155; color:#fff; border:none; border-radius:8px;
+    padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer;
+    transition:background .15s;
+    display:flex; align-items:center; gap:6px;
+  }
+  .lang-btn:hover{background:#475569}
+  .lang-btn::after{
+    content:'▾'; font-size:10px; margin-left:4px; opacity:0.7;
+  }
+  
+  /* Выпадающий список языков */
+  .lang-dropdown{
+    position:absolute; top:100%; left:0; margin-top:6px;
+    background:var(--panel); border:1px solid var(--border);
+    border-radius:10px; padding:6px;
+    box-shadow:0 10px 40px rgba(0,0,0,0.5);
+    display:none; min-width:160px;
+    z-index:100;
+  }
+  .lang-dropdown.show{display:block}
+  .lang-dropdown-item{
+    display:flex; align-items:center; gap:10px;
+    padding:10px 12px; border-radius:8px;
+    cursor:pointer; transition:background .15s;
+    font-size:13px;
+  }
+  .lang-dropdown-item:hover{background:rgba(37,99,235,0.15)}
+  .lang-dropdown-item.active{
+    background:rgba(37,99,235,0.25);
+    color:var(--accent);
+  }
+  .lang-item-flag{font-size:18px}
+  .lang-item-check{color:#22c55e; font-size:14px; margin-left:auto; display:none;}
+  .lang-dropdown-item.active .lang-item-check{display:block}
+  
+  /* ========== Основные кнопки ========== */
+  .btn{
+    background:var(--accent); color:#fff; border:none; border-radius:10px;
+    padding:10px 16px; font-weight:700; cursor:pointer;
+    box-shadow:0 6px 16px rgba(37,99,235,0.35);
+    transition:transform .08s, background .15s;
+  }
+  .btn:hover{background:var(--accent-2)}
+  .btn:active{transform:scale(0.98)}
+  .btn.secondary{background:#334155; box-shadow:none}
+  .btn.secondary:hover{background:#475569}
+  .btn.danger{background:var(--danger)}
+  
+  .app{
+    display:grid; grid-template-columns: 0.8fr 1.6fr; gap:16px;
+    padding:16px;
+  }
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:14px;
+    box-shadow:var(--glow);
+  }
+  .panel h2{margin:0 0 12px 0; font-size:16px}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  label{font-size:13px; color:var(--muted)}
+  input[type=text], input[type=number], select{
+    background:var(--panel-2); color:var(--text);
+    border:1px solid var(--border); border-radius:8px;
+    padding:8px 10px; outline:none;
+  }
+  input[type=range]{width:170px}
+  
+  /* --- Таблица кодов --- */
+  .code-table-wrap{overflow-x:auto}
+  #codeTable{width:100%; border-collapse:collapse; font-size:12px; min-width:500px}
+  #codeTable th, #codeTable td{padding:8px; border-bottom:1px solid #1f2a3a; vertical-align:middle}
+  #codeTable th{color:#cbd5e1; text-align:left; background:#0f141b}
+  #codeTable tr:hover{background:rgba(37,99,235,0.05)}
+  #codeTable input[type=text]{width:100%; min-width:180px}
+  
+  /* --- Color Picker в строке --- */
+  .color-cell{width:120px}
+  .color-row{display:flex; gap:6px; align-items:center}
+  .color-input-wrap{position:relative; flex:1}
+  .color-input-wrap input[type=color]{
+    width:100%; height:32px; padding:2px; border-radius:6px; cursor:pointer;
+    border:1px solid var(--border); background:var(--panel-2);
+  }
+  .color-input-wrap input[type=color]::-webkit-color-swatch-wrapper{padding:2px}
+  .color-input-wrap input[type=color]::-webkit-color-swatch{border:none; border-radius:4px}
+  
+  /* --- Popup палитра --- */
+  .palette-popup{
+    position:absolute; z-index:100;
+    background:var(--panel); border:1px solid var(--border);
+    border-radius:12px; padding:10px;
+    box-shadow:0 10px 40px rgba(0,0,0,0.5);
+    display:none;
+    max-width:280px;
+  }
+  .palette-popup.show{display:block}
+  .palette-popup .pal-title{
+    font-size:11px; color:var(--muted); margin-bottom:6px;
+  }
+  .palette-grid{
+    display:grid; grid-template-columns:repeat(8,1fr); gap:4px;
+  }
+  .palette-grid .p-swatch{
+    width:28px; height:28px; border-radius:5px; cursor:pointer;
+    border:2px solid transparent; transition:transform .1s;
+  }
+  .palette-grid .p-swatch:hover{transform:scale(1.15); border-color:rgba(255,255,255,0.5)}
+  
+  .delete-row{
+    background:transparent; border:none; color:#ef4444;
+    cursor:pointer; font-size:16px; padding:4px 8px;
+    border-radius:6px; transition:background .15s;
+  }
+  .delete-row:hover{background:rgba(239,68,68,0.2)}
+  
+  /* --- Thumbnails --- */
+  .thumb{
+    background:#0f141b; border:1px solid #223044; border-radius:14px;
+    padding:10px; display:flex; flex-direction:column; gap:6px;
+    cursor:pointer;
+    transition:transform .15s, box-shadow .15s;
+  }
+  .thumb:hover{
+    transform:scale(1.02);
+    box-shadow:0 8px 24px rgba(37,99,235,0.25);
+    border-color:#3b82f6;
+  }
+  .thumb canvas{width:100%; height:auto; border-radius:8px}
+  .thumb .code{font-size:12px; color:#cbd5e1; word-break:break-all; text-align:center}
+  
+  /* --- Управление карточками --- */
+  .card-controls{
+    position:absolute;
+    top:8px;
+    right:8px;
+    display:flex;
+    gap:6px;
+    z-index:10;
+  }
+  .existing-card{
+    border:2px solid #10b981;
+    opacity:0.9;
+  }
+  .existing-indicator{
+    background:#10b981;
+    color:white;
+    border-radius:50%;
+    width:20px;
+    height:20px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:12px;
+    font-weight:bold;
+  }
+  
+  /* --- Drag & Drop --- */
+  .draggable-row{
+    cursor:default;
+    transition:background-color 0.2s;
+  }
+  .draggable-row:hover{
+    background-color:rgba(37,99,235,0.05);
+  }
+  .dragging{
+    opacity:0.5;
+    background-color:rgba(37,99,235,0.2);
+  }
+  .drag-over{
+    background-color:rgba(37,99,235,0.1);
+    border-top:2px solid #2563eb;
+  }
+  .drag-handle{
+    cursor:move;
+    color:#94a3b8;
+    font-size:14px;
+    padding:4px 6px;
+    border-radius:4px;
+    transition:all 0.2s;
+    user-select:none;
+    text-align:center;
+    white-space:nowrap;
+  }
+  .drag-handle:hover{
+    color:#2563eb;
+    background-color:rgba(37,99,235,0.1);
+  }
+  
+  /* --- Улучшенный выбор цвета --- */
+  .color-input-wrapper{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .color-preview{
+    width:30px;
+    height:30px;
+    border-radius:6px;
+    border:2px solid var(--border);
+    cursor:pointer;
+    transition:transform 0.2s;
+  }
+  .color-preview:hover{
+    transform:scale(1.05);
+  }
+  
+  /* --- Двухколоночная таблица кодов --- */
+  .two-column-table{
+    display:flex;
+    gap:20px;
+    width:100%;
+  }
+  .column{
+    flex:1;
+    background:var(--panel-2);
+    border-radius:12px;
+    padding:16px;
+    border:1px solid var(--border);
+  }
+  .column h3{
+    margin:0 0 12px 0;
+    color:var(--text);
+    font-size:14px;
+    font-weight:bold;
+    text-align:center;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--border);
+  }
+  .settings-above-column{
+    margin-bottom:12px;
+    padding:8px;
+    background:var(--panel);
+    border-radius:6px;
+    border:1px solid var(--border);
+  }
+  .setting-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:4px;
+  }
+  .setting-row:last-child{
+    margin-bottom:0;
+  }
+  .setting-row label{
+    font-size:12px;
+    color:var(--text);
+    white-space:nowrap;
+  }
+  .setting-row select{
+    font-size:12px;
+    padding:2px 6px;
+    border:1px solid var(--border);
+    border-radius:4px;
+    background:var(--panel-2);
+    color:var(--text);
+  }
+  .column-content{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .code-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:8px;
+    background:var(--panel);
+    border-radius:8px;
+    border:1px solid var(--border);
+    transition:all 0.2s;
+  }
+  .code-row:hover{
+    background:rgba(37,99,235,0.05);
+    border-color:var(--accent);
+  }
+  .code-row.dragging{
+    opacity:0.5;
+    background:rgba(37,99,235,0.1);
+  }
+  .code-row.drag-over{
+    background:rgba(37,99,235,0.1);
+    border:2px solid var(--accent);
+  }
+  .code-number{
+    background:var(--accent);
+    color:white;
+    width:24px;
+    height:24px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:11px;
+    font-weight:bold;
+    flex-shrink:0;
+    transition:all 0.2s;
+  }
+  .code-number:hover{
+    background:var(--accent-hover, #1e40af);
+    transform:scale(1.1);
+  }
+  .code-number:focus{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+    background:var(--accent-hover, #1e40af);
+  }
+  .settings-group{
+    background:var(--bg, #1e293b);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:12px;
+    margin-bottom:12px;
+    transition:all 0.2s;
+  }
+  .settings-group:hover{
+    border-color:var(--accent);
+    box-shadow:0 2px 8px rgba(59,130,246,0.2);
+  }
+  .settings-group .row{
+    margin-bottom:0;
+  }
+  .settings-group label{
+    color:var(--text, #f1f5f9);
+    font-weight:500;
+  }
+  .code-input{
+    flex:1;
+    min-width:120px;
+  }
+  .code-color{
+    width:30px;
+    height:30px;
+    border-radius:6px;
+    border:2px solid var(--border);
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .code-delete{
+    width:24px;
+    height:24px;
+    border-radius:50%;
+    border:none;
+    background:var(--danger);
+    color:white;
+    cursor:pointer;
+    font-size:12px;
+    font-weight:bold;
+    flex-shrink:0;
+    transition:all 0.2s;
+  }
+  .code-delete:hover{
+    background:#b91c1c;
+    transform:scale(1.1);
+  }
+  .drag-handle-small{
+    cursor:move;
+    color:#94a3b8;
+    font-size:12px;
+    padding:2px 4px;
+    border-radius:3px;
+    transition:all 0.2s;
+    user-select:none;
+    flex-shrink:0;
+  }
+  .drag-handle-small:hover{
+    color:var(--accent);
+    background:rgba(37,99,235,0.1);
+  }
+  
+  #gallery{display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:14px}
+
+  /* --- Modal Collage --- */
+  .modal{
+    position:fixed; inset:0; background:rgba(0,0,0,0.85);
+    display:none; align-items:center; justify-content:center;
+    z-index:999;
+  }
+  .modal.show{display:flex}
+  .modal-shell{
+    width:min(1400px,95vw); height:min(900px,92vh);
+    background:var(--panel); border:1px solid var(--border);
+    border-radius:18px; box-shadow:0 30px 80px rgba(0,0,0,0.7);
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+  .modal-header{
+    padding:12px 16px; background:rgba(21,26,34,0.95);
+    border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .modal-header h3{margin:0; font-size:16px}
+  .modal-body{
+    flex:1; display:grid; grid-template-columns:340px 1fr; gap:0;
+    overflow:hidden;
+  }
+  .picker{
+    border-right:1px solid var(--border);
+    padding:12px; overflow:auto;
+    background:#111821;
+  }
+  .picker .cardItem{
+    width:100%;
+    display:flex; gap:10px; align-items:center;
+    padding:10px; border-radius:12px; border:1px solid #223044;
+    background:#0f141b; margin-bottom:10px;
+    cursor:pointer; user-select:none; text-align:left;
+    position:relative;
+  }
+  .picker .cardItem:hover{border-color:#2b3b52}
+  .picker .cardItem:focus-visible{outline:2px solid #3b82f6; outline-offset:2px}
+  .picker .cardItem.selected{
+    border-color:#3b82f6;
+    box-shadow:0 0 0 2px rgba(59,130,246,0.35);
+  }
+  .picker .check{
+    position:absolute; top:6px; right:6px;
+    background:#2563eb; color:#fff; font-size:11px;
+    padding:2px 6px; border-radius:999px; display:none;
+  }
+  .picker .cardItem.selected .check{display:inline-block}
+  .picker canvas{width:86px; height:auto; border-radius:8px}
+  .picker label{color:#e2e8f0}
+  .picker small{color:var(--muted); word-break:break-all}
+  .sheet-area{
+    display:flex; flex-direction:column; height:100%;
+    padding:12px; gap:10px;
+  }
+  .sheet-frame{
+    flex:1; background:#0b0f14; border:1px solid #223044;
+    border-radius:14px; display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+  }
+  #sheetDisplay{background:#fff; box-shadow:0 0 40px rgba(0,0,0,0.6)}
+  .sheet-actions{display:flex; gap:10px; align-items:center; justify-content:space-between}
+  .badge{
+    background:#0f172a; color:#cbd5e1; padding:6px 10px;
+    border-radius:999px; font-size:12px; border:1px solid #223044;
+  }
+  .muted{color:var(--muted); font-size:12px}
+  body.modal-open{overflow:hidden}
+
+  /* --- Lightbox --- */
+  #lightbox{
+    position:fixed; inset:0;
+    background:rgba(0,0,0,0.7);
+    backdrop-filter:blur(8px);
+    display:none; align-items:center; justify-content:center;
+    z-index:2000;
+  }
+  #lightbox.show{display:flex}
+  .lightbox-content{
+    position:relative; max-width:90vw; max-height:90vh;
+  }
+  #lightboxImg{
+    max-width:90vw; max-height:85vh;
+    border-radius:12px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.6);
+  }
+  .lb-nav{
+    position:absolute; top:50%; transform:translateY(-50%);
+    background:rgba(255,255,255,0.15); color:#fff;
+    border:none; width:50px; height:50px; border-radius:50%;
+    font-size:24px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .2s;
+  }
+  .lb-nav:hover{background:rgba(255,255,255,0.3)}
+  .lb-prev{left:-70px}
+  .lb-next{right:-70px}
+  .lb-close{
+    position:absolute; top:-50px; right:0;
+    background:rgba(255,255,255,0.15); color:#fff;
+    border:none; width:40px; height:40px; border-radius:50%;
+    font-size:20px; cursor:pointer;
+  }
+  .lb-counter{
+    position:absolute; bottom:-40px; left:50%; transform:translateX(-50%);
+    color:#fff; font-size:14px;
+  }
+
+  @media (max-width: 900px){
+    .app{grid-template-columns:1fr}
+    .modal-body{grid-template-columns:1fr}
+    .picker{border-right:none; border-bottom:1px solid var(--border)}
+    .lb-prev{left:10px}
+    .lb-next{right:10px}
+  }
+  
+  /* Стили для flag-icons в dropdown */
+  .lang-dropdown-item .fi,
+  .lang-btn .fi {
+    font-size: 18px;
+    border-radius: 3px;
+  }
+  .lang-btn .fi {
+    font-size: 20px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <!-- Кнопка Назад/Главная в стиле сайта -->
+  <a href="https://worklaf.github.io/MOWI/QR.html" class="home-btn" data-i18n="backBtn">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+    </svg>
+    <span data-i18n="backBtnText">Главная</span>
+  </a>
+  
+  <h1>MAX QR Cards Studio</h1>
+  <div class="header-controls">
+    <div class="lang-dropdown-wrapper">
+      <button class="lang-btn" id="langBtn" onclick="toggleLanguageDropdown(event)">
+        <span class="fi fi-pl" style="margin-right:6px"></span>PL
+      </button>
+      <div class="lang-dropdown" id="langDropdown">
+        <div class="lang-dropdown-item" data-lang="pl" onclick="selectLanguage('pl')">
+          <span class="fi fi-pl"></span>
+          <span>Polski</span>
+          <span class="lang-item-check">✓</span>
+        </div>
+        <div class="lang-dropdown-item" data-lang="en" onclick="selectLanguage('en')">
+          <span class="fi fi-gb"></span>
+          <span>English</span>
+          <span class="lang-item-check">✓</span>
+        </div>
+        <div class="lang-dropdown-item" data-lang="ua" onclick="selectLanguage('ua')">
+          <span class="fi fi-ua"></span>
+          <span>Українська</span>
+          <span class="lang-item-check">✓</span>
+        </div>
+      </div>
+    </div>
+    
+    <button class="btn secondary" id="previewAll" data-i18n="previewBtn">🔍 Podgląd</button>
+    <button class="btn" id="openCollage" data-i18n="collageBtn">🧩 Utwórz kolaż</button>
+  </div>
+</header>
+
+<div class="app">
+  <!-- LEFT: controls -->
+  <div class="panel">
+    <h2 data-i18n="settings">Ustawienia</h2>
+    <div class="section" style="margin-top:10px">
+      <!-- Логотип и размер logo в одной строке -->
+      <div class="settings-group">
+        <div class="row">
+          <label data-i18n="logoLabel">Logo (PNG/JPG/SVG)</label>
+          <input id="logoFile" type="file" accept="image/*" style="flex:1">
+          <label data-i18n="logoSizeLabel" style="margin-left:16px">Rozmiar logo: <span id="logoSizeVal">20</span>%</label>
+          <input id="logoSize" type="range" min="8" max="32" value="20" style="flex:1">
+        </div>
+      </div>
+      <!-- DPI и фон под логотипом в одной строке -->
+      <div class="settings-group">
+        <div class="row" style="margin-top:8px">
+          <label>DPI:</label>
+          <select id="dpiSelect">
+            <option value="300">300</option>
+            <option value="200">200</option>
+            <option value="150">150</option>
+          </select>
+          <label data-i18n="bgShapeLabel" style="margin-left:16px">Tło pod logo:</label>
+          <select id="bgShape">
+            <option value="circle" data-i18n="circle">Koło</option>
+            <option value="rect" data-i18n="rectangle">Prostokąt</option>
+            <option value="none" data-i18n="none">Brak</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" style="margin-top:16px">
+      <h2 data-i18n="codesList">Lista kodów</h2>
+      <div class="code-table-wrap">
+        <div class="two-column-table">
+          <div class="column" id="leftColumn">
+            <div class="column-content"></div>
+          </div>
+          <div class="column" id="rightColumn">
+            <div class="column-content"></div>
+          </div>
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn secondary" id="addRow" data-i18n="addRow">+ Dodaj wiersz</button>
+        <button class="btn" id="downloadAll" data-i18n="downloadAll">💾 Pobierz wszystkie PNG</button>
+      </div>
+      <div class="muted" style="margin-top:8px" data-i18n="collageHint">Aby utworzyć kolaż, wybierz kartę w oknie "Utwórz kolaż" (kliknij kartę).</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: gallery -->
+  <div class="panel">
+    <h2 data-i18n="gallery">Galeria kart</h2>
+    <div id="gallery"></div>
+  </div>
+</div>
+
+<!-- Popup палитра (шаблон) -->
+<div id="paletteTemplate" class="palette-popup">
+  <div class="pal-title" data-i18n="chooseColor">Wybierz kolor:</div>
+  <div class="palette-grid"></div>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox">
+  <div class="lightbox-content">
+    <button class="lb-close" id="lbClose">✕</button>
+    <button class="lb-nav lb-prev" id="lbPrev">‹</button>
+    <img id="lightboxImg" src="" alt="Preview">
+    <button class="lb-nav lb-next" id="lbNext">›</button>
+    <div class="lb-counter" id="lbCounter">1 / 1</div>
+  </div>
+</div>
+
+<!-- Collage Modal -->
+<div class="modal" id="collageModal" aria-hidden="true">
+  <div class="modal-shell">
+    <div class="modal-header">
+      <h3 data-i18n="collageTitle">Kolaż A4 (4 kwadranty)</h3>
+      <div class="row">
+        <span class="badge" id="selectedInfo" data-i18n="selected">Wybrane: 0/4</span>
+        <label class="muted" data-i18n="cutGapLabel">Strefa cięcia (mm):</label>
+        <input id="cutGapMm" type="number" min="0" max="20" value="1" style="width:70px">
+        <button class="btn secondary" id="closeCollage" data-i18n="close">✖ Zamknij</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="picker" id="pickerList"></div>
+      <div class="sheet-area">
+        <div class="sheet-frame" id="sheetDisplayWrap">
+          <canvas id="sheetDisplay"></canvas>
+        </div>
+        <div class="sheet-actions">
+          <div class="muted" data-i18n="collageHint2">Kolaż jest wyświetlany bez rozciągania, z zachowaniem proporcji.</div>
+          <div class="row">
+            <button class="btn secondary" id="resetSheet" data-i18n="reset">🗑 Resetuj</button>
+            <button class="btn" id="exportSheet" data-i18n="savePng">💾 Zapisz PNG</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Firebase конфигурация
+const firebaseConfig = {
+  apiKey: "AIzaSyCNjW14WXJ2mUmQ5ePcW456qAP2O-hTjUY",
+  authDomain: "nflpaleta-control.firebaseapp.com",
+  databaseURL: "https://nflpaleta-control-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "nflpaleta-control",
+  storageBucket: "nflpaleta-control.firebasestorage.app",
+  messagingSenderId: "576502070754",
+  appId: "1:576502070754:web:78a60602cf29aa3c680dbb",
+  measurementId: "G-8T80PER0PK"
+};
+
+// Инициализация Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// Функция для получения/создания уникального ID пользователя
+function getOrCreateUserId() {
+  let userId = localStorage.getItem('qr_cards_user_id');
+  if (!userId) {
+    userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('qr_cards_user_id', userId);
+    console.log('Создан новый пользователь ID:', userId);
+  }
+  return userId;
+}
+
+// Получаем ID текущего пользователя
+const currentUserId = getOrCreateUserId();
+console.log('Текущий пользователь ID:', currentUserId);
+
+/* ---------- Большая палитра цветов ---------- */
+const fullPalette = [
+  '#FFEBEE','#FFCDD2','#EF9A9A','#E57373','#EF5350','#F44336','#E53935','#D32F2F',
+  '#C62828','#B71C1C','#FF8A80','#FF5252','#FF1744','#D50000','#F8BBD9','#F48FB1',
+  '#F06292','#EC407A','#E91E63','#D81B60','#C2185B','#880E4F','#FF80AB','#FF4081',
+  '#F50057','#C51162','#F3E5F5','#D1C4E9','#CE93D8','#BA68C8','#AB47BC','#9C27B0',
+  '#8E24AA','#7B1FA2','#6A1B9A','#4A148C','#EDE7F6','#D1C4E9','#B39DDB','#9575CD',
+  '#7E57C2','#673AB7','#5E35B1','#512DA8','#4527A0','#311B92','#E8EAF6','#C5CAE9',
+  '#9FA8DA','#7986CB','#5C6BC0','#3F51B5','#303F9F','#283593','#1A237E','#E3F2FD',
+  '#BBDEFB','#90CAF9','#64B5F6','#42A5F5','#2196F3','#1E88E5','#1976D2','#1565C0',
+  '#0D47A1','#002171','#E1F5FE','#B3E5FC','#81D4FA','#4FC3F7','#29B6F6','#03A9F4',
+  '#039BE5','#0288D1','#0277BD','#01579B','#E0F7FA','#B2EBF2','#80DEEA','#4DD0E1',
+  '#26C6DA','#00BCD4','#00ACC1','#0097A7','#00838F','#006064','#E0F2F1','#B2DFDB',
+  '#80CBC4','#4DB6AC','#26A69A','#009688','#00897B','#00796B','#00695C','#004D40',
+  '#E8F5E9','#C8E6C9','#A5D6A7','#81C784','#66BB6A','#4CAF50','#43A047','#388E3C',
+  '#2E7D32','#1B5E20','#B9F6CA','#69F0AE','#00E676','#00C853','#00A152','#007E33',
+  '#F1F8E9','#DCEDC8','#C5E1A5','#AED581','#9CCC65','#8BC34A','#7CB342','#689F38',
+  '#558B2F','#33691E','#F9FBE7','#F0F4C3','#E6EE9C','#DCE775','#D4E157','#C0CA33',
+  '#FFEB3B','#FDD835','#FBC02D','#F9A825','#F57F17','#FFFDE7','#FFF9C4','#FFF59D',
+  '#FFF176','#FFEE58','#FFEB3B','#FDD835','#FBC02D','#F9A825','#F57F17','#FFECB3',
+  '#FFECB3','#FFE082','#FFD54F','#FFCA28','#FFC107','#FFB300','#FFA000','#FF8F00',
+  '#FF6F00','#FFF3E0','#FFE0B2','#FFCC80','#FFB74D','#FFA726','#FF9800','#FB8C00',
+  '#FF6D00','#EF6C00','#E65100','#FFCCBC','#FFAB91','#FF8A65','#FF7043','#F4511E',
+  '#E64A19','#D84315','#BF360C','#D7CCC8','#BCAAA4','#A1887F','#8D6E63','#795548',
+  '#6D4C41','#5D4037','#4E342E','#3E2723','#ECEFF1','#CFD8DC','#B0BEC5','#90A4AE',
+  '#78909C','#607D8B','#455A64','#37474F','#263238','#FAFAFA','#F5F5F5','#EEEEEE'
+];
+
+/* ---------- Утилиты ---------- */
+function downloadBlob(blob, name){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+const MM_TO_IN = 1/25.4;
+
+/* ---------- Состояние ---------- */
+let logoImg=null, circularLogo=null;
+let cards=[];
+const selectedSet=new Set();
+let activePalettePopup = null;
+let isUpdating = false;
+
+// Функции для локального сохранения карточек
+let saveTimeout;
+function saveCardsToStorage() {
+  // Debouncing - отменяем предыдущий таймер
+  if (saveTimeout) {
+    clearTimeout(saveTimeout);
+  }
+  
+  // Откладываем сохранение на 500мс
+  saveTimeout = setTimeout(async () => {
+    try {
+      isUpdating = true;
+      // Сохраняем только новые карточки (не из defaultCodes)
+      const tableCards = [];
+      const leftContent = document.querySelector('#leftColumn .column-content');
+      const rightContent = document.querySelector('#rightColumn .column-content');
+      
+      // Собираем все карточки в текущем порядке
+      const allRows = Array.from(leftContent.querySelectorAll('.code-row')).concat(Array.from(rightContent.querySelectorAll('.code-row')));
+      
+      allRows.forEach(row => {
+        const codeInput = row.querySelector('.code-input');
+        const code = codeInput ? codeInput.value.trim() : '';
+        const colorInput = row.querySelector('.code-color input[type="color"]');
+        const color = colorInput ? colorInput.value : '';
+        const cardNumber = parseInt(row.dataset.cardNumber);
+        
+        if (code) {
+          // Ищем имя карточки в defaultCodes
+          const defaultCard = defaultCodes.find(c => c.code === code);
+          const cardName = defaultCard ? defaultCard.name : code;
+          
+          tableCards.push({
+            code: code,
+            name: cardName, // Сохраняем имя карточки
+            color: colorInput.value,
+            cardNumber: cardNumber, // Сохраняем номер
+            isExisting: true
+          });
+        }
+      });
+      
+      // Сохраняем в Firestore вместо localStorage
+      await saveCardsToFirestore(tableCards);
+      console.log('Новые карточки сохранены в Firestore:', tableCards.length);
+    } catch (e) {
+      console.error('Ошибка сохранения карточек:', e);
+    } finally {
+      isUpdating = false;
+    }
+  }, 500);
+}
+
+function loadCardsFromStorage() {
+  // Загружаем из Firestore
+  return loadCardsFromFirestore();
+}
+
+/* ---------- Индикатор загрузки ---------- */
+function showLoadingIndicator() {
+  // Проверяем если индикатор уже существует
+  if (document.getElementById('firestoreLoading')) return;
+  
+  const indicator = document.createElement('div');
+  indicator.id = 'firestoreLoading';
+  indicator.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 14px;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: fadeIn 0.3s ease-in-out;
+  `;
+  
+  // Добавляем спиннер
+  const spinner = document.createElement('div');
+  spinner.style.cssText = `
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  `;
+  
+  indicator.appendChild(spinner);
+  indicator.appendChild(document.createTextNode('Загрузка данных...'));
+  document.body.appendChild(indicator);
+}
+
+function hideLoadingIndicator() {
+  const indicator = document.getElementById('firestoreLoading');
+  if (indicator) {
+    indicator.style.animation = 'fadeOut 0.3s ease-in-out';
+    setTimeout(() => {
+      if (indicator.parentNode) {
+        indicator.parentNode.removeChild(indicator);
+      }
+    }, 300);
+  }
+}
+
+// Добавляем CSS анимации
+const loadingStyles = document.createElement('style');
+loadingStyles.textContent = `
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes fadeOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-10px); }
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+document.head.appendChild(loadingStyles);
+
+/* ---------- Firestore функции ---------- */
+// Firebase SDK
+let isSavingToFirestore = false;
+let isLoadingFromFirestore = false;
+let isInitializing = false;
+
+async function saveCardsToFirestore(cards) {
+  // Защита от бесконечного цикла
+  if (isSavingToFirestore) {
+    console.log('⏸️ Сохранение уже выполняется, пропускаем...');
+    return;
+  }
+  
+  isSavingToFirestore = true;
+  
+  try {
+    console.log('Сохранение карточек в Firestore для пользователя:', currentUserId);
+    
+    const userCardsRef = db.collection('qr_cards').doc(currentUserId).collection('cards');
+    const snapshot = await userCardsRef.get();
+    
+    // Создаем Map существующих карточек по code
+    const existingDocs = new Map();
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      existingDocs.set(data.code, doc.ref);
+    });
+    
+    const batch = db.batch();
+    
+    // Обновляем или добавляем карточки (используем code как ID документа)
+    cards.forEach((card, index) => {
+      const cardData = {
+        code: card.code,
+        name: card.name || card.code, // Добавляем имя карточки
+        color: card.color,
+        cardNumber: card.cardNumber || index + 1,
+        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      
+      if (existingDocs.has(card.code)) {
+        // Обновляем существующую карточку (используем code как ID)
+        batch.update(existingDocs.get(card.code), cardData);
+      } else {
+        // Добавляем новую карточку (используем code как ID документа)
+        const cardRef = userCardsRef.doc(card.code); // Используем code как ID
+        cardData.created = firebase.firestore.FieldValue.serverTimestamp();
+        batch.set(cardRef, cardData);
+      }
+    });
+    
+    // Обновляем метаданные пользователя
+    const userRef = db.collection('qr_cards').doc(currentUserId);
+    batch.set(userRef, {
+      lastAccessed: firebase.firestore.FieldValue.serverTimestamp(),
+      browserInfo: navigator.userAgent,
+      cardsCount: cards.length
+    }, { merge: true });
+    
+    // Выполняем все операции
+    await batch.commit();
+    
+    console.log('✅ Карточки успешно сохранены в Firestore:', cards.length);
+    
+  } catch (error) {
+    console.error('❌ Ошибка сохранения в Firestore:', error);
+    
+    // Запасной вариант: localStorage
+    try {
+      localStorage.setItem('qrCardsData', JSON.stringify(cards));
+      console.log('📦 Карточки сохранены в localStorage как запасной вариант');
+    } catch (e) {
+      console.error('❌ Не удалось сохранить даже в localStorage:', e);
+    }
+  } finally {
+    // Всегда сбрасываем флаг
+    isSavingToFirestore = false;
+  }
+}
+
+// Loading cards from Firestore
+async function loadCardsFromFirestore() {
+  // Protection against multiple calls
+  if (isLoadingFromFirestore) {
+    console.log('Loading already in progress, skipping...');
+    return [];
+  }
+  
+  isLoadingFromFirestore = true;
+  
+  try {
+    console.log('Loading cards from Firestore for user:', currentUserId);
+    
+    const userCardsRef = db.collection('qr_cards').doc(currentUserId).collection('cards');
+    const snapshot = await userCardsRef.orderBy('cardNumber', 'asc').get();
+    
+    const cards = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      cards.push({
+        code: data.code,
+        name: data.name || data.code, // Загружаем имя карточки
+        color: data.color,
+        cardNumber: data.cardNumber,
+        isExisting: true
+      });
+    });
+    
+    console.log('✅ Карточки успешно загружены из Firestore:', cards.length);
+    
+    // Если карточек нет, добавляем начальные карточки
+    if (cards.length === 0) {
+      console.log('📝 Firestore пуст, добавляем начальные карточки...');
+      await saveCardsToFirestore([...defaultCodes]);
+      return [...defaultCodes];
+    }
+    
+    // Обновляем метаданные пользователя
+    const userRef = db.collection('qr_cards').doc(currentUserId);
+    await userRef.set({
+      lastAccessed: firebase.firestore.FieldValue.serverTimestamp(),
+      browserInfo: navigator.userAgent,
+      cardsCount: cards.length
+    }, { merge: true });
+    
+    return cards;
+    
+  } catch (error) {
+    console.error('❌ Ошибка загрузки из Firestore:', error);
+    
+    // Запасной вариант: localStorage
+    try {
+      const saved = localStorage.getItem('qrCardsData');
+      if (saved) {
+        const cardsData = JSON.parse(saved);
+        console.log('📦 Карточки загружены из localStorage как запасной вариант:', cardsData.length);
+        return cardsData;
+      }
+    } catch (e) {
+      console.error('❌ Не удалось загрузить даже из localStorage:', e);
+    }
+    
+    // Если все варианты не сработали, возвращаем начальные карточки
+    console.log('📝 Используем начальные карточки как последний вариант');
+    return [...defaultCodes];
+  } finally {
+    isLoadingFromFirestore = false;
+  }
+}
+
+const sheetCanvas=document.createElement('canvas');
+const sheetCtx=sheetCanvas.getContext('2d');
+const sheetDisplay=document.getElementById('sheetDisplay');
+const sheetDisplayCtx=sheetDisplay.getContext('2d');
+
+/* ---------- Lightbox ---------- */
+let lbIndex = 0;
+const lightbox = document.getElementById('lightbox');
+const lightboxImg = document.getElementById('lightboxImg');
+const lbCounter = document.getElementById('lbCounter');
+
+function showLightbox(idx){
+  if(cards.length === 0) return;
+  lbIndex = Math.max(0, Math.min(idx, cards.length - 1));
+  updateLightboxImage();
+  lightbox.classList.add('show');
+}
+function updateLightboxImage(){
+  const c = cards[lbIndex];
+  lightboxImg.src = c.canvas.toDataURL('image/png');
+  lbCounter.textContent = `${lbIndex + 1} / ${cards.length}`;
+}
+function closeLightbox(){
+  lightbox.classList.remove('show');
+}
+document.getElementById('lbClose').onclick = closeLightbox;
+document.getElementById('lbPrev').onclick = () => { if(lbIndex > 0){ lbIndex--; updateLightboxImage(); }};
+document.getElementById('lbNext').onclick = () => { if(lbIndex < cards.length-1){ lbIndex++; updateLightboxImage(); }};
+lightbox.addEventListener('click', e => { if(e.target === lightbox) closeLightbox(); });
+document.addEventListener('keydown', e => {
+  if(!lightbox.classList.contains('show')) return;
+  if(e.key === 'Escape') closeLightbox();
+  if(e.key === 'ArrowLeft' && lbIndex > 0){ lbIndex--; updateLightboxImage();}
+  if(e.key === 'ArrowRight' && lbIndex < cards.length-1){ lbIndex++; updateLightboxImage();}
+});
+
+/* ---------- Popup палитра ---------- */
+function showPalettePopup(triggerEl, colorInput) {
+  if(activePalettePopup) { activePalettePopup.remove(); activePalettePopup = null; }
+  
+  const popup = document.getElementById('paletteTemplate').cloneNode(true);
+  popup.id = 'activePalette';
+  popup.classList.add('show');
+  
+  const grid = popup.querySelector('.palette-grid');
+  fullPalette.forEach(clr => {
+    const sw = document.createElement('div');
+    sw.className = 'p-swatch';
+    sw.style.backgroundColor = clr;
+    sw.onclick = () => { colorInput.value = clr; popup.remove(); activePalettePopup = null; updatePreview(); };
+    grid.appendChild(sw);
+  });
+  
+  const rect = triggerEl.getBoundingClientRect();
+  const popupWidth = 280;
+  let left = rect.left;
+  if (left + popupWidth > window.innerWidth - 20) left = window.innerWidth - popupWidth - 20;
+  if (left < 20) left = 20;
+  
+  popup.style.left = left + 'px';
+  popup.style.top = (rect.bottom + 10) + 'px';
+  
+  document.body.appendChild(popup);
+  activePalettePopup = popup;
+  
+  const closeHandler = (e) => {
+    if (!popup.contains(e.target) && e.target !== triggerEl) {
+      popup.remove();
+      activePalettePopup = null;
+      document.removeEventListener('click', closeHandler);
+    }
+  };
+  setTimeout(() => document.addEventListener('click', closeHandler), 100);
+}
+
+/* ---------- Таблица кодов ---------- */
+const defaultCodes=[
+  {code:"F3-WMT-000-000-001",name:"F3-WMT-001",color:"#FFD54F",cardNumber:1},
+  {code:"F3-WFR-000-000-002",name:"F3-WFR-002",color:"#F44336",cardNumber:2},
+  {code:"F4-WBP18-000-000-000",name:"F4-WBP18-000",color:"#64B5F6",cardNumber:3},
+  {code:"F3-WRM13-000-000-001",name:"F3-WRM13-001",color:"#8BC34A",cardNumber:4},
+  {code:"F1-DOCK-U1-000-000-000",name:"F1-DOCK-U1",color:"#FF9800",cardNumber:5},
+  {code:"F3-WMA-000-000-003",name:"F3-WMA-003",color:"#E1BEE7",cardNumber:6}
+];
+
+function addRow(item={code:"",color:"#FFD54F", cardNumber: null}){
+  // Получаем все текущие карточки
+  const leftContent = document.querySelector('#leftColumn .column-content');
+  const rightContent = document.querySelector('#rightColumn .column-content');
+  const allRows = Array.from(leftContent.querySelectorAll('.code-row')).concat(Array.from(rightContent.querySelectorAll('.code-row')));
+  
+  // Сначала определяем это карточка по умолчанию или нет
+  const isDefaultCard = defaultCodes.some(c => c.code === item.code);
+  
+  let newNumber;
+  if (item.cardNumber !== null) {
+    // Если номер указан (при загрузке), используем его
+    newNumber = item.cardNumber;
+  } else if (isDefaultCard && item.cardNumber !== undefined) {
+    // Для карточек по умолчанию используем номер из defaultCodes
+    newNumber = item.cardNumber;
+  } else {
+    // Определяем номер новой карточки (следующий свободный)
+    const usedNumbers = new Set();
+    allRows.forEach(row => {
+      const num = parseInt(row.querySelector('.code-number').textContent);
+      usedNumbers.add(num);
+    });
+    
+    newNumber = 1;
+    while (usedNumbers.has(newNumber)) {
+      newNumber++;
+    }
+  }
+  
+  // Определяем в какой столбец добавлять (нечетные - левый, четные - правый)
+  const targetColumn = newNumber % 2 === 1 ? leftContent : rightContent;
+  
+  // Создаем строку карточки
+  const codeRow = document.createElement('div');
+  codeRow.className = 'code-row';
+  // Убираем draggable - отключаем перетаскивание
+  
+  // Номер карточки (редактируемый)
+  const numberDiv = document.createElement('div');
+  numberDiv.className = 'code-number';
+  numberDiv.textContent = newNumber;
+  numberDiv.contentEditable = true; // Делаем редактируемым
+  numberDiv.style.cursor = 'text';
+  numberDiv.title = 'Кликните чтобы изменить номер';
+  
+  // Обработчик изменения номера
+  numberDiv.addEventListener('blur', () => {
+    const newNum = parseInt(numberDiv.textContent);
+    if (!isNaN(newNum) && newNum > 0) {
+      changeCardNumber(codeRow, newNum);
+    } else {
+      // Возвращаем старый номер если введено некорректное значение
+      numberDiv.textContent = codeRow.dataset.cardNumber;
+    }
+  });
+  
+  // Обработчик нажатия Enter
+  numberDiv.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      numberDiv.blur();
+    }
+  });
+  
+  // Сохраняем номер в data-атрибуте
+  codeRow.dataset.cardNumber = newNumber;
+  
+  // Поле ввода кода
+  const codeInput = document.createElement('input');
+  codeInput.type = 'text';
+  codeInput.className = 'code-input';
+  codeInput.placeholder = t('placeholder') || 'Kod QR';
+  codeInput.value = item.code;
+  if (isDefaultCard) {
+    codeInput.readOnly = true;
+  }
+  
+  // Выбор цвета
+  const colorWrapper = document.createElement('div');
+  colorWrapper.style.position = 'relative';
+  
+  const colorInput = document.createElement('input');
+  colorInput.type = 'color';
+  colorInput.value = item.color;
+  colorInput.style.position = 'absolute';
+  colorInput.style.left = '0';
+  colorInput.style.top = '0';
+  colorInput.style.width = '30px';
+  colorInput.style.height = '30px';
+  colorInput.style.opacity = '0';
+  colorInput.style.cursor = 'pointer';
+  if (isDefaultCard) {
+    colorInput.disabled = true;
+    colorInput.style.cursor = 'not-allowed';
+  }
+  
+  const colorPreview = document.createElement('div');
+  colorPreview.className = 'code-color';
+  colorPreview.style.backgroundColor = item.color;
+  colorPreview.style.position = 'relative';
+  
+  colorPreview.appendChild(colorInput);
+  
+  // Обработчик изменения цвета в реальном времени
+  colorInput.addEventListener('input', (e) => {
+    colorPreview.style.backgroundColor = e.target.value;
+    updatePreview();
+    saveCardsToStorage();
+  });
+  
+  colorPreview.onclick = () => {
+    if (!colorInput.disabled) {
+      colorInput.click();
+    }
+  };
+  
+  colorWrapper.appendChild(colorPreview);
+  
+  // Кнопка удаления (только для новых карточек)
+  let deleteBtn = null;
+  if (!isDefaultCard) {
+    deleteBtn = document.createElement('button');
+    deleteBtn.className = 'code-delete';
+    deleteBtn.textContent = '×';
+    deleteBtn.onclick = () => deleteCodeRow(codeRow);
+  }
+  
+  // Собираем строку
+  codeRow.appendChild(numberDiv);
+  codeRow.appendChild(codeInput);
+  codeRow.appendChild(colorWrapper);
+  if (deleteBtn) {
+    codeRow.appendChild(deleteBtn);
+  }
+  
+  // Добавляем в столбец
+  targetColumn.appendChild(codeRow);
+  
+  // Обновляем предпросмотр
+  updatePreview();
+  saveCardsToStorage();
+}
+
+// Загружаем сохраненные карточки и добавляем их
+async function initSheet() {
+  if (isInitializing) {
+    console.log('⏸️ Инициализация уже выполняется, пропускаем...');
+    return;
+  }
+  isInitializing = true;
+  
+  try {
+    const savedCards = await loadCardsFromStorage();
+    
+    // Проверяем что savedCards это массив
+    if (!Array.isArray(savedCards)) {
+      console.error('❌ savedCards не является массивом в initSheet:', savedCards);
+      savedCards = [];
+    }
+
+    // Создаем Set с кодами которые уже есть в Firestore
+    const existingCodes = new Set(savedCards.map(card => card.code));
+    console.log('📋 Карточки в Firestore:', Array.from(existingCodes));
+
+    // Добавляем только те карточки которых еще нет в Firestore
+    let cardsToAdd = [];
+    
+    if (savedCards.length === 0) {
+      // Если Firestore пуст, добавляем все defaultCodes
+      console.log('📝 Firestore пуст, добавляем все карточки по умолчанию');
+      cardsToAdd = [...defaultCodes];
+    } else {
+      // Если есть карточки, добавляем только недостающие из defaultCodes
+      console.log('🔍 Проверяем недостающие карточки...');
+      defaultCodes.forEach(defaultCode => {
+        if (!existingCodes.has(defaultCode.code)) {
+          console.log('➕ Добавляем недостающую карточку:', defaultCode.code);
+          cardsToAdd.push(defaultCode);
+        } else {
+          console.log('✅ Карточка уже существует:', defaultCode.code);
+        }
+      });
+    }
+
+    // Проверяем какие карточки уже есть в DOM таблице
+    const existingDomCodes = new Set();
+    document.querySelectorAll('.code-input').forEach(input => {
+      const code = input.value.trim();
+      if (code) existingDomCodes.add(code);
+    });
+
+    // Добавляем сохраненные карточки из Firestore (только если их нет в DOM)
+    savedCards.forEach(savedCard => {
+      if (!existingDomCodes.has(savedCard.code)) {
+        addRow({ 
+          code: savedCard.code, 
+          color: savedCard.color,
+          cardNumber: savedCard.cardNumber 
+        });
+        existingDomCodes.add(savedCard.code);
+      }
+    });
+
+    // Добавляем недостающие карточки (только если их нет в DOM)
+    cardsToAdd.forEach(card => {
+      if (!existingDomCodes.has(card.code)) {
+        addRow({ 
+          code: card.code, 
+          color: card.color,
+          cardNumber: card.cardNumber 
+        });
+        existingDomCodes.add(card.code);
+      }
+    });
+
+    // Если были добавлены новые карточки, сохраняем их в Firestore
+    if (cardsToAdd.length > 0) {
+      console.log('💾 Новые карточки добавлены в интерфейс:', cardsToAdd.length);
+      // НЕ сохраняем здесь чтобы избежать цикла - сохранение произойдет при изменениях
+    }
+    
+    // Обновляем предпросмотр чтобы отобразились все карточки
+    updatePreview();
+  } catch (error) {
+    console.error('❌ Ошибка в initSheet():', error);
+  } finally {
+    isInitializing = false;
+  }
+}
+
+// Функция удаления строки карточки
+function deleteCodeRow(codeRow) {
+  const codeInput = codeRow.querySelector('.code-input');
+  const code = codeInput ? codeInput.value.trim() : '';
+  
+  codeRow.remove();
+  // Перенумеруем все карточки
+  renumberAllCards();
+  updatePreview();
+  // Удаляем из Firestore по коду
+  if (code) {
+    deleteCardFromFirestore(code);
+  }
+}
+
+// Удаление одной карточки из Firestore (используем code как ID документа)
+async function deleteCardFromFirestore(code) {
+  try {
+    console.log('🗑️ Удаление карточки из Firestore:', code);
+    const userCardsRef = db.collection('qr_cards').doc(currentUserId).collection('cards');
+    const cardRef = userCardsRef.doc(code); // Используем code как ID документа
+    
+    await cardRef.delete();
+    console.log('✅ Карточка удалена из Firestore:', code);
+  } catch (error) {
+    console.error('❌ Ошибка удаления карточки из Firestore:', error);
+  }
+}
+
+// Функция перенумерации всех карточек
+function renumberAllCards() {
+  const leftContent = document.querySelector('#leftColumn .column-content');
+  const rightContent = document.querySelector('#rightColumn .column-content');
+  
+  // Собираем все карточки и сортируем по текущим номерам
+  const allRows = Array.from(leftContent.querySelectorAll('.code-row')).concat(Array.from(rightContent.querySelectorAll('.code-row')));
+  
+  // Сортируем по текущим номерам для правильного порядка
+  allRows.sort((a, b) => {
+    const numA = parseInt(a.dataset.cardNumber) || 999;
+    const numB = parseInt(b.dataset.cardNumber) || 999;
+    return numA - numB;
+  });
+  
+  console.log('Перенумерация: текущее количество карточек:', allRows.length);
+  
+  // Перенумеровываем по порядку 1,2,3,4...
+  allRows.forEach((row, index) => {
+    const newNumber = index + 1;
+    const numberDiv = row.querySelector('.code-number');
+    if (numberDiv) {
+      const oldNumber = numberDiv.textContent;
+      numberDiv.textContent = newNumber;
+      row.dataset.cardNumber = newNumber;
+    }
+  });
+  
+  // Перераспределяем по новым номерам
+  redistributeCardsWithFixedNumbers(allRows);
+  
+  console.log('Перенумерация завершена');
+  // Не сохраняем здесь - сохранение будет вызвано из deleteCodeRow
+}
+
+// Функция изменения номера карточки
+function changeCardNumber(codeRow, newNumber) {
+  const oldNumber = parseInt(codeRow.dataset.cardNumber);
+  
+  if (oldNumber === newNumber) return; // Номер не изменился
+  
+  // Получаем все карточки
+  const leftContent = document.querySelector('#leftColumn .column-content');
+  const rightContent = document.querySelector('#rightColumn .column-content');
+  const allRows = Array.from(leftContent.querySelectorAll('.code-row')).concat(Array.from(rightContent.querySelectorAll('.code-row')));
+  
+  // Находим карточку с текущим номером newNumber для обмена
+  const targetRow = allRows.find(row => parseInt(row.dataset.cardNumber) === newNumber && row !== codeRow);
+  
+  if (targetRow) {
+    // Меняем номера местами
+    codeRow.dataset.cardNumber = newNumber;
+    codeRow.querySelector('.code-number').textContent = newNumber;
+    
+    targetRow.dataset.cardNumber = oldNumber;
+    targetRow.querySelector('.code-number').textContent = oldNumber;
+    
+    // Перераспределяем карточки по колонкам
+    redistributeCardsWithFixedNumbers(allRows);
+    updatePreview();
+    saveCardsToStorage();
+  } else {
+    // Если нет карточки с таким номером, просто меняем номер
+    codeRow.dataset.cardNumber = newNumber;
+    codeRow.querySelector('.code-number').textContent = newNumber;
+    
+    // Перенумеровываем все карточки по порядку
+    updateCardNumbers(allRows, newNumber, oldNumber);
+    redistributeCardsWithFixedNumbers(allRows);
+    updatePreview();
+    saveCardsToStorage();
+  }
+}
+
+// Функция изменения номера карточки
+function changeCardNumber(codeRow, newNumber) {
+  const oldNumber = parseInt(codeRow.dataset.cardNumber);
+  
+  if (oldNumber === newNumber) return; // Номер не изменился
+  
+  // Получаем все карточки
+  const leftContent = document.querySelector('#leftColumn .column-content');
+  const rightContent = document.querySelector('#rightColumn .column-content');
+  const allRows = Array.from(leftContent.querySelectorAll('.code-row')).concat(Array.from(rightContent.querySelectorAll('.code-row')));
+  
+  // Находим карточку с текущим номером newNumber для обмена
+  const targetRow = allRows.find(row => parseInt(row.dataset.cardNumber) === newNumber && row !== codeRow);
+  
+  if (targetRow) {
+    // Меняем номера местами
+    codeRow.dataset.cardNumber = newNumber;
+    codeRow.querySelector('.code-number').textContent = newNumber;
+    
+    targetRow.dataset.cardNumber = oldNumber;
+    targetRow.querySelector('.code-number').textContent = oldNumber;
+    
+    // Перераспределяем карточки по колонкам
+    redistributeCardsWithFixedNumbers(allRows);
+    updatePreview();
+    saveCardsToStorage();
+  } else {
+    // Если нет карточки с таким номером, просто меняем номер
+    codeRow.dataset.cardNumber = newNumber;
+    codeRow.querySelector('.code-number').textContent = newNumber;
+    
+    // Перенумеровываем все карточки по порядку
+    updateCardNumbers(allRows, newNumber, oldNumber);
+    redistributeCardsWithFixedNumbers(allRows);
+    updatePreview();
+    saveCardsToStorage();
+  }
+}
+
+// Функция обновления номеров карточек (полная перенумерация)
+function updateCardNumbers(allRows, targetNumber, draggedNumber) {
+  // Просто перенумеровываем все карточки по порядку 1,2,3,4...
+  allRows.forEach((row, index) => {
+    const newNumber = index + 1;
+    row.dataset.cardNumber = newNumber;
+    row.querySelector('.code-number').textContent = newNumber;
+  });
+}
+
+// Функция перераспределения карточек по столбцам с фиксированными номерами
+function redistributeCardsWithFixedNumbers(allRows) {
+  const leftContent = document.querySelector('#leftColumn .column-content');
+  const rightContent = document.querySelector('#rightColumn .column-content');
+  
+  // Очищаем столбцы
+  leftContent.innerHTML = '';
+  rightContent.innerHTML = '';
+  
+  // Сортируем карточки по номерам
+  const sortedRows = [...allRows].sort((a, b) => {
+    const numA = parseInt(a.dataset.cardNumber);
+    const numB = parseInt(b.dataset.cardNumber);
+    return numA - numB;
+  });
+  
+  // Распределяем по столбцам (нечетные слева, четные справа)
+  sortedRows.forEach((row) => {
+    const cardNumber = parseInt(row.dataset.cardNumber);
+    const targetColumn = cardNumber % 2 === 1 ? leftContent : rightContent;
+    targetColumn.appendChild(row);
+  });
+}
+
+// Функция удаления строки
+function deleteRow(btn) {
+  const row = btn.closest('tr');
+  if (row) {
+    row.remove();
+    updatePreview();
+    saveCardsToStorage();
+  }
+}
+
+// Функции для Drag & Drop для новой структуры
+function addDragHandlersForNewRow(dragHandle, row) {
+  let draggedRow = null;
+  
+  dragHandle.addEventListener('dragstart', (e) => {
+    draggedRow = row;
+    row.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', row.innerHTML);
+  });
+  
+  dragHandle.addEventListener('dragend', () => {
+    row.classList.remove('dragging');
+    draggedRow = null;
+  });
+  
+  // Делаем кнопку перетаскивания draggable
+  dragHandle.draggable = true;
+}
+
+// Глобальные обработчики для drop
+function setupGlobalDropHandlers() {
+  document.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    
+    const targetRow = e.target.closest('.code-row');
+    const draggingRow = document.querySelector('.dragging');
+    
+    if (targetRow && draggingRow && draggingRow !== targetRow) {
+      targetRow.classList.add('drag-over');
+    }
+  });
+  
+  document.addEventListener('dragleave', (e) => {
+    const targetRow = e.target.closest('.code-row');
+    if (targetRow) {
+      targetRow.classList.remove('drag-over');
+    }
+  });
+  
+  document.addEventListener('drop', (e) => {
+    e.preventDefault();
+    
+    const targetRow = e.target.closest('.code-row');
+    const draggingRow = document.querySelector('.dragging');
+    
+    if (targetRow && draggingRow && draggingRow !== targetRow) {
+      targetRow.classList.remove('drag-over');
+      
+      // Получаем все карточки из обоих колонок в порядке DOM
+      const leftContent = document.querySelector('#leftColumn .column-content');
+      const rightContent = document.querySelector('#rightColumn .column-content');
+      const allRows = [];
+      
+      // Собираем все карточки в текущем порядке
+      leftContent.querySelectorAll('.code-row').forEach(row => allRows.push(row));
+      rightContent.querySelectorAll('.code-row').forEach(row => allRows.push(row));
+      
+      // Получаем номера цели и перетаскиваемой карточки
+      const targetNumber = parseInt(targetRow.dataset.cardNumber);
+      const draggedNumber = parseInt(draggingRow.dataset.cardNumber);
+      
+      // Удаляем перетаскиваемую карточку из DOM
+      draggingRow.remove();
+      
+      // Пересобираем массив без перетаскиваемой карточки
+      const newAllRows = allRows.filter(row => row !== draggingRow);
+      
+      // Находим индекс цели
+      const targetIndex = newAllRows.indexOf(targetRow);
+      
+      // Вставляем перетаскиваемую карточку ПОСЛЕ цели
+      newAllRows.splice(targetIndex + 1, 0, draggingRow);
+      
+      // Обновляем номера (сдвигаем все с targetNumber и ниже на +1)
+      updateCardNumbers(newAllRows, targetNumber, draggedNumber);
+      
+      // Перераспределяем по столбцам
+      redistributeCardsWithFixedNumbers(newAllRows);
+      updatePreview();
+      saveCardsToStorage();
+    }
+  });
+}
+
+document.getElementById('addRow').onclick = () => addRow();
+
+let previewTimer = null;
+// Обработчик изменений для новой структуры
+document.addEventListener('input', (e) => {
+  if (e.target.matches('.code-input') || e.target.matches('.code-color input[type="color"]')) {
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(() => {
+      updatePreview();
+      saveCardsToStorage();
+    }, 400);
+  }
+});
+
+// Сохраняем карточки при загрузке страницы
+window.addEventListener('load', async () => {
+  setTimeout(async () => {
+    await updatePreview();
+  }, 100);
+});
+
+/* ---------- Логотип ---------- */
+document.getElementById('logoFile').addEventListener('change', e => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = () => { logoImg = img; updatePreview(); };
+  img.src = url;
+});
+
+/* ---------- Вспом. функции ---------- */
+function makeCircularDataUrl(img, size) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d');
+  const scale = Math.max(size / img.width, size / img.height);
+  const sw = img.width * scale, sh = img.height * scale;
+  const sx = (size - sw) / 2, sy = (size - sh) / 2;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+  ctx.clip();
+  ctx.drawImage(img, sx, sy, sw, sh);
+  ctx.restore();
+  return c.toDataURL('image/png');
+}
+
+function generateQrDataUrl(text, size) {
+  const qr = new QRious({ value: text, size, level: 'H', background: 'white', foreground: 'black' });
+  return qr.toDataURL();
+}
+
+function generateBarcodeCanvas(text, w, h) {
+  const c = document.createElement('canvas');
+  c.width = Math.max(220, Math.round(w));
+  c.height = Math.max(40, Math.round(h));
+  JsBarcode(c, text, { format: 'CODE128', width: 2, height: Math.max(36, c.height - 10), displayValue: false, margin: 0 });
+  return c;
+}
+
+function roundedRectPath(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + r, y, r);
+  ctx.closePath();
+}
+
+/* ---------- Сборка карточки ---------- */
+async function buildCard(item, logoPct, bgShape, DPI) {
+  const cardW_mm = 148.5, cardH_mm = 105;
+  const wPx = Math.round(cardW_mm * MM_TO_IN * DPI);
+  const hPx = Math.round(cardH_mm * MM_TO_IN * DPI);
+  const canvas = document.createElement('canvas');
+  canvas.width = wPx;
+  canvas.height = hPx;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = item.color;
+  ctx.fillRect(0, 0, wPx, hPx);
+
+  const cx = Math.round(wPx / 2);
+  const qrSize = Math.round(Math.min(wPx, hPx) * 0.55);
+  const quiet = Math.round(qrSize * 0.03) + Math.max(12, Math.round(DPI * 0.02));
+  const boxW = qrSize + quiet * 2, boxH = qrSize + quiet * 2;
+  const boxX = cx - Math.round(boxW / 2);
+  const boxY = Math.round((hPx - (boxH + 0.1 * hPx + 0.1 * hPx + 0.05 * hPx)) / 2);
+
+  ctx.fillStyle = '#FFFFFF';
+  roundedRectPath(ctx, boxX, boxY, boxW, boxH, Math.round(Math.min(boxW, boxH) * 0.04));
+  ctx.fill();
+
+  const qrImg = new Image();
+  qrImg.src = generateQrDataUrl(item.code, qrSize);
+  await new Promise(r => { qrImg.onload = r; qrImg.onerror = r; });
+  const qrX = cx - Math.round(qrSize / 2);
+  const qrY = boxY + quiet;
+  ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+
+  if (circularLogo) {
+    const logoImg = new Image();
+    logoImg.src = circularLogo;
+    await new Promise(r => { logoImg.onload = r; logoImg.onerror = r; });
+    const maxW = Math.min(Math.round(qrSize * (logoPct / 100)), Math.round(qrSize * 0.36));
+    const pad = Math.max(6, Math.round(maxW * 0.08));
+    const bgW = maxW + pad * 2, bgH = maxW + pad * 2;
+    const logoX = cx - Math.round(maxW / 2);
+    const logoY = qrY + Math.round((qrSize - maxW) / 2);
+    ctx.fillStyle = '#FFFFFF';
+    if (bgShape === 'circle') {
+      ctx.beginPath();
+      ctx.arc(cx, logoY + maxW / 2, Math.max(bgW, bgH) / 2, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (bgShape === 'rect') {
+      roundedRectPath(ctx, logoX - pad, logoY - pad, bgW, bgH, Math.round(Math.min(bgW, bgH) * 0.12));
+      ctx.fill();
+    }
+    ctx.drawImage(logoImg, logoX, logoY, maxW, maxW);
+  }
+
+  const bcW = Math.round(wPx * 0.78), bcH = Math.round(hPx * 0.10);
+  const bcCanvas = generateBarcodeCanvas(item.code, bcW, bcH);
+  const bcBoxW = bcCanvas.width + 12;
+  const bcX = cx - Math.round(bcBoxW / 2);
+  const bcY = boxY + boxH + Math.round(hPx * 0.04);
+  ctx.fillStyle = '#FFFFFF';
+  roundedRectPath(ctx, bcX, bcY, bcBoxW, bcH + 12, Math.round(bcH * 0.12));
+  ctx.fill();
+  ctx.drawImage(bcCanvas, bcX + 6, bcY + 6, bcCanvas.width, bcCanvas.height);
+
+  const txt = item.code;
+  const contrastHex = hex => {
+    const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+    const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    return lum < 140 ? '#FFFFFF' : '#000000';
+  };
+  ctx.fillStyle = contrastHex(item.color);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  let fs = Math.max(14, Math.round(wPx * 0.048));
+  ctx.font = `bold ${fs}px Arial,Helvetica,sans-serif`;
+  while (ctx.measureText(txt).width > wPx - 40 && fs > 8) { fs -= 2; ctx.font = `bold ${fs}px Arial,Helvetica,sans-serif`; }
+  ctx.fillText(txt, cx, bcY + bcH + 20);
+
+  return canvas;
+}
+
+/* ---------- Превью ---------- */
+async function updatePreview() {
+  if (isUpdating) return;
+  isUpdating = true;
+  
+  if (logoImg) circularLogo = makeCircularDataUrl(logoImg, 1200);
+  else circularLogo = null;
+
+  const logoPct = Number(document.getElementById('logoSize').value);
+  const bgShape = document.getElementById('bgShape').value;
+  const DPI = Number(document.getElementById('dpiSelect').value);
+
+  // Загружаем данные из Firestore для галереи
+  const savedCards = await loadCardsFromStorage();
+  const savedCodes = new Set(savedCards.map(card => card.code));
+  
+  const items = [];
+  const leftContent = document.querySelector('#leftColumn .column-content');
+  const rightContent = document.querySelector('#rightColumn .column-content');
+  
+  // Собираем все карточки и сортируем по номеру для галереи
+  const allRows = Array.from(leftContent.querySelectorAll('.code-row')).concat(Array.from(rightContent.querySelectorAll('.code-row')));
+  
+  // Сортируем по номеру карточки (из data-атрибута)
+  allRows.sort((a, b) => {
+    const numA = parseInt(a.dataset.cardNumber);
+    const numB = parseInt(b.dataset.cardNumber);
+    return numA - numB;
+  });
+  
+  // Собираем данные в отсортированном порядке для галереи (без дубликатов)
+  const seenCodes = new Set();
+  allRows.forEach(row => {
+    const code = row.querySelector('.code-input').value.trim();
+    const color = row.querySelector('.code-color input[type="color"]').value;
+    if (code && !seenCodes.has(code)) {
+      items.push({ code, color });
+      seenCodes.add(code);
+    }
+  });
+
+  cards = [];
+  const gallery = document.getElementById('gallery');
+  gallery.innerHTML = '';
+  
+  for (const it of items) {
+    const big = await buildCard(it, logoPct, bgShape, DPI);
+    const thumb = document.createElement('canvas');
+    const scale = 500 / Math.max(big.width, big.height);
+    thumb.width = Math.round(big.width * scale);
+    thumb.height = Math.round(big.height * scale);
+    thumb.getContext('2d').drawImage(big, 0, 0, thumb.width, thumb.height);
+    cards.push({ code: it.code, color: it.color, canvas: big, thumbCanvas: thumb, isExisting: true });
+  }
+  
+  renderGallery();
+  renderPicker();
+  redrawSheet();
+  
+  setTimeout(() => { isUpdating = false; }, 50);
+}
+
+/* ---------- Галерея ---------- */
+function renderGallery() {
+  const gallery = document.getElementById('gallery');
+  gallery.innerHTML = '';
+  cards.forEach((c, idx) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'thumb';
+    
+    // Добавляем класс для существующих карточек
+    if (c.isExisting) {
+      wrap.classList.add('existing-card');
+    }
+    
+    wrap.onclick = () => showLightbox(idx);
+    wrap.appendChild(c.thumbCanvas);
+    
+    // Создаем контейнер для управления карточкой
+    const controls = document.createElement('div');
+    controls.className = 'card-controls';
+    
+    // Кнопка удаления только для новых карточек
+    if (!c.isExisting) {
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'delete-row';
+      deleteBtn.textContent = '×';
+      deleteBtn.onclick = (e) => {
+        e.stopPropagation();
+        deleteCard(idx);
+      };
+      controls.appendChild(deleteBtn);
+    }
+    
+    // Индикатор существующей карточки
+    if (c.isExisting) {
+      const indicator = document.createElement('div');
+      indicator.className = 'existing-indicator';
+      indicator.textContent = '✓';
+      controls.appendChild(indicator);
+    }
+    
+    wrap.appendChild(controls);
+    gallery.appendChild(wrap);
+  });
+}
+
+/* ---------- Окно коллажа ---------- */
+const collageModal = document.getElementById('collageModal');
+document.getElementById('openCollage').onclick = async () => {
+  collageModal.classList.add('show');
+  document.body.classList.add('modal-open');
+  await initSheet();
+  renderPicker();
+  layoutDisplayCanvas();
+  redrawSheet();
+};
+document.getElementById('closeCollage').onclick = closeCollage;
+function closeCollage() {
+  collageModal.classList.remove('show');
+  document.body.classList.remove('modal-open');
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && collageModal.classList.contains('show')) closeCollage();
+});
+
+/* ---------- Список выбора карточек ---------- */
+function renderPicker() {
+  const list = document.getElementById('pickerList');
+  list.innerHTML = '';
+  const selectedText = t('selectedCard');
+  
+  cards.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'cardItem' + (selectedSet.has(c.code) ? ' selected' : '');
+    btn.type = 'button';
+    btn.setAttribute('aria-pressed', selectedSet.has(c.code));
+    btn.addEventListener('click', () => {
+      if (selectedSet.has(c.code)) selectedSet.delete(c.code);
+      else selectedSet.add(c.code);
+      updateSelectedInfo();
+      renderPicker();
+      redrawSheet();
+    });
+
+    const mini = document.createElement('canvas');
+    const scale = 90 / Math.max(c.canvas.width, c.canvas.height);
+    mini.width = Math.round(c.canvas.width * scale);
+    mini.height = Math.round(c.canvas.height * scale);
+    mini.getContext('2d').drawImage(c.canvas, 0, 0, mini.width, mini.height);
+
+    const txt = document.createElement('div');
+    txt.innerHTML = `<label>${c.code}</label><br><small>${c.color}</small>`;
+
+    const check = document.createElement('span');
+    check.className = 'check';
+    check.textContent = selectedText;
+
+    btn.appendChild(mini);
+    btn.appendChild(txt);
+    btn.appendChild(check);
+    list.appendChild(btn);
+  });
+  updateSelectedInfo();
+}
+
+/* ---------- Лист A4 ---------- */
+function initSheetLayout() {
+  const DPI = Number(document.getElementById('dpiSelect').value);
+  const a4w = 297, a4h = 210;
+  sheetCanvas.width = Math.round(a4w * MM_TO_IN * DPI);
+  sheetCanvas.height = Math.round(a4h * MM_TO_IN * DPI);
+}
+function layoutDisplayCanvas() {
+  const wrap = document.getElementById('sheetDisplayWrap');
+  if (!wrap.clientWidth || !wrap.clientHeight) return;
+  const scale = Math.min(wrap.clientWidth / sheetCanvas.width, wrap.clientHeight / sheetCanvas.height);
+  sheetDisplay.width = Math.max(1, Math.floor(sheetCanvas.width * scale));
+  sheetDisplay.height = Math.max(1, Math.floor(sheetCanvas.height * scale));
+}
+window.addEventListener('resize', () => {
+  if (collageModal.classList.contains('show')) { layoutDisplayCanvas(); redrawSheet(); }
+});
+
+/* ---------- Рисуем лист ---------- */
+function redrawSheet() {
+  if (!sheetCanvas.width) return;
+  const DPI = Number(document.getElementById('dpiSelect').value);
+  const gapMm = Number(document.getElementById('cutGapMm').value) || 0;
+  const gapPx = Math.round(gapMm * MM_TO_IN * DPI);
+
+  const w = sheetCanvas.width, h = sheetCanvas.height;
+  sheetCtx.clearRect(0, 0, w, h);
+  sheetCtx.fillStyle = '#fff';
+  sheetCtx.fillRect(0, 0, w, h);
+
+  const quadW = Math.round((w - gapPx) / 2);
+  const quadH = Math.round((h - gapPx) / 2);
+
+  if (gapPx > 0) {
+    sheetCtx.fillStyle = '#f0f0f0';
+    sheetCtx.fillRect(quadW, 0, gapPx, h);
+    sheetCtx.fillRect(0, quadH, w, gapPx);
+  }
+
+  sheetCtx.strokeStyle = 'rgba(0,0,0,0.15)';
+  sheetCtx.lineWidth = Math.max(1, Math.round(DPI * 0.01));
+  sheetCtx.strokeRect(0, 0, quadW, quadH);
+  sheetCtx.strokeRect(quadW + gapPx, 0, quadW, quadH);
+  sheetCtx.strokeRect(0, quadH + gapPx, quadW, quadH);
+  sheetCtx.strokeRect(quadW + gapPx, quadH + gapPx, quadW, quadH);
+
+  const selectedCards = [];
+  cards.forEach(c => { if (selectedSet.has(c.code)) selectedCards.push(c); });
+  const quads = [
+    { x: 0, y: 0, w: quadW, h: quadH },
+    { x: quadW + gapPx, y: 0, w: quadW, h: quadH },
+    { x: 0, y: quadH + gapPx, w: quadW, h: quadH },
+    { x: quadW + gapPx, y: quadH + gapPx, w: quadW, h: quadH }
+  ];
+  for (let i = 0; i < Math.min(4, selectedCards.length); i++) {
+    const card = selectedCards[i];
+    const q = quads[i];
+    const scale = Math.min(q.w / card.canvas.width, q.h / card.canvas.height);
+    const dw = Math.round(card.canvas.width * scale);
+    const dh = Math.round(card.canvas.height * scale);
+    const dx = q.x + Math.round((q.w - dw) / 2);
+    const dy = q.y + Math.round((q.h - dh) / 2);
+    sheetCtx.drawImage(card.canvas, dx, dy, dw, dh);
+  }
+
+  sheetDisplayCtx.imageSmoothingEnabled = true;
+  sheetDisplayCtx.clearRect(0, 0, sheetDisplay.width, sheetDisplay.height);
+  sheetDisplayCtx.drawImage(sheetCanvas, 0, 0, sheetDisplay.width, sheetDisplay.height);
+}
+
+/* ---------- Обновление карточек в галерее ---------- */
+function updateGalleryCards() {
+  console.log('=== Функция updateGalleryCards() НАЧАЛА РАБОТУ ===');
+  const logoPct = Number(document.getElementById('logoSize').value);
+  const bgShape = document.getElementById('bgShape').value;
+  const DPI = Number(document.getElementById('dpiSelect').value);
+  
+  console.log('Параметры:', { logoPct, bgShape, DPI });
+  
+  // Собираем текущие данные карточек
+  const items = [];
+  const leftContent = document.querySelector('#leftColumn .column-content');
+  const rightContent = document.querySelector('#rightColumn .column-content');
+  const allRows = Array.from(leftContent.querySelectorAll('.code-row')).concat(Array.from(rightContent.querySelectorAll('.code-row')));
+  
+  console.log('Найдено строк:', allRows.length);
+  
+  allRows.forEach(row => {
+    const codeInput = row.querySelector('.code-input');
+    const colorInput = row.querySelector('.code-color input[type="color"]');
+    const code = codeInput.value.trim();
+    if (code) {
+      items.push({ code, color: colorInput.value });
+    }
+  });
+  
+  console.log('Найдено карточек:', items.length);
+  
+  // Находим все изображения в галерее
+  const galleryImages = document.querySelectorAll('#gallery img');
+  console.log('Найдено изображений в галерее:', galleryImages.length);
+  
+  // Обновляем каждое изображение
+  items.forEach(async (item, index) => {
+    if (galleryImages[index]) {
+      console.log(`Обновление карточки ${index + 1}:`, item.code);
+      const canvas = await buildCard(item, logoPct, bgShape, DPI);
+      galleryImages[index].src = canvas.toDataURL();
+      console.log(`Карточка ${index + 1} обновлена`);
+    }
+  });
+  
+  console.log('=== Функция updateGalleryCards() ЗАВЕРШИЛА РАБОТУ ===');
+}
+
+/* ---------- Кнопки ---------- */
+// Используем setTimeout чтобы гарантировать что DOM полностью загружен
+setTimeout(() => {
+  console.log('Инициализация обработчиков...');
+  
+  const logoSizeInput = document.getElementById('logoSize');
+  const logoSizeVal = document.getElementById('logoSizeVal');
+  
+  console.log('Найдены элементы:', { 
+    logoSizeInput: !!logoSizeInput, 
+    logoSizeVal: !!logoSizeVal 
+  });
+  
+  if (logoSizeInput && logoSizeVal) {
+    logoSizeInput.addEventListener('input', e => {
+      console.log('Ползунок перемещен, новое значение:', e.target.value);
+      logoSizeVal.textContent = e.target.value;
+      updatePreview();
+      // Обновляем только карточки в галерее без полной перезагрузки
+      console.log('Вызов updateGalleryCards()');
+      updateGalleryCards();
+    });
+  } else {
+    console.log('ОШИБКА: элементы не найдены!');
+  }
+  
+  document.getElementById('dpiSelect').addEventListener('change', () => {
+    const items = [];
+    document.querySelectorAll('#codeTable tbody tr').forEach(tr => {
+      const code = tr.cells[0].querySelector('input').value.trim();
+      const color = tr.cells[1].querySelector('input[type="color"]').value;
+      if (code) items.push({ code, color });
+    });
+    initSheetLayout();
+    updatePreview();
+    if (collageModal.classList.contains('show')) { layoutDisplayCanvas(); redrawSheet(); }
+  });
+  
+  document.getElementById('bgShape').addEventListener('change', updatePreview);
+  document.getElementById('previewAll').onclick = updatePreview;
+  
+  document.getElementById('downloadAll').onclick = async () => {
+    const logoPct = Number(document.getElementById('logoSize').value);
+    const bgShape = document.getElementById('bgShape').value;
+    const DPI = Number(document.getElementById('dpiSelect').value);
+
+    const items = [];
+    document.querySelectorAll('#codeTable tbody tr').forEach(tr => {
+      const code = tr.cells[0].querySelector('input').value.trim();
+      const color = tr.cells[1].querySelector('input[type="color"]').value;
+      if (code) items.push({ code, color });
+    });
+    for (const it of items) {
+      const c = await buildCard(it, logoPct, bgShape, DPI);
+      c.toBlob(b => downloadBlob(b, `${it.code}.png`), 'image/png');
+    }
+  };
+  
+  document.getElementById('resetSheet').onclick = () => {
+    selectedSet.clear();
+    renderPicker();
+    redrawSheet();
+  };
+  
+  document.getElementById('exportSheet').onclick = () => {
+    if (selectedSet.size === 0) { 
+      alert(t('collageEmpty') || 'Колаж порожній / Collage is empty'); 
+      return; 
+    }
+    sheetCanvas.toBlob(b => downloadBlob(b, 'collage_A4_4quadrants.png'), 'image/png');
+  };
+  
+  document.getElementById('cutGapMm').addEventListener('input', redrawSheet);
+}, 100); // Ждем 100мс после загрузки
+
+/* ---------- Инициализация языка при загрузке ---------- */
+setLanguage(currentLang);
+
+/* ---------- Старт ---------- */
+setTimeout(async () => {
+  await updatePreview();
+  await initSheet();
+}, 100);
+</script>
+</body>
+</html>
