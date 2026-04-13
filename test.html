@@ -2196,49 +2196,259 @@ const PARTY_KNOWN_SUFFIXES = [
     'T1C', 'T1'
 ];
 
-// OCR символьные замены на уровне одного символа
+// OCR CHAR MAP - character replacements for OCR errors
 const OCR_CHAR_MAP = {
     'O': '0', 'o': '0',
     'I': '1', 'l': '1', '|': '1',
     'S': '5', 's': '5',
     'Z': '2', 'z': '2',
     'B': '8',
-    'G': '6', // только в цифровых сегментах
-    'A': '4', // только в цифровых сегментах
-    'T': '7', // только в цифровых сегментах
+    'G': '6', // only in digit segments
+    'A': '4', // only in digit segments
+    'T': '7', // only in digit segments
 };
 
-// Коррекция одного символа в контексте "это должна быть цифра"
+// Enhanced OCR error corrections for party names
+const PARTY_OCR_CORRECTIONS = {
+    // Digit to letter corrections
+    '5': 'S', '7': 'T', '1': 'I', '0': 'O', '8': 'B',
+    // Common OCR confusions
+    'U': 'L', 'V': 'L', 'W': 'L', 'Y': 'L',
+    'C': 'G', 'Q': 'O', 'D': 'O', 'P': 'O',
+    // Specific patterns
+    'I': 'L', 'l': 'L', '|': 'L'
+};
+
+// Function for fuzzy matching of three-letter patterns
+function replaceThreeLetterPattern(text, targetLetters, replacement) {
+    let result = text.toUpperCase();
+    const targetPattern = targetLetters.join('');
+    const replacements = [];
+    
+    // First pass: find all potential replacements
+    for (let i = 0; i <= result.length - 3; i++) {
+        const substring = result.substring(i, i + 3);
+        
+        // Check if substring contains at least 2 of the target letters
+        let matches = 0;
+        for (const letter of targetLetters) {
+            if (substring.includes(letter)) matches++;
+        }
+        
+        if (matches >= 2) {
+            // Check if this is a good candidate (prefer exact matches or better matches)
+            let exactMatches = 0;
+            for (const letter of targetLetters) {
+                if (substring.includes(letter) && substring.indexOf(letter) === targetLetters.indexOf(letter)) {
+                    exactMatches++;
+                }
+            }
+            
+            replacements.push({
+                start: i,
+                end: i + 3,
+                substring: substring,
+                matches: matches,
+                exactMatches: exactMatches,
+                score: matches * 10 + exactMatches
+            });
+        }
+    }
+    
+    // Sort replacements by score and position
+    replacements.sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return a.start - b.start;
+    });
+    
+    // Second pass: apply non-overlapping replacements
+    let appliedReplacements = [];
+    for (const repl of replacements) {
+        // Check if this replacement overlaps with any already applied
+        let overlaps = false;
+        for (const applied of appliedReplacements) {
+            if (!(repl.end <= applied.start || repl.start >= applied.end)) {
+                overlaps = true;
+                break;
+            }
+        }
+        
+        if (!overlaps) {
+            console.log(`... Fuzzy match: ${repl.substring} -> ${replacement} (${repl.matches}/3 letters match)`);
+            appliedReplacements.push(repl);
+        }
+    }
+    
+    // Apply replacements from right to left to avoid position shifts
+    appliedReplacements.sort((a, b) => b.start - a.start);
+    for (const repl of appliedReplacements) {
+        result = result.substring(0, repl.start) + replacement + result.substring(repl.end);
+    }
+    
+    return result;
+}
+
+// Function for fuzzy matching with strict boundary rules
+function replaceThreeLetterPatternStrict(text, targetLetters, replacement, preferStartWithFirst) {
+    let result = text.toUpperCase();
+    const targetPattern = targetLetters.join('');
+    const replacements = [];
+    
+    // First pass: find all potential replacements
+    for (let i = 0; i <= result.length - 3; i++) {
+        const substring = result.substring(i, i + 3);
+        
+        // Check if substring contains at least 2 of the target letters
+        let matches = 0;
+        for (const letter of targetLetters) {
+            if (substring.includes(letter)) matches++;
+        }
+        
+        if (matches >= 2) {
+            // Check if this is a good candidate
+            let exactMatches = 0;
+            let startsWithFirst = substring[0] === targetLetters[0];
+            
+            for (const letter of targetLetters) {
+                if (substring.includes(letter) && substring.indexOf(letter) === targetLetters.indexOf(letter)) {
+                    exactMatches++;
+                }
+            }
+            
+            // Calculate score with bonus for starting with first letter if preferred
+            let score = matches * 10 + exactMatches;
+            if (preferStartWithFirst && startsWithFirst) {
+                score += 20; // Strong bonus for starting with first letter
+            }
+            
+            // Special handling for INT and ORG patterns
+            if (/\d/.test(substring)) {
+                // For INT: if pattern is like ?1N or 1IN, it's acceptable
+                if (targetLetters[0] === 'I' && targetLetters[1] === 'N' && targetLetters[2] === 'T') {
+                    if (substring.includes('1') && substring.includes('N')) {
+                        score += 10; // Bonus for 1IN patterns
+                    } else {
+                        score -= 5; // Penalty for other digits
+                    }
+                } 
+                // For ORG: 0 before ORG is acceptable, but avoid duplicates
+                else if (targetLetters[0] === 'O' && targetLetters[1] === 'R' && targetLetters[2] === 'G') {
+                    if (substring.includes('0') && substring.includes('O')) {
+                        score -= 10; // Penalty for 0ORG patterns (should be handled separately)
+                    } else {
+                        score -= 5; // Penalty for other digits
+                    }
+                } else {
+                    score -= 5; // Penalty for other patterns
+                }
+            }
+            
+            replacements.push({
+                start: i,
+                end: i + 3,
+                substring: substring,
+                matches: matches,
+                exactMatches: exactMatches,
+                startsWithFirst: startsWithFirst,
+                score: score
+            });
+        }
+    }
+    
+    // Sort replacements by score and position
+    replacements.sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return a.start - b.start;
+    });
+    
+    // Second pass: apply non-overlapping replacements
+    let appliedReplacements = [];
+    for (const repl of replacements) {
+        // Check if this replacement overlaps with any already applied
+        let overlaps = false;
+        for (const applied of appliedReplacements) {
+            if (!(repl.end <= applied.start || repl.start >= applied.end)) {
+                overlaps = true;
+                break;
+            }
+        }
+        
+        if (!overlaps) {
+            console.log(`... Fuzzy match (strict): ${repl.substring} -> ${replacement} (score=${repl.score})`);
+            appliedReplacements.push(repl);
+        }
+    }
+    
+    // Apply replacements from right to left to avoid position shifts
+    appliedReplacements.sort((a, b) => b.start - a.start);
+    for (const repl of appliedReplacements) {
+        result = result.substring(0, repl.start) + replacement + result.substring(repl.end);
+    }
+    
+    return result;
+}
+
+// Korrekcija odnogo simvola v kontekste "eto dolzhna byt' cifra"
 function toDigit(ch) {
     return OCR_CHAR_MAP[ch] !== undefined ? OCR_CHAR_MAP[ch] : ch;
 }
 
-// Коррекция строки цифр
+// Korrekcija stroki cifr
 function fixDigits(str) {
     return str.split('').map(toDigit).join('');
 }
 
-// Исправляем seg1: должен быть L или LF
+// Ispravljaem seg1: dolzhen byt' L ili LF
 function fixSeg1(raw) {
-    const s = raw.toUpperCase()
+    let s = raw.toUpperCase()
         .replace(/[^A-Z0-9]/g, '')
-        .replace(/1/g, 'L')   // цифра 1 -> буква L
-        .replace(/U/g, 'L')   // буква U -> буква L (OCR ошибка)
-        .replace(/0/g, 'O');  // не нужна цифра 0 здесь
-    // Допустимые варианты: L, LF
-    if (s === 'LF' || s.startsWith('LF')) return 'LF';
+        // Common OCR confusions ONLY for seg1
+        .replace(/U/g, 'L')   // U -> L
+        .replace(/V/g, 'L')   // V -> L
+        .replace(/W/g, 'L')   // W -> L
+        .replace(/Y/g, 'L')   // Y -> L
+        .replace(/I/g, 'L')   // I -> L
+        .replace(/l/g, 'L')   // l -> L
+        .replace(/\|/g, 'L'); // | -> L
+    
+    console.log(`... fixSeg1: "${raw}" -> "${s}"`);
+    
+    // Special rules for seg1:
+    // Any single letter becomes 'L'
+    // Two letters become 'LF'
+    if (s.length === 1) {
+        return 'L';
+    } else if (s.length === 2) {
+        return 'LF';
+    } else if (s.startsWith('LF')) {
+        return 'LF';
+    }
+    
     return 'L';
 }
 
-// Исправляем seg2: 1-4 цифры
+// Ispravljaem seg2: 1-4 cifry
 function fixSeg2(raw) {
-    const digits = raw.split('').map(toDigit).join('').replace(/\D/g, '');
-    return digits.slice(0, 4); // не больше 4 цифр
+    // For seg2, we want to keep digits as digits, not convert to letters
+    // Only apply basic digit-to-digit OCR corrections
+    let s = raw.toUpperCase()
+        .replace(/[^0-9]/g, '')  // Keep only digits
+        .replace(/O/g, '0')      // O -> 0
+        .replace(/I/g, '1')      // I -> 1  
+        .replace(/l/g, '1')      // l -> 1
+        .replace(/\|/g, '1')     // | -> 1
+        .replace(/S/g, '5')      // S -> 5
+        .replace(/Z/g, '2')      // Z -> 2
+        .replace(/B/g, '8');     // B -> 8
+    
+    console.log(`... fixSeg2: "${raw}" -> "${s}"`);
+    return s.slice(0, 4); // ne bol'she 4 cifr
 }
 
-// Исправляем seg3: 2-значный год (24-29) + опц. IS или SZ
+// Ispravljaem seg3: 2-значный год (24-29) + опц. IS или SZ
 function fixSeg3(raw) {
     const s = raw.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    // Izvlekaem vedushie simvoly kak god
     // Извлекаем ведущие символы как год
     let yearPart = '';
     let suffPart = '';
@@ -2283,36 +2493,111 @@ function fixSeg3(raw) {
 function fixSeg4(raw) {
     if (!raw) return '';
     
-    // Нормализуем: убираем мусор, приводим к верхнему регистру
+    console.log(`... fixSeg4 input: "${raw}"`);
+    
+    // Pre-process special cases before removing non-alphanumeric characters
     let s = raw.toUpperCase()
-        .replace(/[^A-Z0-9]/g, '')
-        // Символьные замены в буквенном контексте суффикса
-        .replace(/0/g, 'O')  // 0 -> O в суффиксе
-        .replace(/6/g, 'G')  // 6 -> G в суффиксе
-        .replace(/4/g, 'A')  // 4 -> A в суффиксе
-        .replace(/5/g, 'S')  // 5 -> S в суффиксе
-        .replace(/8/g, 'B')  // 8 -> B (нет B в суффиксах, но на всякий)
-        // Типичные OCR ошибки в суффиксе
-        .replace(/IL/g, 'IL') // оставляем
-        .replace(/^1/g, 'I') // начальная 1 -> I (нет I... но защита)
+        .replace(/T\]/g, 'T1')  // T] -> T1 (handle before cleanup)
+        .replace(/[^A-Z0-9]/g, '')  // Remove other non-alphanumeric
+        // Simvol'nye zameny v bukvennom kontekste suffiksa
+        .replace(/0/g, 'O')  // 0 -> O v suffikse
+        .replace(/6/g, 'G')  // 6 -> G v suffikse
+        .replace(/4/g, 'A')  // 4 -> A v suffikse
+        .replace(/5/g, 'S')  // 5 -> S v suffikse
+        .replace(/8/g, 'B')  // 8 -> B (net B v suffiksah, no na vsjakij)
+        // Tipichnye OCR oshibki v suffikse
+        .replace(/IL/g, 'IL') // ostavljaem
+        .replace(/^1/g, 'I') // nachal'naja 1 -> I (net I... no zashhita)
         ;
     
-    // Точное совпадение
-    if (PARTY_KNOWN_SUFFIXES.includes(s)) return s;
+    console.log(`... fixSeg4 after basic corrections: "${s}"`);
     
-    // Поиск наилучшего совпадения по расстоянию Левенштейна
+    // Special cases for common patterns (apply first before other replacements)
+    s = s.replace(/0ORG/g, 'ORG');     // 0ORG -> ORG
+    s = s.replace(/T1IN/g, 'T1INT');  // T1IN -> T1INT
+    
+    // Apply fuzzy matching for three-letter patterns with stricter rules
+    // For INT: prefer patterns that start with I (not 1)
+    s = replaceThreeLetterPatternStrict(s, ['I', 'N', 'T'], 'INT', true);  // Start with I preferred
+    s = replaceThreeLetterPattern(s, ['A', 'S', 'C'], 'ASC');  // A5C, AQC, etc. -> ASC
+    s = replaceThreeLetterPatternStrict(s, ['O', 'R', 'G'], 'ORG', false);  // ORG: no special preference
+    
+    // Fix GG pattern with precise rules:
+    // 1. ORG: only single G (ORG not ORGG)
+    // 2. Other patterns: exactly 2 Gs at start (GGT1, GGASCT1, GGC, etc.)
+    // 3. Never more than 2 Gs
+    
+    // First, remove any triple or more Gs at start
+    s = s.replace(/^GGG+/g, 'GG');
+    
+    // Handle ORG pattern - should have only single G
+    if (s.includes('ORG')) {
+        s = s.replace(/ORGG/g, 'ORG');  // Remove extra G from ORG
+    }
+    // Handle other patterns - should have exactly 2 Gs at start
+    else {
+        // Check Gs at the beginning only
+        const startMatch = s.match(/^(G+)/);
+        if (startMatch) {
+            const gCount = startMatch[1].length;
+            
+            if (gCount === 1) {
+                // Single G at start - add another G
+                s = s.replace(/^G/, 'GG');
+            }
+            // gCount >= 2 already handled by removing triple Gs
+        }
+    }
+    
+    // Handle T before unknown symbols -> T1 (but not for INT pattern)
+    // Only apply T1 rule when T is followed by non-alphanumeric and not in INT context
+    s = s.replace(/T([^A-Z0-9])/g, 'T1$1');  // T + non-alphanumeric -> T1 + char
+    s = s.replace(/T\]/g, 'T1');           // T] -> T1 (special case for ] character)
+    // Remove any T1 that was incorrectly added to INT
+    s = s.replace(/INTT1/g, 'INT');       // Fix INTT1 back to INT
+    s = s.replace(/INT1/g, 'INT');         // Fix INT1 back to INT
+    s = s.replace(/INTT/g, 'INT');         // Fix INTT back to INT
+    
+    // Handle T at end of string (but not in INT)
+    if (s.endsWith('T') && !s.includes('INT')) {
+        s = s.slice(0, -1) + 'T1';
+    }
+    
+    // Additional specific corrections
+    s = s.replace(/A5C/g, 'ASC');       // A5C -> ASC
+    s = s.replace(/AQC/g, 'ASC');       // AQC -> ASC
+    s = s.replace(/IOT/g, 'INT');       // IOT -> INT
+    s = s.replace(/LOT/g, 'INT');       // LOT -> INT
+    
+    // Prevent double letters in ORG patterns
+    s = s.replace(/OO/g, 'O');          // OO -> O
+    // GG deletion is now handled by the precise logic above
+    
+    // GG restoration is now handled by the precise logic above
+    // No need for additional restoration
+    
+    console.log(`... fixSeg4 after pattern matching: "${s}"`);
+    
+    // Tochnoe sovpadenie
+    if (PARTY_KNOWN_SUFFIXES.includes(s)) {
+        console.log(`... fixSeg4 exact match: "${s}"`);
+        return s;
+    }
+    
+    // Poisk nailuchshego sovpadenija po rasstojaniju Levenshtejna
     let bestSuffix = s;
     let bestDist = Infinity;
     
     for (const known of PARTY_KNOWN_SUFFIXES) {
         const dist = levenshtein(s, known);
-        const maxAllowed = Math.floor(known.length * 0.35); // до 35% ошибок
+        const maxAllowed = Math.floor(known.length * 0.35); // do 35% oshibok
         if (dist < bestDist && dist <= maxAllowed) {
             bestDist = dist;
             bestSuffix = known;
         }
     }
     
+    console.log(`... fixSeg4 fuzzy match: "${s}" -> "${bestSuffix}" (dist=${bestDist})`);
     return bestSuffix;
 }
 
@@ -2335,21 +2620,28 @@ function levenshtein(a, b) {
 function parsePartyName(raw) {
     if (!raw) return null;
     
-    // Сначала заменяем U на L перед очисткой!
+    console.log(`... parsePartyName input: "${raw}"`);
+    
+    // Snachala zamenjaem U na L pered ochistkoj!
     let s = raw.trim()
-        .replace(/U/g, 'L')           // U -> L (OCR ошибка)
-        .replace(/\s+/g, '')           // убираем все пробелы
-        .replace(/[\\.,;:]/g, '/')     // заменяем похожие разделители на /
-        .replace(/\/+/g, '/')          // схлопываем двойные //
+        // Only basic cleaning for the entire string
+        // OCR corrections will be applied per-segment
+        .replace(/\s+/g, '')           // ubiraem vse probely
+        .replace(/[\\.,;:]/g, '/')     // zamenjaem pohozhie razdeliteli na /
+        .replace(/\/+/g, '/')          // shlopyvaem dvojnye //
         .toUpperCase();
     
-    // Заменяем типичные OCR ошибки разделителя: I/ или l/ -> L/
+    console.log(`... parsePartyName after initial corrections: "${s}"`);
+    
+    // Zamenjaem tipichnye OCR oshibki razdelitelja: I/ ili l/ -> L/
     s = s.replace(/^[I1]\//, 'L/');
     
-    // Разбиваем по /
+    // Razbivaem po /
     const parts = s.split('/');
     
-    // Нужно минимум 3 сегмента: seg1/seg2/seg3[/seg4]
+    console.log(`... parsePartyName parts:`, parts);
+    
+    // Nuzhno minimum 3 segmenta: seg1/seg2/seg3[/seg4]
     if (parts.length < 3) return null;
     
     const seg1 = fixSeg1(parts[0]);
@@ -2357,19 +2649,50 @@ function parsePartyName(raw) {
     const seg3 = fixSeg3(parts[2]);
     const seg4 = parts.length >= 4 ? fixSeg4(parts[3]) : '';
     
-    // Валидация: seg2 должен содержать хоть одну цифру
-    if (!seg2 || !/\d/.test(seg2)) return null;
+    console.log(`... parsePartyName fixed segments: seg1="${seg1}" seg2="${seg2}" seg3="${seg3}" seg4="${seg4}"`);
     
-    // Валидация: seg3 должен начинаться с 2-значного числа
+    // Validacija: seg2 dolzhen soderzhat' hot' odnu cifru
+    if (!seg2 || !/\d/.test(seg2)) {
+        console.log(`... parsePartyName rejected: seg2="${seg2}" has no digits`);
+        return null;
+    }
+    
+    // Validacija: seg3 dolzhen nachinat'sja s 2-znachnogo chisla
     const yearNum = parseInt(seg3.slice(0, 2));
-    if (isNaN(yearNum) || yearNum < 20 || yearNum > 35) return null;
+    if (isNaN(yearNum) || yearNum < 20 || yearNum > 35) {
+        console.log(`... parsePartyName rejected: year="${yearNum}" not in range 20-35`);
+        return null;
+    }
     
-    // Собираем результат
-    const result = seg4
-        ? `${seg1}/${seg2}/${seg3}/${seg4}` 
+    // Special rule for seg4: only '1' is allowed as digit, other digits become letters
+    let finalSeg4 = seg4;
+    if (seg4) {
+        // Replace digits with letters except '1'
+        finalSeg4 = seg4
+            .replace(/0/g, 'O')  // 0 -> O
+            .replace(/2/g, 'Z')  // 2 -> Z  
+            .replace(/3/g, 'E')  // 3 -> E
+            .replace(/4/g, 'A')  // 4 -> A
+            .replace(/5/g, 'S')  // 5 -> S
+            .replace(/6/g, 'G')  // 6 -> G
+            .replace(/7/g, 'T')  // 7 -> T
+            .replace(/8/g, 'B')  // 8 -> B
+            .replace(/9/g, 'P'); // 9 -> P
+        // Keep '1' as is, but if it's at the start, make it 'I'
+        finalSeg4 = finalSeg4.replace(/^1/, 'I');
+        
+        console.log(`... parsePartyName seg4 digit->letter: "${seg4}" -> "${finalSeg4}"`);
+        
+        // Don't apply fixSeg4 again - it's already been applied
+        // This prevents double processing and duplicate replacements
+    }
+    
+    // Sobiraem rezul'tat
+    const result = finalSeg4
+        ? `${seg1}/${seg2}/${seg3}/${finalSeg4}` 
         : `${seg1}/${seg2}/${seg3}`;
     
-    console.log(`🔧 parsePartyName: "${raw}" → "${result}" (seg1=${seg1} seg2=${seg2} seg3=${seg3} seg4=${seg4})`);
+    console.log(`... parsePartyName final: "${raw}" -> "${result}"`);
     return result;
 }
 
@@ -3116,200 +3439,6 @@ async function processMultiRegionAsLines(region) {
         console.log('🔍 MULTI OCR текст:', result.data.text);
         console.log('🔍 MULTI OCR уверенность:', result.data.confidence);
         
-        // ═══════════════════════════════════════════════
-// ПАРСЕР И КОРРЕКТОР НАЗВАНИЙ ПАРТИЙ
-// Формат: L/1548/26SZ/GGASCT1C
-//  seg1: L | LF
-//  seg2: 1-4 цифры
-//  seg3: 2-значный год (24-29) + опц. IS | SZ
-//  seg4: суффикс из известного набора
-// ═══════════════════════════════════════════════
-
-const PARTY_KNOWN_SUFFIXES = [
-    'GGASCT1C', 'GGASCT1', 'GGASC',
-    'GGT1C', 'GGT1', 'GG',
-    'ASCT1C', 'ASCT1', 'ASCM', 'ASCMI', 'ASC',
-    'ORGC', 'ORGT1C', 'ORGT1', 'ORG',
-    'T1C', 'T1'
-];
-
-// OCR символьные замены на уровне одного символа
-const OCR_CHAR_MAP = {
-    'O': '0', 'o': '0',
-    'I': '1', 'l': '1', '|': '1',
-    'S': '5', 's': '5',
-    'Z': '2', 'z': '2',
-    'B': '8',
-    'G': '6', // только в цифровых сегментах
-    'A': '4', // только в цифровых сегментах
-    'T': '7', // только в цифровых сегментах
-};
-
-// Коррекция одного символа в контексте "это должна быть цифра"
-function toDigit(ch) {
-    return OCR_CHAR_MAP[ch] !== undefined ? OCR_CHAR_MAP[ch] : ch;
-}
-
-// Коррекция строки цифр
-function fixDigits(str) {
-    return str.split('').map(toDigit).join('');
-}
-
-// Исправляем seg1: должен быть L или LF
-function fixSeg1(raw) {
-    const s = raw.toUpperCase()
-        .replace(/[^A-Z0-9]/g, '')
-        .replace(/1/g, 'L')   // цифра 1 -> буква L
-        .replace(/U/g, 'L')   // буква U -> буква L (OCR ошибка)
-        .replace(/0/g, 'O');  // не нужна цифра 0 здесь
-    // Допустимые варианты: L, LF
-    if (s === 'LF' || s.startsWith('LF')) return 'LF';
-    return 'L';
-}
-
-// Исправляем seg2: 1-4 цифры
-function fixSeg2(raw) {
-    const digits = raw.split('').map(toDigit).join('').replace(/\D/g, '');
-    return digits.slice(0, 4); // не больше 4 цифр
-}
-
-// Исправляем seg3: 2-значный год (24-29) + опц. IS или SZ
-function fixSeg3(raw) {
-    const s = raw.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    // Извлекаем ведущие символы как год
-    let yearPart = '';
-    let suffPart = '';
-    
-    // Сначала ищем 2 цифры в начале
-    const yearMatch = s.match(/^([0-9A-Z]{2})(.*)$/);
-    if (!yearMatch) return raw;
-    
-    // Первые 2 символа - год (могут содержать OCR ошибки)
-    yearPart = fixDigits(yearMatch[1]);
-    suffPart = yearMatch[2];
-    
-    // Проверяем что год похож на 2-значный (24-29)
-    const yearNum = parseInt(yearPart);
-    if (isNaN(yearNum) || yearNum < 20 || yearNum > 35) {
-        // Попробуем исправить OCR
-        const corrected = fixDigits(yearMatch[1]);
-        const corrNum = parseInt(corrected);
-        if (!isNaN(corrNum) && corrNum >= 20 && corrNum <= 35) {
-            yearPart = corrected;
-        }
-    }
-    
-    // Суффикс seg3: IS или SZ (или пусто)
-    const knownSuf3 = ['SZ', 'IS'];
-    let matchedSuf3 = '';
-    const sufUpper = suffPart.toUpperCase()
-        .replace(/5Z/g, 'SZ').replace(/5z/g, 'SZ')
-        .replace(/1S/g, 'IS').replace(/lS/g, 'IS');
-    
-    for (const sf of knownSuf3) {
-        if (sufUpper.startsWith(sf) || sufUpper === sf) {
-            matchedSuf3 = sf;
-            break;
-        }
-    }
-    
-    return yearPart + matchedSuf3;
-}
-
-// Исправляем seg4: суффикс из известного набора
-function fixSeg4(raw) {
-    if (!raw) return '';
-    
-    // Нормализуем: убираем мусор, приводим к верхнему регистру
-    let s = raw.toUpperCase()
-        .replace(/[^A-Z0-9]/g, '')
-        // Символьные замены в буквенном контексте суффикса
-        .replace(/0/g, 'O')  // 0 -> O в суффиксе
-        .replace(/6/g, 'G')  // 6 -> G в суффиксе
-        .replace(/4/g, 'A')  // 4 -> A в суффиксе
-        .replace(/5/g, 'S')  // 5 -> S в суффиксе
-        .replace(/8/g, 'B')  // 8 -> B (нет B в суффиксах, но на всякий)
-        // Типичные OCR ошибки в суффиксе
-        .replace(/IL/g, 'IL') // оставляем
-        .replace(/^1/g, 'I') // начальная 1 -> I (нет I... но защита)
-        ;
-    
-    // Точное совпадение
-    if (PARTY_KNOWN_SUFFIXES.includes(s)) return s;
-    
-    // Поиск наилучшего совпадения по расстоянию Левенштейна
-    let bestSuffix = s;
-    let bestDist = Infinity;
-    
-    for (const known of PARTY_KNOWN_SUFFIXES) {
-        const dist = levenshtein(s, known);
-        const maxAllowed = Math.floor(known.length * 0.35); // до 35% ошибок
-        if (dist < bestDist && dist <= maxAllowed) {
-            bestDist = dist;
-            bestSuffix = known;
-        }
-    }
-    
-    return bestSuffix;
-}
-
-// Расстояние Левенштейна (для нечёткого совпадения суффиксов)
-function levenshtein(a, b) {
-    const m = a.length, n = b.length;
-    const dp = Array.from({length: m+1}, (_, i) => 
-        Array.from({length: n+1}, (_, j) => i === 0 ? j : j === 0 ? i : 0)
-    );
-    for (let i = 1; i <= m; i++)
-        for (let j = 1; j <= n; j++)
-            dp[i][j] = a[i-1] === b[j-1]
-                ? dp[i-1][j-1]
-                : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
-    return dp[m][n];
-}
-
-// Главный парсер названия партии
-// Принимает сырую строку OCR, возвращает исправленное название или null
-function parsePartyName(raw) {
-    if (!raw) return null;
-    
-    // Сначала заменяем U на L перед очисткой!
-    let s = raw.trim()
-        .replace(/U/g, 'L')           // U -> L (OCR ошибка)
-        .replace(/\s+/g, '')           // убираем все пробелы
-        .replace(/[\\.,;:]/g, '/')     // заменяем похожие разделители на /
-        .replace(/\/+/g, '/')          // схлопываем двойные //
-        .toUpperCase();
-    
-    // Заменяем типичные OCR ошибки разделителя: I/ или l/ -> L/
-    s = s.replace(/^[I1]\//, 'L/');
-    
-    // Разбиваем по /
-    const parts = s.split('/');
-    
-    // Нужно минимум 3 сегмента: seg1/seg2/seg3[/seg4]
-    if (parts.length < 3) return null;
-    
-    const seg1 = fixSeg1(parts[0]);
-    const seg2 = fixSeg2(parts[1]);
-    const seg3 = fixSeg3(parts[2]);
-    const seg4 = parts.length >= 4 ? fixSeg4(parts[3]) : '';
-    
-    // Валидация: seg2 должен содержать хоть одну цифру
-    if (!seg2 || !/\d/.test(seg2)) return null;
-    
-    // Валидация: seg3 должен начинаться с 2-значного числа
-    const yearNum = parseInt(seg3.slice(0, 2));
-    if (isNaN(yearNum) || yearNum < 20 || yearNum > 35) return null;
-    
-    // Собираем результат
-    const result = seg4
-        ? `${seg1}/${seg2}/${seg3}/${seg4}` 
-        : `${seg1}/${seg2}/${seg3}`;
-    
-    console.log(`🔧 parsePartyName: "${raw}" → "${result}" (seg1=${seg1} seg2=${seg2} seg3=${seg3} seg4=${seg4})`);
-    return result;
-}
-
 function correctOcrErrors(text) {
     // Оставляем для обратной совместимости, основная логика в parsePartyName
     return text;
