@@ -102,6 +102,9 @@
         @media (max-width: 700px) {
             #modeSwitcher    { top: 10px; left: 50%; transform: translateX(-50%); }
             #languageSwitcher{ top: 60px; left: 50%; transform: translateX(-50%); }
+            #authSectionTop { top: 10px; right: 10px; }
+            #authSectionTop .user-info { display: none !important; }
+            #authBtnTop { padding: 6px 10px; font-size: 10px; }
         }
 
         #startScreen {
@@ -835,7 +838,48 @@
             0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
             100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
         }
+    
+        /* Auth UI Styles */
+        .auth-section { display: flex; align-items: center; gap: 10px; margin-left: 10px; }
+        .auth-btn { 
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); 
+            color: white; border: none; border-radius: 8px;
+            padding: 6px 12px; font-size: 11px; font-weight: 600; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(99,102,241,0.4);
+            transition: all 0.2s;
+        }
+        .auth-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(99,102,241,0.5); }
+        .auth-btn.logout { background: linear-gradient(135deg, #475569 0%, #334155 100%); }
+        .user-info { font-size: 11px; color: #a5b4fc; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        
+        /* Auth Modal Styles */
+        .auth-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 999999; align-items: center; justify-content: center; }
+        .auth-modal.show { display: flex; }
+        .auth-modal-shell { width: 400px; max-width: 90vw; background: #1e293b; border: 1px solid #334155; border-radius: 18px; box-shadow: 0 30px 80px rgba(0,0,0,0.7); }
+        .auth-modal-header { padding: 16px 20px; background: #0f172a; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; border-radius: 18px 18px 0 0; }
+        .auth-modal-header h3 { margin: 0; font-size: 16px; color: #e5e7eb; }
+        .auth-modal-body { padding: 20px; }
+        .auth-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .auth-tab { flex: 1; padding: 10px; border: none; border-radius: 8px; background: #334155; color: #94a3b8; cursor: pointer; font-weight: 600; }
+        .auth-tab.active { background: #6366f1; color: white; }
+        .auth-method-toggle { display: flex; gap: 10px; margin-bottom: 15px; }
+        .auth-method-btn { flex: 1; padding: 8px; border: none; border-radius: 6px; background: #334155; color: #94a3b8; cursor: pointer; font-size: 12px; }
+        .auth-method-btn.active { background: #6366f1; color: white; }
+        .auth-field { margin-bottom: 15px; }
+        .auth-field label { display: block; margin-bottom: 5px; font-size: 12px; color: #94a3b8; }
+        .auth-field input { width: 100%; padding: 10px; border: 1px solid #334155; border-radius: 8px; background: #0f172a; color: #e5e7eb; font-size: 14px; box-sizing: border-box; }
+        .auth-field input:focus { outline: none; border-color: #6366f1; }
+        .auth-submit { width: 100%; padding: 12px; border: none; border-radius: 8px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; font-weight: 600; cursor: pointer; }
+        .auth-submit:hover { opacity: 0.9; }
+        .auth-error { margin-top: 15px; padding: 10px; background: #dc2626; color: white; border-radius: 6px; font-size: 12px; display: none; }
+        .auth-success { margin-top: 15px; padding: 10px; background: #16a34a; color: white; border-radius: 6px; font-size: 12px; display: none; }
+        .auth-close { background: transparent; border: none; color: #94a3b8; font-size: 18px; cursor: pointer; }
     </style>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 </head>
 <body>
 
@@ -870,6 +914,12 @@
         <option value="uk" data-flag="fi fi-ua">Українська</option>
         <option value="en" data-flag="fi fi-gb">English</option>
     </select>
+</div>
+
+<!-- Auth Section - Top Right -->
+<div id="authSectionTop" style="position: absolute; top: 20px; right: 20px; z-index: 1000; display: flex; align-items: center; gap: 10px;">
+    <span id="userInfoTop" style="font-size: 12px; color: #a5b4fc; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: none;"></span>
+    <button id="authBtnTop" class="auth-btn" onclick="showAuthModal()" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; border: none; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(99,102,241,0.4);">Sign In</button>
 </div>
 
 <div id="startScreen">
@@ -1732,9 +1782,11 @@ function updateModeUI() {
     if (isVideoMode) {
         startScreen.style.display = 'none';
         workControls.style.display = 'flex';
+        document.getElementById('authSectionTop').style.display = 'none'; // Hide auth in work mode
     } else {
         startScreen.style.display = 'flex';
         workControls.style.display = 'none';
+        document.getElementById('authSectionTop').style.display = 'flex'; // Show auth on start screen
     }
 }
 
@@ -1808,6 +1860,7 @@ function startTextRegionSelection() {
         if (region.w > 10 && region.h > 10) {
             storedTextRegion = region;
             localStorage.setItem(STORAGE_KEY_TEXT_REGION, JSON.stringify(region));
+            saveRegionsToFirestore(); // Sync to cloud
             console.log('📝 Сохранена текстовая область:', region);
             setStatus(t('textAreaSaved'));
             
@@ -1939,6 +1992,7 @@ function startWeightAreaSelection() {
             
             // Сохраняем в localStorage
             localStorage.setItem(STORAGE_KEY_WEIGHT_REGION, JSON.stringify(weightRegions));
+            saveRegionsToFirestore(); // Sync to cloud
             
             // Обновляем кнопку
             if (workWeightRegionBtn) {
@@ -3084,6 +3138,7 @@ function storeRegion(r) {
         storedSingleRegion = region;
         try { localStorage.setItem(STORAGE_KEY_SINGLE_REGION, JSON.stringify(region)); } catch {}
     }
+    saveRegionsToFirestore(); // Sync to cloud
     
     // Также сохраняем в старый ключ для обратной совместимости
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(region)); } catch {}
@@ -3256,6 +3311,7 @@ mainCanvas.addEventListener('mouseup', async e => {
                 
                 // Сохраняем в localStorage
                 localStorage.setItem(STORAGE_KEY_WEIGHT_REGION, JSON.stringify(weightRegions));
+                saveRegionsToFirestore(); // Sync to cloud
                 
                 // Обновляем кнопку
                 if (workWeightRegionBtn) {
@@ -5561,6 +5617,7 @@ async function startCapture() {
         drawVideoFrame();
         startScreen.style.display  = 'none';
         workControls.style.display = 'flex';
+        document.getElementById('authSectionTop').style.display = 'none'; // Hide auth in work mode
         setStatus('statusReady');
         
         // Показываем уведомление о восстановлении системных комбинаций
@@ -5802,6 +5859,7 @@ function handleFile(e) {
         ctx.drawImage(img, 0, 0);
         mainCanvas.dataset.hasImage = '1'; stopVideoStream();
         startScreen.style.display = 'none'; workControls.style.display = 'flex';
+        document.getElementById('authSectionTop').style.display = 'none'; // Hide auth in work mode
         setStatus('statusReady'); loadStoredRegion(); URL.revokeObjectURL(url);
     };
     img.src = url;
@@ -6137,6 +6195,422 @@ function initTextButtons() {
 }
 
 initTextButtons();
+
+/* ════════════════════════════════════════════════════════
+   FIREBASE AUTH & SYNC - Shared with QR_Cards.html & hotkey-phrases.html
+════════════════════════════════════════════════════════ */
+
+// Firebase config (REAL nflpaleta-control project)
+const firebaseConfigQR = {
+  apiKey: "AIzaSyCNjW14WXJ2mUmQ5ePcW456qAP2O-hTjUY",
+  authDomain: "nflpaleta-control.firebaseapp.com",
+  databaseURL: "https://nflpaleta-control-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "nflpaleta-control",
+  storageBucket: "nflpaleta-control.firebasestorage.app",
+  messagingSenderId: "576502070754",
+  appId: "1:576502070754:web:78a60602cf29aa3c680dbb",
+  measurementId: "G-8T80PER0PK"
+};
+
+// Initialize Firebase if not already initialized
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfigQR);
+}
+const dbQR = firebase.firestore();
+const authQR = firebase.auth();
+
+let currentUserIdQR = null;
+let isSyncingRegions = false;
+
+// Device fingerprint functions
+function generateDeviceFingerprintQR() {
+  const hardwareData = [
+    screen.width, screen.height,
+    screen.colorDepth || 24, screen.pixelDepth || 24,
+    window.devicePixelRatio || 1,
+    navigator.hardwareConcurrency || 'unknown',
+    navigator.deviceMemory || 'unknown',
+    new Date().getTimezoneOffset(),
+    navigator.platform || 'unknown',
+    window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  ].join('|');
+  let hash = 0;
+  for (let i = 0; i < hardwareData.length; i++) {
+    const char = hardwareData.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  const hashStr = Math.abs(hash).toString(36);
+  return hashStr.substring(0, 10);
+}
+
+function getStableDeviceFingerprintQR() {
+  let fingerprint = localStorage.getItem('device_fingerprint_stable');
+  if (fingerprint) return fingerprint;
+  fingerprint = generateDeviceFingerprintQR();
+  localStorage.setItem('device_fingerprint_stable', fingerprint);
+  return fingerprint;
+}
+
+function getAnonymousUserIdQR() {
+  const fingerprint = getStableDeviceFingerprintQR();
+  const userId = 'device_' + fingerprint;
+  localStorage.setItem('qr_cards_user_id', userId);
+  sessionStorage.setItem('qr_cards_user_id', userId);
+  return userId;
+}
+
+function getUserIdQR() {
+  const user = authQR.currentUser;
+  if (user) return 'auth_' + user.uid;
+  return getAnonymousUserIdQR();
+}
+
+// Username helpers
+async function getEmailByUsernameQR(username) {
+  try {
+    const doc = await dbQR.collection('usernames').doc(username).get();
+    return doc.exists ? doc.data().email : null;
+  } catch (e) { return null; }
+}
+
+async function isUsernameAvailableQR(username) {
+  try {
+    const doc = await dbQR.collection('usernames').doc(username).get();
+    return !doc.exists;
+  } catch (e) { return false; }
+}
+
+// ════════════════════════════════════════════════════════
+// SYNC SELECTION REGIONS TO FIRESTORE
+// ════════════════════════════════════════════════════════
+
+async function saveRegionsToFirestore() {
+  if (isSyncingRegions) return;
+  isSyncingRegions = true;
+  try {
+    const userId = getUserIdQR();
+    const regionsData = {
+      single: storedSingleRegion,
+      multi: storedMultiRegion,
+      text: storedTextRegion,
+      weight: weightRegions,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      deviceInfo: navigator.userAgent
+    };
+    await dbQR.collection('qr_regions').doc(userId).set(regionsData);
+    console.log('✅ Regions synced to Firestore for:', userId);
+  } catch (e) {
+    console.error('❌ Regions sync error:', e);
+  } finally {
+    isSyncingRegions = false;
+  }
+}
+
+async function loadRegionsFromFirestore() {
+  try {
+    // First check what we have locally - local data takes priority!
+    const localSingle = localStorage.getItem(STORAGE_KEY_SINGLE_REGION);
+    const localMulti = localStorage.getItem(STORAGE_KEY_MULTI_REGION);
+    const localText = localStorage.getItem(STORAGE_KEY_TEXT_REGION);
+    const localWeight = localStorage.getItem(STORAGE_KEY_WEIGHT_REGION);
+    
+    const hasLocalData = localSingle || localMulti || localText || localWeight;
+    
+    // Load from Firebase only for missing local data
+    const userId = getUserIdQR();
+    const doc = await dbQR.collection('qr_regions').doc(userId).get();
+    
+    if (doc.exists) {
+      const data = doc.data();
+      let loadedFromCloud = false;
+      
+      // Only load from cloud if local data is missing
+      if (data.single && !localSingle) {
+        storedSingleRegion = data.single;
+        localStorage.setItem(STORAGE_KEY_SINGLE_REGION, JSON.stringify(data.single));
+        console.log('☁️ Loaded SINGLE from Firebase (missing locally)');
+        loadedFromCloud = true;
+      }
+      if (data.multi && !localMulti) {
+        storedMultiRegion = data.multi;
+        localStorage.setItem(STORAGE_KEY_MULTI_REGION, JSON.stringify(data.multi));
+        console.log('☁️ Loaded MULTI from Firebase (missing locally)');
+        loadedFromCloud = true;
+      }
+      if (data.text && !localText) {
+        storedTextRegion = data.text;
+        localStorage.setItem(STORAGE_KEY_TEXT_REGION, JSON.stringify(data.text));
+        console.log('☁️ Loaded TEXT (PARTIA) from Firebase (missing locally)');
+        loadedFromCloud = true;
+      }
+      if (data.weight && data.weight.length > 0 && !localWeight) {
+        weightRegions = data.weight;
+        localStorage.setItem(STORAGE_KEY_WEIGHT_REGION, JSON.stringify(data.weight));
+        console.log('☁️ Loaded WEIGHT (WAGA) from Firebase (missing locally)');
+        loadedFromCloud = true;
+      }
+      
+      // Update current region based on mode
+      storedRegion = isMultiMode ? storedMultiRegion : storedSingleRegion;
+      updateCoordsDisplay(storedRegion);
+      
+      if (loadedFromCloud) {
+        console.log('✅ Some regions loaded from Firebase (local was missing)');
+      } else if (hasLocalData) {
+        console.log('✅ Using local regions (Firebase has backup)');
+      }
+      return true;
+    }
+    
+    console.log('ℹ️ No Firebase data found');
+    return false;
+  } catch (e) {
+    console.error('❌ Regions load error:', e);
+    return false;
+  }
+}
+
+// Auth UI functions
+let currentSignInMethod = 'email';
+
+function showAuthModal() {
+  document.getElementById('authModal').classList.add('show');
+}
+
+function hideAuthModal() {
+  document.getElementById('authModal').classList.remove('show');
+  document.getElementById('authError').style.display = 'none';
+  document.getElementById('authSuccess').style.display = 'none';
+}
+
+function switchAuthTab(tab) {
+  const signInTab = document.getElementById('signInTab');
+  const signUpTab = document.getElementById('signUpTab');
+  const signInForm = document.getElementById('signInForm');
+  const signUpForm = document.getElementById('signUpForm');
+  const methodToggle = document.getElementById('signInMethodToggle');
+  
+  if (tab === 'signin') {
+    signInTab.classList.add('active');
+    signUpTab.classList.remove('active');
+    signInForm.style.display = 'block';
+    signUpForm.style.display = 'none';
+    methodToggle.style.display = 'flex';
+  } else {
+    signInTab.classList.remove('active');
+    signUpTab.classList.add('active');
+    signInForm.style.display = 'none';
+    signUpForm.style.display = 'block';
+    methodToggle.style.display = 'none';
+  }
+}
+
+function switchSignInMethod(method) {
+  currentSignInMethod = method;
+  document.getElementById('signInEmailBtn').classList.toggle('active', method === 'email');
+  document.getElementById('signInUsernameBtn').classList.toggle('active', method === 'username');
+  document.getElementById('signInEmailSection').style.display = method === 'email' ? 'block' : 'none';
+  document.getElementById('signInUsernameSection').style.display = method === 'username' ? 'block' : 'none';
+}
+
+async function handleSignIn() {
+  const password = document.getElementById('signInPassword').value;
+  if (!password) { showAuthError('Enter password'); return; }
+  
+  let email;
+  if (currentSignInMethod === 'username') {
+    const username = document.getElementById('signInUsername').value.trim();
+    if (!username) { showAuthError('Enter username'); return; }
+    email = await getEmailByUsernameQR(username);
+    if (!email) { showAuthError('Username not found'); return; }
+  } else {
+    email = document.getElementById('signInEmail').value;
+    if (!email) { showAuthError('Enter email'); return; }
+  }
+  
+  try {
+    await authQR.signInWithEmailAndPassword(email, password);
+    showAuthSuccess('Signed in successfully!');
+    setTimeout(() => { hideAuthModal(); updateAuthUI(); loadRegionsFromFirestore(); }, 1000);
+  } catch (e) {
+    showAuthError(e.message);
+  }
+}
+
+async function handleSignUp() {
+  const username = document.getElementById('signUpUsername').value.trim().toLowerCase();
+  const email = document.getElementById('signUpEmail').value.trim();
+  const password = document.getElementById('signUpPassword').value;
+  const confirm = document.getElementById('signUpConfirmPassword').value;
+  
+  if (!username) { showAuthError('Username required'); return; }
+  if (!/^[a-z0-9_.]{3,30}$/.test(username)) { showAuthError('Username: 3-30 chars, lowercase, dots, underscores'); return; }
+  if (!password) { showAuthError('Enter password'); return; }
+  if (password.length < 6) { showAuthError('Password min 6 chars'); return; }
+  if (password !== confirm) { showAuthError('Passwords do not match'); return; }
+  
+  const available = await isUsernameAvailableQR(username);
+  if (!available) { showAuthError('Username taken'); return; }
+  
+  const userEmail = email || `${username}@mowi.com`;
+  
+  try {
+    const result = await authQR.createUserWithEmailAndPassword(userEmail, password);
+    const uid = result.user.uid;
+    await dbQR.collection('usernames').doc(username).set({ email: userEmail, uid, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    await dbQR.collection('users').doc(uid).set({ username, email: userEmail, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    showAuthSuccess('Account created!');
+    setTimeout(() => { hideAuthModal(); updateAuthUI(); }, 1000);
+  } catch (e) {
+    showAuthError(e.message);
+  }
+}
+
+function handleSignOut() {
+  authQR.signOut().then(() => {
+    updateAuthUI();
+    loadStoredRegion(); // Reload local regions
+    document.getElementById('authSectionTop').style.display = 'flex'; // Show auth on start screen
+  });
+}
+
+function updateAuthUI() {
+  const user = authQR.currentUser;
+  // Update both auth buttons (workControls and top-right)
+  const authBtn = document.getElementById('authBtn');
+  const userInfo = document.getElementById('userInfo');
+  const authBtnTop = document.getElementById('authBtnTop');
+  const userInfoTop = document.getElementById('userInfoTop');
+  
+  if (user) {
+    if (authBtn) {
+      authBtn.textContent = 'Sign Out';
+      authBtn.classList.add('logout');
+      authBtn.onclick = handleSignOut;
+    }
+    if (userInfo) {
+      userInfo.textContent = user.email || 'User';
+      userInfo.style.display = 'inline';
+    }
+    if (authBtnTop) {
+      authBtnTop.textContent = 'Sign Out';
+      authBtnTop.style.background = 'linear-gradient(135deg, #475569 0%, #334155 100%)';
+      authBtnTop.onclick = handleSignOut;
+    }
+    if (userInfoTop) {
+      userInfoTop.textContent = user.email || 'User';
+      userInfoTop.style.display = 'inline';
+    }
+  } else {
+    if (authBtn) {
+      authBtn.textContent = 'Sign In';
+      authBtn.classList.remove('logout');
+      authBtn.onclick = showAuthModal;
+    }
+    if (userInfo) {
+      userInfo.style.display = 'none';
+    }
+    if (authBtnTop) {
+      authBtnTop.textContent = 'Sign In';
+      authBtnTop.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)';
+      authBtnTop.onclick = showAuthModal;
+    }
+    if (userInfoTop) {
+      userInfoTop.style.display = 'none';
+    }
+  }
+}
+
+function showAuthError(msg) {
+  document.getElementById('authError').textContent = msg;
+  document.getElementById('authError').style.display = 'block';
+  document.getElementById('authSuccess').style.display = 'none';
+}
+
+function showAuthSuccess(msg) {
+  document.getElementById('authSuccess').textContent = msg;
+  document.getElementById('authSuccess').style.display = 'block';
+  document.getElementById('authError').style.display = 'none';
+}
+
+// Auth state listener - key for cross-page sync
+authQR.onAuthStateChanged((user) => {
+  console.log('QR.html Auth state:', user ? 'signed in' : 'signed out');
+  currentUserIdQR = getUserIdQR();
+  updateAuthUI();
+  loadRegionsFromFirestore();
+});
+
+// Close modal on Escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') hideAuthModal();
+});
 </script>
+
+<!-- Auth Modal -->
+<div class="auth-modal" id="authModal">
+  <div class="auth-modal-shell">
+    <div class="auth-modal-header">
+      <h3>Sign In / Sign Up</h3>
+      <button class="auth-close" onclick="hideAuthModal()">✖</button>
+    </div>
+    <div class="auth-modal-body">
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="signInTab" onclick="switchAuthTab('signin')">Sign In</button>
+        <button class="auth-tab" id="signUpTab" onclick="switchAuthTab('signup')">Sign Up</button>
+      </div>
+      
+      <div class="auth-method-toggle" id="signInMethodToggle">
+        <button class="auth-method-btn active" id="signInEmailBtn" onclick="switchSignInMethod('email')">Email</button>
+        <button class="auth-method-btn" id="signInUsernameBtn" onclick="switchSignInMethod('username')">Username</button>
+      </div>
+      
+      <div id="signInForm">
+        <div id="signInEmailSection">
+          <div class="auth-field">
+            <label>Email</label>
+            <input type="email" id="signInEmail" placeholder="your@email.com">
+          </div>
+        </div>
+        <div id="signInUsernameSection" style="display:none;">
+          <div class="auth-field">
+            <label>Username</label>
+            <input type="text" id="signInUsername" placeholder="your_username">
+          </div>
+        </div>
+        <div class="auth-field">
+          <label>Password</label>
+          <input type="password" id="signInPassword" placeholder="********">
+        </div>
+        <button class="auth-submit" onclick="handleSignIn()">Sign In</button>
+      </div>
+      
+      <div id="signUpForm" style="display:none;">
+        <div class="auth-field">
+          <label>Username (required, unique)</label>
+          <input type="text" id="signUpUsername" placeholder="your_username">
+        </div>
+        <div class="auth-field">
+          <label>Email (optional)</label>
+          <input type="email" id="signUpEmail" placeholder="your@email.com (optional)">
+        </div>
+        <div class="auth-field">
+          <label>Password (min 6 chars)</label>
+          <input type="password" id="signUpPassword" placeholder="********">
+        </div>
+        <div class="auth-field">
+          <label>Confirm Password</label>
+          <input type="password" id="signUpConfirmPassword" placeholder="********">
+        </div>
+        <button class="auth-submit" onclick="handleSignUp()">Sign Up</button>
+      </div>
+      
+      <div class="auth-error" id="authError"></div>
+      <div class="auth-success" id="authSuccess"></div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
