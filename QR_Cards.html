@@ -8,6 +8,7 @@
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css">
@@ -611,6 +612,12 @@
   
   <h1>MAX QR Cards Studio</h1>
   <div class="header-controls">
+    <!-- Auth UI -->
+    <div style="display:flex; align-items:center; gap:10px; margin-right:15px;">
+      <span id="userInfo" style="font-size:13px; color:#94a3b8; display:none;"></span>
+      <button class="btn secondary" id="authButton" onclick="showAuthModal()" style="font-size:12px; padding:8px 12px;">Sign In</button>
+    </div>
+    
     <div class="lang-dropdown-wrapper">
       <button class="lang-btn" id="langBtn" onclick="toggleLanguageDropdown(event)">
         <span class="fi fi-pl" style="margin-right:6px"></span>PL
@@ -762,21 +769,168 @@ const firebaseConfig = {
 // Инициализация Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const auth = firebase.auth();
 
-// Функция для получения/создания уникального ID пользователя
-function getOrCreateUserId() {
-  let userId = localStorage.getItem('qr_cards_user_id');
-  if (!userId) {
-    userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    localStorage.setItem('qr_cards_user_id', userId);
-    console.log('Создан новый пользователь ID:', userId);
+// Функция для получения/создания ID пользователя
+function getUserId() {
+  const user = auth.currentUser;
+  
+  if (user) {
+    // Вошедший пользователь - используем Firebase UID
+    return 'auth_' + user.uid;
+  } else {
+    // Анонимный пользователь - используем fingerprint устройства
+    return getAnonymousUserId();
   }
+}
+
+// Функция для анонимных пользователей (одно устройство, все браузеры)
+function getAnonymousUserId() {
+  // Используем стабильный fingerprint для консистентности между браузерами
+  const fingerprint = getStableDeviceFingerprint();
+  const userId = 'device_' + fingerprint;
+  
+  // Сохраняем в оба хранилища для максимальной консистентности
+  localStorage.setItem('qr_cards_user_id', userId);
+  sessionStorage.setItem('qr_cards_user_id', userId);
+  
   return userId;
 }
 
-// Получаем ID текущего пользователя
-const currentUserId = getOrCreateUserId();
+// Генерация fingerprint устройства - УСТОЙЧИВАЯ версия
+// Использует только hardware-характеристики, одинаковые во всех браузерах
+function generateDeviceFingerprint() {
+  // Собираем hardware-характеристики (одинаковые во всех браузерах на одном устройстве)
+  const hardwareData = [
+    // Экран - физические характеристики
+    screen.width,
+    screen.height,
+    screen.colorDepth || 24,
+    screen.pixelDepth || 24,
+    window.devicePixelRatio || 1,
+    
+    // Системные характеристики (если доступны)
+    navigator.hardwareConcurrency || 'unknown', // количество ядер CPU
+    navigator.deviceMemory || 'unknown',        // RAM в GB
+    
+    // Часовой пояс
+    new Date().getTimezoneOffset(),
+    
+    // Платформа (Windows, Mac, Linux)
+    navigator.platform || 'unknown',
+    
+    // Доступные разрешения экрана (через matchMedia)
+    window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  ].join('|');
+  
+  // Создаем hash
+  let hash = 0;
+  for (let i = 0; i < hardwareData.length; i++) {
+    const char = hardwareData.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  
+  // Добавляем дополнительный надежный hash через substring
+  const hashStr = Math.abs(hash).toString(36);
+  const shortHash = hashStr.substring(0, 10); // берем первые 10 символов
+  
+  console.log('🔍 Hardware fingerprint:', shortHash, 'from:', hardwareData);
+  return shortHash;
+}
+
+// Генерация "закрепленного" fingerprint который сохраняется в localStorage
+function getStableDeviceFingerprint() {
+  // Сначала проверяем localStorage (приоритет - сохраненный fingerprint)
+  let fingerprint = localStorage.getItem('device_fingerprint_stable');
+  
+  if (fingerprint) {
+    console.log('✅ Используем сохраненный fingerprint:', fingerprint);
+    return fingerprint;
+  }
+  
+  // Если нет - генерируем новый
+  fingerprint = generateDeviceFingerprint();
+  
+  // Сохраняем для консистентности в будущем
+  localStorage.setItem('device_fingerprint_stable', fingerprint);
+  console.log('🆕 Создан новый fingerprint:', fingerprint);
+  
+  return fingerprint;
+}
+
+// Текущий ID пользователя (будет обновляться динамически)
+let currentUserId = getUserId();
 console.log('Текущий пользователь ID:', currentUserId);
+
+// Функция миграции данных из старых user_ записей в новый стабильный device_
+async function migrateFromOldUserIds() {
+  if (auth.currentUser) return; // Только для анонимных
+  
+  const stableId = getAnonymousUserId();
+  console.log('🔄 Проверка миграции данных для:', stableId);
+  
+  // Ищем старые записи user_ и device_ (кроме текущего stable)
+  const migrations = [];
+  
+  try {
+    const snapshot = await db.collection('qr_cards').get();
+    
+    snapshot.forEach(doc => {
+      const docId = doc.id;
+      // Пропускаем auth_ и текущий stable device_
+      if (docId.startsWith('auth_')) return;
+      if (docId === stableId) return;
+      
+      // Это старая запись - нужно мигрировать
+      console.log('📦 Найдена старая запись:', docId);
+      migrations.push(doc);
+    });
+    
+    if (migrations.length === 0) {
+      console.log('✅ Старых записей не найдено');
+      return;
+    }
+    
+    console.log(`🔄 Найдено ${migrations.length} старых записей для миграции`);
+    
+    // Мигрируем данные
+    for (const oldDoc of migrations) {
+      const oldData = oldDoc.data();
+      const cardsSnapshot = await oldDoc.ref.collection('cards').get();
+      
+      if (cardsSnapshot.empty) {
+        console.log('🗑️ Старая запись пуста, пропускаем:', oldDoc.id);
+        continue;
+      }
+      
+      console.log(`📦 Миграция ${cardsSnapshot.size} карточек из ${oldDoc.id}`);
+      
+      // Копируем карточки в новый ID
+      const batch = db.batch();
+      const newUserRef = db.collection('qr_cards').doc(stableId);
+      
+      cardsSnapshot.forEach(cardDoc => {
+        const cardData = cardDoc.data();
+        const newCardRef = newUserRef.collection('cards').doc(cardDoc.id);
+        batch.set(newCardRef, { ...cardData, migratedFrom: oldDoc.id, migratedAt: new Date() });
+      });
+      
+      await batch.commit();
+      console.log('✅ Миграция завершена для:', oldDoc.id);
+    }
+    
+    // Обновляем страницу чтобы подтянуть новые данные
+    console.log('🔄 Миграция завершена, перезагружаем карточки');
+    initSheet();
+    
+  } catch (error) {
+    console.error('❌ Ошибка миграции:', error);
+  }
+}
+
+// Запускаем миграцию при загрузке
+setTimeout(() => migrateFromOldUserIds(), 2000);
 
 /* ---------- Большая палитра цветов ---------- */
 const fullPalette = [
@@ -830,7 +984,7 @@ function saveCardsToStorage() {
     clearTimeout(saveTimeout);
   }
   
-  // Откладываем сохранение на 500мс
+  // Откладываем сохранение на 2000мс (2 секунды) чтобы избежать сохранения при каждом символе
   saveTimeout = setTimeout(async () => {
     try {
       isUpdating = true;
@@ -849,7 +1003,8 @@ function saveCardsToStorage() {
         const color = colorInput ? colorInput.value : '';
         const cardNumber = parseInt(row.dataset.cardNumber);
         
-        if (code) {
+        // Сохраняем только карточки с валидным кодом (минимум 3 символа)
+        if (code && code.length >= 3) {
           // Ищем имя карточки в defaultCodes
           const defaultCard = defaultCodes.find(c => c.code === code);
           const cardName = defaultCard ? defaultCard.name : code;
@@ -872,7 +1027,7 @@ function saveCardsToStorage() {
     } finally {
       isUpdating = false;
     }
-  }, 500);
+  }, 2000);
 }
 
 function loadCardsFromStorage() {
@@ -969,7 +1124,22 @@ async function saveCardsToFirestore(cards) {
   isSavingToFirestore = true;
   
   try {
-    console.log('Сохранение карточек в Firestore для пользователя:', currentUserId);
+    // Deduplication: убираем дубликаты по коду, оставляем только последний
+    const uniqueCardsMap = new Map();
+    cards.forEach(card => {
+      if (card.code && card.code.trim().length >= 3) { // Только валидные коды
+        uniqueCardsMap.set(card.code, card);
+      }
+    });
+    const uniqueCards = Array.from(uniqueCardsMap.values());
+    
+    if (uniqueCards.length === 0) {
+      console.log('⏸️ Нет валидных карточек для сохранения');
+      isSavingToFirestore = false;
+      return;
+    }
+    
+    console.log('Сохранение карточек в Firestore для пользователя:', currentUserId, 'количество:', uniqueCards.length);
     
     const userCardsRef = db.collection('qr_cards').doc(currentUserId).collection('cards');
     const snapshot = await userCardsRef.get();
@@ -984,7 +1154,7 @@ async function saveCardsToFirestore(cards) {
     const batch = db.batch();
     
     // Обновляем или добавляем карточки (используем code как ID документа)
-    cards.forEach((card, index) => {
+    uniqueCards.forEach((card, index) => {
       const cardData = {
         code: card.code,
         name: card.name || card.code, // Добавляем имя карточки
@@ -1009,13 +1179,13 @@ async function saveCardsToFirestore(cards) {
     batch.set(userRef, {
       lastAccessed: firebase.firestore.FieldValue.serverTimestamp(),
       browserInfo: navigator.userAgent,
-      cardsCount: cards.length
+      cardsCount: uniqueCards.length
     }, { merge: true });
     
     // Выполняем все операции
     await batch.commit();
     
-    console.log('✅ Карточки успешно сохранены в Firestore:', cards.length);
+    console.log('✅ Карточки успешно сохранены в Firestore:', uniqueCards.length);
     
   } catch (error) {
     console.error('❌ Ошибка сохранения в Firestore:', error);
@@ -1030,6 +1200,43 @@ async function saveCardsToFirestore(cards) {
   } finally {
     // Всегда сбрасываем флаг
     isSavingToFirestore = false;
+  }
+}
+
+// Function to cleanup duplicate cards in Firestore
+async function cleanupDuplicateCards() {
+  try {
+    console.log('🧹 Очистка дубликатов...');
+    const userCardsRef = db.collection('qr_cards').doc(currentUserId).collection('cards');
+    const snapshot = await userCardsRef.get();
+    
+    const codeToRefs = new Map();
+    const duplicatesToDelete = [];
+    
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const code = data.code;
+      
+      if (codeToRefs.has(code)) {
+        // Это дубликат, отмечаем для удаления
+        duplicatesToDelete.push(doc.ref);
+      } else {
+        // Первый документ с этим кодом
+        codeToRefs.set(code, doc.ref);
+      }
+    });
+    
+    if (duplicatesToDelete.length > 0) {
+      console.log('🗑️ Удаляем дубликаты:', duplicatesToDelete.length);
+      const batch = db.batch();
+      duplicatesToDelete.forEach(ref => batch.delete(ref));
+      await batch.commit();
+      console.log('✅ Дубликаты удалены');
+    } else {
+      console.log('✅ Дубликатов не найдено');
+    }
+  } catch (error) {
+    console.error('❌ Ошибка очистки дубликатов:', error);
   }
 }
 
@@ -1062,6 +1269,21 @@ async function loadCardsFromFirestore() {
     });
     
     console.log('✅ Карточки успешно загружены из Firestore:', cards.length);
+    
+    // Очистка дубликатов: проверяем есть ли карточки с одинаковым кодом
+    const codeCount = {};
+    cards.forEach(card => {
+      codeCount[card.code] = (codeCount[card.code] || 0) + 1;
+    });
+    
+    const duplicates = Object.entries(codeCount).filter(([code, count]) => count > 1);
+    if (duplicates.length > 0) {
+      console.log('⚠️ Найдены дубликаты:', duplicates);
+      // Удаляем дубликаты из Firestore
+      await cleanupDuplicateCards();
+      // Перезагружаем карточки после очистки
+      return loadCardsFromFirestore();
+    }
     
     // Если карточек нет, добавляем начальные карточки
     if (cards.length === 0) {
@@ -1292,11 +1514,11 @@ function addRow(item={code:"",color:"#FFD54F", cardNumber: null}){
   
   colorPreview.appendChild(colorInput);
   
-  // Обработчик изменения цвета в реальном времени
+  // Обработчик изменения цвета в реальном времени (только для превью)
   colorInput.addEventListener('input', (e) => {
     colorPreview.style.backgroundColor = e.target.value;
     updatePreview();
-    saveCardsToStorage();
+    // НЕ сохраняем здесь - сохранение будет при 'change' (закрытие палитры)
   });
   
   colorPreview.onclick = () => {
@@ -1694,14 +1916,344 @@ function setupGlobalDropHandlers() {
 document.getElementById('addRow').onclick = () => addRow();
 
 let previewTimer = null;
+let saveTimer = null;
 // Обработчик изменений для новой структуры
+// Обработчик для обновления превью при вводе (быстро, без сохранения)
 document.addEventListener('input', (e) => {
   if (e.target.matches('.code-input') || e.target.matches('.code-color input[type="color"]')) {
+    // Debounce для обновления превью (быстро - 400ms)
     clearTimeout(previewTimer);
     previewTimer = setTimeout(() => {
       updatePreview();
-      saveCardsToStorage();
     }, 400);
+  }
+});
+
+// Сохранение при изменении цвета (change event - когда палитра закрыта)
+document.addEventListener('change', (e) => {
+  if (e.target.matches('.code-color input[type="color"]')) {
+    console.log('🎨 Цвет изменен, сохраняем...');
+    saveCardsToStorage();
+  }
+});
+
+// Сохранение при потере фокуса поля ввода кода (blur)
+document.addEventListener('blur', (e) => {
+  if (e.target.matches('.code-input')) {
+    const code = e.target.value ? e.target.value.trim() : '';
+    if (code.length >= 3) {
+      console.log('📝 Поле кода потеряло фокус, сохраняем...');
+      saveCardsToStorage();
+    }
+  }
+}, true); // useCapture=true для blur
+
+// Сохранение при нажатии Enter в поле кода
+document.addEventListener('keydown', (e) => {
+  if (e.target.matches('.code-input') && e.key === 'Enter') {
+    const code = e.target.value ? e.target.value.trim() : '';
+    if (code.length >= 3) {
+      console.log('⌨️ Нажат Enter, сохраняем...');
+      saveCardsToStorage();
+      e.target.blur(); // Убираем фокус чтобы показать что ввод завершен
+    }
+  }
+});
+
+// ========== AUTHENTICATION FUNCTIONS ==========
+
+// Show auth modal
+function showAuthModal() {
+  const modal = document.getElementById('authModal');
+  if (modal) {
+    modal.style.display = 'flex';
+    document.body.classList.add('modal-open');
+  }
+}
+
+// Hide auth modal
+function hideAuthModal() {
+  const modal = document.getElementById('authModal');
+  if (modal) {
+    modal.style.display = 'none';
+    document.body.classList.remove('modal-open');
+  }
+  // Clear messages
+  document.getElementById('authError').style.display = 'none';
+  document.getElementById('authSuccess').style.display = 'none';
+}
+
+// Текущий метод входа (email или username)
+let currentSignInMethod = 'email';
+
+// Switch between sign in and sign up tabs
+function switchAuthTab(tab) {
+  const signInTab = document.getElementById('signInTab');
+  const signUpTab = document.getElementById('signUpTab');
+  const signInForm = document.getElementById('signInForm');
+  const signUpForm = document.getElementById('signUpForm');
+  const signInMethodToggle = document.getElementById('signInMethodToggle');
+  
+  if (tab === 'signin') {
+    signInTab.style.background = 'var(--accent)';
+    signUpTab.style.background = '';
+    signInForm.style.display = 'block';
+    signUpForm.style.display = 'none';
+    signInMethodToggle.style.display = 'flex'; // Показываем переключатель метода
+  } else {
+    signInTab.style.background = '';
+    signUpTab.style.background = 'var(--accent)';
+    signInForm.style.display = 'none';
+    signUpForm.style.display = 'block';
+    signInMethodToggle.style.display = 'none'; // Скрываем переключатель метода
+  }
+}
+
+// Switch between email and username sign in methods
+function switchSignInMethod(method) {
+  currentSignInMethod = method;
+  const emailBtn = document.getElementById('signInEmailBtn');
+  const usernameBtn = document.getElementById('signInUsernameBtn');
+  const emailSection = document.getElementById('signInEmailSection');
+  const usernameSection = document.getElementById('signInUsernameSection');
+  
+  if (method === 'email') {
+    emailBtn.style.background = 'var(--accent)';
+    usernameBtn.style.background = '';
+    emailSection.style.display = 'block';
+    usernameSection.style.display = 'none';
+  } else {
+    emailBtn.style.background = '';
+    usernameBtn.style.background = 'var(--accent)';
+    emailSection.style.display = 'none';
+    usernameSection.style.display = 'block';
+  }
+}
+
+// Helper function to lookup email by username
+async function getEmailByUsername(username) {
+  try {
+    const usernameDoc = await db.collection('usernames').doc(username).get();
+    if (usernameDoc.exists) {
+      return usernameDoc.data().email;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error looking up username:', error);
+    return null;
+  }
+}
+
+// Helper function to check if username is available
+async function isUsernameAvailable(username) {
+  try {
+    const usernameDoc = await db.collection('usernames').doc(username).get();
+    return !usernameDoc.exists;
+  } catch (error) {
+    console.error('Error checking username:', error);
+    return false;
+  }
+}
+
+// Handle sign in (email or username)
+async function handleSignIn() {
+  const password = document.getElementById('signInPassword').value;
+  
+  if (!password) {
+    showAuthError('Please enter password');
+    return;
+  }
+  
+  let email;
+  
+  if (currentSignInMethod === 'username') {
+    const username = document.getElementById('signInUsername').value.trim();
+    if (!username) {
+      showAuthError('Please enter username');
+      return;
+    }
+    // Lookup email by username
+    email = await getEmailByUsername(username);
+    if (!email) {
+      showAuthError('Username not found');
+      return;
+    }
+    console.log('Found email for username:', email);
+  } else {
+    email = document.getElementById('signInEmail').value;
+    if (!email) {
+      showAuthError('Please enter email');
+      return;
+    }
+  }
+  
+  try {
+    console.log('Signing in with:', currentSignInMethod);
+    const result = await auth.signInWithEmailAndPassword(email, password);
+    console.log('Successfully signed in:', result.user.email);
+    showAuthSuccess('Successfully signed in!');
+    setTimeout(() => {
+      hideAuthModal();
+      updateAuthUI();
+    }, 1000);
+  } catch (error) {
+    console.error('Sign-in error:', error);
+    showAuthError(error.message);
+  }
+}
+
+// Handle sign up (username-based)
+async function handleSignUp() {
+  const username = document.getElementById('signUpUsername').value.trim().toLowerCase();
+  const email = document.getElementById('signUpEmail').value.trim();
+  const password = document.getElementById('signUpPassword').value;
+  const confirmPassword = document.getElementById('signUpConfirmPassword').value;
+  
+  // Username is required
+  if (!username) {
+    showAuthError('Please enter username (required)');
+    return;
+  }
+  
+  // Username validation (lowercase, numbers, dots, underscores, 3-30 chars)
+  if (!/^[a-z0-9_.]{3,30}$/.test(username)) {
+    showAuthError('Username must be 3-30 characters: lowercase letters, numbers, dots, underscores');
+    return;
+  }
+  
+  // If email not provided, generate fake email from username
+  const userEmail = email || `${username}@mowi.com`;
+  
+  if (!password) {
+    showAuthError('Please enter password');
+    return;
+  }
+  
+  if (password.length < 6) {
+    showAuthError('Password must be at least 6 characters');
+    return;
+  }
+  
+  if (password !== confirmPassword) {
+    showAuthError('Passwords do not match');
+    return;
+  }
+  
+  try {
+    // Check if username is available
+    const available = await isUsernameAvailable(username);
+    if (!available) {
+      showAuthError('Username already taken');
+      return;
+    }
+    
+    console.log('Creating account with username:', username, 'email:', userEmail);
+    
+    // Create Firebase Auth account
+    const result = await auth.createUserWithEmailAndPassword(userEmail, password);
+    const uid = result.user.uid;
+    
+    // Store username → email mapping
+    await db.collection('usernames').doc(username).set({
+      email: userEmail,
+      uid: uid,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      originalEmail: email || null // Store if user provided real email
+    });
+    
+    // Also store user profile
+    await db.collection('users').doc(uid).set({
+      username: username,
+      email: userEmail,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
+    console.log('Account created:', username, uid);
+    showAuthSuccess('Account created successfully!');
+    setTimeout(() => {
+      hideAuthModal();
+      updateAuthUI();
+    }, 1000);
+  } catch (error) {
+    console.error('Sign-up error:', error);
+    showAuthError(error.message);
+  }
+}
+
+// Show auth error
+function showAuthError(message) {
+  const errorDiv = document.getElementById('authError');
+  errorDiv.textContent = message;
+  errorDiv.style.display = 'block';
+  document.getElementById('authSuccess').style.display = 'none';
+}
+
+// Show auth success
+function showAuthSuccess(message) {
+  const successDiv = document.getElementById('authSuccess');
+  successDiv.textContent = message;
+  successDiv.style.display = 'block';
+  document.getElementById('authError').style.display = 'none';
+}
+
+// Update UI based on auth state
+function updateAuthUI() {
+  const user = auth.currentUser;
+  const authButton = document.getElementById('authButton');
+  const userInfo = document.getElementById('userInfo');
+  
+  if (authButton && userInfo) {
+    if (user) {
+      // Logged in
+      authButton.textContent = 'Sign Out';
+      authButton.onclick = signOut;
+      userInfo.textContent = user.email;
+      userInfo.style.display = 'block';
+    } else {
+      // Anonymous
+      authButton.textContent = 'Sign In';
+      authButton.onclick = showAuthModal;
+      userInfo.textContent = '';
+      userInfo.style.display = 'none';
+    }
+  }
+}
+
+// Sign out
+async function signOut() {
+  try {
+    console.log('Signing out...');
+    await auth.signOut();
+    console.log('Successfully signed out');
+    updateAuthUI();
+    // Reload to reset to anonymous mode
+    window.location.reload();
+  } catch (error) {
+    console.error('Sign-out error:', error);
+  }
+}
+
+// Listen for auth state changes
+auth.onAuthStateChanged((user) => {
+  const oldUserId = currentUserId;
+  currentUserId = getUserId();
+  
+  if (oldUserId !== currentUserId) {
+    console.log('User ID changed from', oldUserId, 'to', currentUserId);
+    // Reload cards for new user
+    initSheet();
+  }
+  
+  updateAuthUI();
+});
+
+// Close modal on Escape key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const modal = document.getElementById('authModal');
+    if (modal && modal.style.display === 'flex') {
+      hideAuthModal();
+    }
   }
 });
 
@@ -2206,5 +2758,77 @@ setTimeout(async () => {
   await initSheet();
 }, 100);
 </script>
+
+<!-- Auth Modal -->
+<div class="modal" id="authModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:999; align-items:center; justify-content:center;">
+  <div class="modal-shell" style="width:400px; max-width:90vw; background:var(--panel); border:1px solid var(--border); border-radius:18px; box-shadow:0 30px 80px rgba(0,0,0,0.7); display:flex; flex-direction:column; overflow:hidden;">
+    <div class="modal-header" style="padding:12px 16px; background:rgba(21,26,34,0.95); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between;">
+      <h3 style="margin:0; font-size:16px;">Sign In / Sign Up</h3>
+      <button class="btn secondary" onclick="hideAuthModal()">✖</button>
+    </div>
+    <div style="padding:20px; display:block;">
+      <!-- Tabs -->
+      <div style="display:flex; gap:10px; margin-bottom:20px;">
+        <button class="btn secondary" id="signInTab" onclick="switchAuthTab('signin')" style="flex:1; background:var(--accent);">Sign In</button>
+        <button class="btn secondary" id="signUpTab" onclick="switchAuthTab('signup')" style="flex:1;">Sign Up</button>
+      </div>
+      
+      <!-- Sign In Method Toggle -->
+      <div id="signInMethodToggle" style="display:flex; gap:10px; margin-bottom:15px;">
+        <button class="btn secondary" id="signInEmailBtn" onclick="switchSignInMethod('email')" style="flex:1; background:var(--accent);">Email</button>
+        <button class="btn secondary" id="signInUsernameBtn" onclick="switchSignInMethod('username')" style="flex:1;">Username</button>
+      </div>
+      
+      <!-- Sign In Form -->
+      <div id="signInForm">
+        <!-- Email Sign In -->
+        <div id="signInEmailSection">
+          <div style="margin-bottom:15px;">
+            <label style="display:block; margin-bottom:5px; font-size:13px; color:var(--muted);">Email</label>
+            <input type="email" id="signInEmail" style="width:100%; padding:8px; border:1px solid var(--border); border-radius:6px; background:var(--panel-2); color:var(--text);" placeholder="your@email.com">
+          </div>
+        </div>
+        <!-- Username Sign In (hidden by default) -->
+        <div id="signInUsernameSection" style="display:none;">
+          <div style="margin-bottom:15px;">
+            <label style="display:block; margin-bottom:5px; font-size:13px; color:var(--muted);">Username</label>
+            <input type="text" id="signInUsername" style="width:100%; padding:8px; border:1px solid var(--border); border-radius:6px; background:var(--panel-2); color:var(--text);" placeholder="your_username">
+          </div>
+        </div>
+        <div style="margin-bottom:15px;">
+          <label style="display:block; margin-bottom:5px; font-size:13px; color:var(--muted);">Password</label>
+          <input type="password" id="signInPassword" style="width:100%; padding:8px; border:1px solid var(--border); border-radius:6px; background:var(--panel-2); color:var(--text);" placeholder="********">
+        </div>
+        <button class="btn" onclick="handleSignIn()" style="width:100%;">Sign In</button>
+      </div>
+      
+      <!-- Sign Up Form -->
+      <div id="signUpForm" style="display:none;">
+        <div style="margin-bottom:15px;">
+          <label style="display:block; margin-bottom:5px; font-size:13px; color:var(--muted);">Username (unique)</label>
+          <input type="text" id="signUpUsername" style="width:100%; padding:8px; border:1px solid var(--border); border-radius:6px; background:var(--panel-2); color:var(--text);" placeholder="your_username">
+        </div>
+        <div style="margin-bottom:15px;">
+          <label style="display:block; margin-bottom:5px; font-size:13px; color:var(--muted);">Email (optional, for recovery)</label>
+          <input type="email" id="signUpEmail" style="width:100%; padding:8px; border:1px solid var(--border); border-radius:6px; background:var(--panel-2); color:var(--text);" placeholder="your@email.com (optional)">
+        </div>
+        <div style="margin-bottom:15px;">
+          <label style="display:block; margin-bottom:5px; font-size:13px; color:var(--muted);">Password (min 6 chars)</label>
+          <input type="password" id="signUpPassword" style="width:100%; padding:8px; border:1px solid var(--border); border-radius:6px; background:var(--panel-2); color:var(--text);" placeholder="********">
+        </div>
+        <div style="margin-bottom:15px;">
+          <label style="display:block; margin-bottom:5px; font-size:13px; color:var(--muted);">Confirm Password</label>
+          <input type="password" id="signUpConfirmPassword" style="width:100%; padding:8px; border:1px solid var(--border); border-radius:6px; background:var(--panel-2); color:var(--text);" placeholder="********">
+        </div>
+        <button class="btn" onclick="handleSignUp()" style="width:100%;">Sign Up</button>
+      </div>
+      
+      <!-- Error/Success messages -->
+      <div id="authError" style="margin-top:15px; padding:10px; background:var(--danger); color:white; border-radius:6px; display:none; font-size:12px;"></div>
+      <div id="authSuccess" style="margin-top:15px; padding:10px; background:#16a34a; color:white; border-radius:6px; display:none; font-size:12px;"></div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
