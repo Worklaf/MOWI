@@ -532,7 +532,7 @@
     border-radius:14px; display:flex; align-items:center; justify-content:center;
     overflow:hidden;
   }
-  #sheetDisplay{background:#fff; box-shadow:0 0 40px rgba(0,0,0,0.6)}
+  #sheetDisplay{background:#fff; box-shadow:0 0 40px rgba(0,0,0,0.6);}
   .sheet-actions{display:flex; gap:10px; align-items:center; justify-content:space-between}
   .badge{
     background:#0f172a; color:#cbd5e1; padding:6px 10px;
@@ -2505,6 +2505,7 @@ const collageModal = document.getElementById('collageModal');
 document.getElementById('openCollage').onclick = async () => {
   collageModal.classList.add('show');
   document.body.classList.add('modal-open');
+  initSheetLayout(); // Initialize correct canvas sizes
   await initSheet();
   renderPicker();
   layoutDisplayCanvas();
@@ -2613,6 +2614,8 @@ function redrawSheet() {
     { x: 0, y: quadH + gapPx, w: quadW, h: quadH },
     { x: quadW + gapPx, y: quadH + gapPx, w: quadW, h: quadH }
   ];
+  // Disable smoothing when drawing cards for crisp QR codes
+  sheetCtx.imageSmoothingEnabled = false;
   for (let i = 0; i < Math.min(4, selectedCards.length); i++) {
     const card = selectedCards[i];
     const q = quads[i];
@@ -2624,7 +2627,8 @@ function redrawSheet() {
     sheetCtx.drawImage(card.canvas, dx, dy, dw, dh);
   }
 
-  sheetDisplayCtx.imageSmoothingEnabled = true;
+  // Disable smoothing for crisp QR codes
+  sheetDisplayCtx.imageSmoothingEnabled = false;
   sheetDisplayCtx.clearRect(0, 0, sheetDisplay.width, sheetDisplay.height);
   sheetDisplayCtx.drawImage(sheetCanvas, 0, 0, sheetDisplay.width, sheetDisplay.height);
 }
