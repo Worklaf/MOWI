@@ -3426,6 +3426,39 @@ function addWhiteCardEffects(item) {
     item.appendChild(glow);
 }
 
+// Function to correct common OCR errors in QR codes
+function correctQrCode(code) {
+    if (!code || code.length < 4) return code;
+    
+    let corrected = code;
+    
+    // If code starts with "01590625" (missing leading 0), add it
+    if (corrected.match(/^01590625/)) {
+        corrected = '0' + corrected;
+        console.log(`🔧 OCR Fix: Added leading 0: ${code} → ${corrected}`);
+    }
+    
+    // If first 9 chars should be "001590625" but have "001590525" (5→6 error at position 7)
+    if (corrected.length >= 9) {
+        const prefix = corrected.substring(0, 9);
+        // Common pattern: 001590525 should be 001590625
+        if (prefix === '001590525') {
+            corrected = '001590625' + corrected.substring(9);
+            console.log(`🔧 OCR Fix: Fixed 5→6 at position 7: ${code} → ${corrected}`);
+        }
+        // Also fix 001590X25 patterns where X might be wrong
+        if (prefix.startsWith('001590') && prefix.endsWith('25') && prefix.charAt(6) !== '6') {
+            corrected = '0015906' + corrected.substring(7);
+            console.log(`🔧 OCR Fix: Fixed position 7 to 6: ${code} → ${corrected}`);
+        }
+    }
+    
+    // Additional genftn fixes: 5→6 before known patterns
+    corrected = corrected.replace(/5(?=902144)/g, '6'); // 5 before "902144" should be 6
+    
+    return corrected;
+}
+
 async function processMultiRegionAsLines(region) { 
     setStatus('statusProcessing');
     console.log('📊 Статус установлен: statusProcessing');
@@ -3516,10 +3549,6 @@ async function processMultiRegionAsLines(region) {
         console.log('🔍 MULTI OCR текст:', result.data.text);
         console.log('🔍 MULTI OCR уверенность:', result.data.confidence);
         
-function correctOcrErrors(text) {
-    // Оставляем для обратной совместимости, основная логика в parsePartyName
-    return text;
-}
         // Обрабатываем OCR результат и создаем QR коды
         const allCodes = [];
         
@@ -3535,7 +3564,10 @@ function correctOcrErrors(text) {
         ocrLines.forEach((line, index) => {
             // Проверяем что line это строка
             const lineText = typeof line === 'string' ? line : String(line);
-            const cleanCode = lineText.replace(/\D/g, '').trim();
+            let cleanCode = lineText.replace(/\D/g, '').trim();
+            
+            // Apply OCR correction to fix common errors (5→6, missing leading 0, etc.)
+            cleanCode = correctQrCode(cleanCode);
             
             console.log(`🔍 Обрабатываю строку ${index + 1}: "${lineText}" → "${cleanCode}"`);
             
@@ -3743,7 +3775,32 @@ function validateAndCorrectQRCode(code, context = '') {
     // Удаляем все нецифровые символы
     let correctedCode = code.replace(/\D/g, '');
     
-    // Проверяем на начало с 0015 для 20-значных кодов
+    // ИСПРАВЛЕНИЯ OCR ОШИБОК:
+    // 1. Если код начинается с "01590625" (пропущен первый 0), добавляем его
+    if (correctedCode.match(/^01590625/)) {
+        correctedCode = '0' + correctedCode;
+        console.log(`🔧 ${context} OCR Fix: Добавлен ведущий 0: ${code} → ${correctedCode}`);
+    }
+    
+    // 2. Исправляем 001590525 → 001590625 (5→6 ошибка на позиции 7)
+    if (correctedCode.length >= 9) {
+        const prefix = correctedCode.substring(0, 9);
+        // Общий паттерн: 001590525 должен быть 001590625
+        if (prefix === '001590525') {
+            correctedCode = '001590625' + correctedCode.substring(9);
+            console.log(`🔧 ${context} OCR Fix: Исправлен 5→6 на позиции 7: ${code} → ${correctedCode}`);
+        }
+        // Исправляем любой 001590X25 где X не 6
+        else if (prefix.startsWith('001590') && prefix.endsWith('25') && prefix.charAt(6) !== '6') {
+            correctedCode = '0015906' + correctedCode.substring(7);
+            console.log(`🔧 ${context} OCR Fix: Исправлена позиция 7 на 6: ${code} → ${correctedCode}`);
+        }
+    }
+    
+    // 3. Исправляем 5→6 перед известными паттернами (genftn fix)
+    correctedCode = correctedCode.replace(/5(?=902144)/g, '6');
+    
+    // Проверяем на начало с 0015 для 20-значных кодов (старая логика)
     if (correctedCode.length === 19 && correctedCode.startsWith('15')) {
         correctedCode = '00' + correctedCode;
         console.log(`🔧 ${context} Добавлены 2 нуля в начало: ${code} → ${correctedCode}`);
@@ -4015,7 +4072,10 @@ async function processAllLinesOCR(allLinesCanvas) {
                 { tessedit_char_whitelist: '0123456789' }
             );
             
-            const lines = result.data.text.split('\n').map(line => line.replace(/\D/g, '').trim()).filter(code => code.length >= 4);
+            const lines = result.data.text.split('\n')
+                .map(line => line.replace(/\D/g, '').trim())
+                .map(code => correctQrCode(code)) // Apply OCR correction
+                .filter(code => code.length >= 4);
             console.log(`📊 MULTI Вариант ${i + 1}:`, lines.length, 'кодов');
             
             if (lines.length > bestLines.length) {
@@ -5715,6 +5775,40 @@ async function startCapture() {
             console.log('🔵 Активирован стандартный обработчик для SINGLE режима');
             document.addEventListener('keydown', window.preventSystemBlock, true);
         }
+        
+        // Handle visibility change (Alt+Tab, window switching) to prevent stream freeze
+        window.videoVisibilityHandler = function handleVisibilityChange() {
+            if (document.hidden) {
+                // Page is hidden (Alt+Tab) - pause processing but keep stream
+                console.log('📹 Page hidden - pausing video processing');
+                window.videoPaused = true;
+            } else {
+                // Page is visible again - resume processing
+                console.log('📹 Page visible - resuming video processing');
+                window.videoPaused = false;
+                // Force redraw to refresh canvas
+                setTimeout(() => {
+                    if (activeStream && captureVideo.readyState >= 2) {
+                        ctx.drawImage(captureVideo, 0, 0);
+                        drawPermanentRegions();
+                    }
+                }, 100);
+            }
+        };
+        document.addEventListener('visibilitychange', window.videoVisibilityHandler);
+        
+        // Handle window blur/focus for better Alt+Tab support
+        window.addEventListener('blur', () => {
+            console.log('🔧 Window lost focus');
+        });
+        
+        window.addEventListener('focus', () => {
+            console.log('🔧 Window gained focus - refreshing stream');
+            if (activeStream) {
+                // Refresh the video element
+                captureVideo.play().catch(e => console.log('Video play error:', e));
+            }
+        });
     } catch(err) { 
         console.warn('Capture cancelled:', err); 
     }
@@ -5722,6 +5816,11 @@ async function startCapture() {
 
 function drawVideoFrame() {
     if (!activeStream) return;
+    // Skip processing if video is paused (tab hidden via Alt+Tab)
+    if (window.videoPaused) {
+        requestAnimationFrame(drawVideoFrame);
+        return;
+    }
     if (captureVideo.readyState >= 2) {
         if (!isDrawing) {
             redrawCanvasWithRegions();
