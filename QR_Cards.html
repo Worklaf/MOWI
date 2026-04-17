@@ -2415,6 +2415,9 @@ async function signOut() {
 
 // Listen for auth state changes
 auth.onAuthStateChanged((user) => {
+  // Mark auth state as determined
+  authStateDetermined = true;
+  
   const oldUserId = currentUserId;
   currentUserId = getUserId();
   const blocker = document.getElementById('loginBlocker');
@@ -2427,9 +2430,8 @@ auth.onAuthStateChanged((user) => {
     initSheet();
   } else {
     console.log('User not signed in - showing login blocker');
-    // Show blocker and auth modal when not logged in
+    // Show blocker when not logged in (modal will be shown by load event listener)
     if (blocker) blocker.style.display = 'flex';
-    setTimeout(() => showAuthModal(), 100);
   }
   
   updateAuthUI();
@@ -2457,6 +2459,9 @@ document.addEventListener('click', (e) => {
   }
 });
 
+// Track if auth state has been determined
+let authStateDetermined = false;
+
 // Setup login blocker button and auto-show modal if not logged in
 window.addEventListener('load', () => {
   const blockerBtn = document.getElementById('loginBlockerBtn');
@@ -2465,13 +2470,31 @@ window.addEventListener('load', () => {
       if (typeof showAuthModal === 'function') showAuthModal();
     });
   }
-  // Auto-show auth modal after load if not logged in
-  setTimeout(() => {
-    if (!auth.currentUser) {
-      console.log('Auto-showing auth modal on load');
-      showAuthModal();
-    }
-  }, 500);
+  // Auto-show auth modal only after auth state is determined and user is not logged in
+  const checkAndShowAuthModal = () => {
+    // Wait for auth state to be determined
+    const checkInterval = setInterval(() => {
+      if (authStateDetermined) {
+        clearInterval(checkInterval);
+        if (!auth.currentUser) {
+          console.log('Auto-showing auth modal - user not logged in');
+          showAuthModal();
+        } else {
+          console.log('User already logged in, not showing auth modal');
+        }
+      }
+    }, 100);
+    // Fallback: show modal after 2 seconds if auth state still not determined
+    setTimeout(() => {
+      clearInterval(checkInterval);
+      if (!authStateDetermined && !auth.currentUser) {
+        console.log('Fallback: Auto-showing auth modal');
+        showAuthModal();
+      }
+    }, 2000);
+  };
+  // Start checking after initial load
+  setTimeout(checkAndShowAuthModal, 300);
 });
 
 // Сохраняем карточки при загрузке страницы
