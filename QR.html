@@ -3432,29 +3432,18 @@ function correctQrCode(code) {
     
     let corrected = code;
     
-    // If code starts with "01590625" (missing leading 0), add it
+    // Only fix actual OCR errors, don't change valid codes
     if (corrected.match(/^01590625/)) {
+        // If code starts with "01590625" (missing leading 0), add it
         corrected = '0' + corrected;
-        console.log(`🔧 OCR Fix: Added leading 0: ${code} → ${corrected}`);
+        console.log(`OCR Fix: Added leading 0: ${code} -> ${corrected}`);
+    } else if (corrected.startsWith('001590525')) {
+        // Only fix if it's actually 001590525 (5->6 error), not if it's already correct 001590625
+        corrected = '001590625' + corrected.substring(9);
+        console.log(`OCR Fix: Fixed 5->6 at position 7: ${code} -> ${corrected}`);
     }
-    
-    // If first 9 chars should be "001590625" but have "001590525" (5→6 error at position 7)
-    if (corrected.length >= 9) {
-        const prefix = corrected.substring(0, 9);
-        // Common pattern: 001590525 should be 001590625
-        if (prefix === '001590525') {
-            corrected = '001590625' + corrected.substring(9);
-            console.log(`🔧 OCR Fix: Fixed 5→6 at position 7: ${code} → ${corrected}`);
-        }
-        // Also fix 001590X25 patterns where X might be wrong
-        if (prefix.startsWith('001590') && prefix.endsWith('25') && prefix.charAt(6) !== '6') {
-            corrected = '0015906' + corrected.substring(7);
-            console.log(`🔧 OCR Fix: Fixed position 7 to 6: ${code} → ${corrected}`);
-        }
-    }
-    
-    // Additional genftn fixes: 5→6 before known patterns
-    corrected = corrected.replace(/5(?=902144)/g, '6'); // 5 before "902144" should be 6
+    // Remove the problematic fix that changes valid 001590625 to 001590626
+    // Only fix clear OCR errors, not valid patterns
     
     return corrected;
 }
