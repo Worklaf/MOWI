@@ -616,7 +616,7 @@
 </head>
 <body>
 <!-- Login Required Overlay -->
-<div id="loginBlocker" style="position:fixed; inset:0; background:#0b0f14; z-index:10000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px;">
+<div id="loginBlocker" style="position:fixed; inset:0; background:#0b0f14; z-index:10000; display:none; flex-direction:column; align-items:center; justify-content:center; gap:20px;">
   <h1 style="font-size:28px; color:#e5e7eb; margin:0;">MAX QR Cards Studio</h1>
   <p style="color:#94a3b8; margin:0;">Please sign in to continue</p>
   <button id="loginBlockerBtn" onclick="try{if(typeof window.showAuthModal==='function'){window.showAuthModal();}else{alert('showAuthModal not found. Check console.');}}catch(e){alert('Error: '+e.message);console.error(e);}" style="padding:14px 28px; font-size:16px; background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:600; box-shadow:0 6px 16px rgba(37,99,235,0.35);">Sign In / Sign Up</button>
@@ -792,6 +792,37 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
+
+// Track if auth state has been determined
+let authStateDetermined = false;
+
+// IMMEDIATE AUTH CHECK: Handle login blocker based on auth state
+function immediateAuthCheck() {
+    const user = auth.currentUser;
+    const blocker = document.getElementById('loginBlocker');
+    
+    if (user && blocker) {
+        // User is logged in - ensure blocker is hidden
+        console.log('User already logged in - keeping login blocker hidden');
+        blocker.style.display = 'none';
+        currentUserId = getUserId();
+        updateAuthUI();
+    } else if (!user && blocker && authStateDetermined) {
+        // User is definitely not logged in - show blocker
+        console.log('User not logged in - showing login blocker');
+        blocker.style.display = 'flex';
+    }
+    // If auth state not yet determined, do nothing (blocker stays hidden)
+}
+
+// Run immediate check right after Firebase init
+immediateAuthCheck();
+
+// FALLBACK CHECK: In case Firebase loads after DOM
+setTimeout(() => {
+    console.log('Fallback auth check - ensuring login blocker is properly handled');
+    immediateAuthCheck();
+}, 100);
 
 // Early definition of showAuthModal for login blocker
 window.showAuthModal = function() {
@@ -2424,14 +2455,16 @@ auth.onAuthStateChanged((user) => {
   
   if (user) {
     console.log('User is signed in:', user.email || user.uid);
-    // Hide blocker when logged in
     if (blocker) blocker.style.display = 'none';
     migrateFromOldUserIds();
     initSheet();
   } else {
-    console.log('User not signed in - showing login blocker');
-    // Show blocker when not logged in (modal will be shown by load event listener)
-    if (blocker) blocker.style.display = 'flex';
+    console.log('User is not signed in');
+    // Show blocker ONLY when auth state is determined and user is definitely not logged in
+    if (blocker && authStateDetermined) {
+      blocker.style.display = 'flex';
+      console.log('User not logged in - showing login blocker');
+    }
   }
   
   updateAuthUI();
@@ -2459,8 +2492,11 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Track if auth state has been determined
-let authStateDetermined = false;
+// IMMEDIATE DOM-READY CHECK: Handle login blocker as soon as DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded - checking auth state immediately');
+    immediateAuthCheck();
+});
 
 // Setup login blocker button and auto-show modal if not logged in
 window.addEventListener('load', () => {
