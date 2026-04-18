@@ -897,7 +897,7 @@
 </head>
 <body>
 <!-- Login Required Overlay -->
-<div id="loginBlocker" style="position:fixed; inset:0; background:#0f172a; z-index:10000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px;">
+<div id="loginBlocker" style="position:fixed; inset:0; background:#0f172a; z-index:10000; display:none; flex-direction:column; align-items:center; justify-content:center; gap:20px;">
   <h1 style="font-size:28px; color:#e5e7eb; margin:0;">MAX QR Reader</h1>
   <p style="color:#94a3b8; margin:0;">Please sign in to continue</p>
   <button id="loginBlockerBtn" onclick="try{window.showAuthModal()}catch(e){console.error('Error:',e)}" style="padding:14px 28px; font-size:16px; background:linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:600; box-shadow:0 6px 16px rgba(99,102,241,0.35);">Sign In / Sign Up</button>
@@ -2949,16 +2949,7 @@ async function processTextRegion(region) {
             // Если QR кодов нет, но есть партии - запускаем генерацию QR кодов
             if (partyNames.length > 0) {
                 console.log('🔄 Есть партии но нет QR кодов, запускаю автоматическую генерацию...');
-                // Автоматически запускаем MULTI режим для генерации QR кодов
-                setTimeout(() => {
-                    if (storedMultiRegion) {
-                        console.log('🚀 Автоматически запускаю генерацию QR кодов...');
-                        processMultiRegionAsLines(storedMultiRegion);
-                    } else {
-                        console.log('⚠️ MULTI область не найдена, нужно выделить вручную');
-                        setStatus('Выделите QR область для генерации кодов');
-                    }
-                }, 500);
+                // OCR already handled by recognizeTextAreas - no duplicate processing needed
             }
         }
     } catch (error) {
@@ -3083,13 +3074,44 @@ function stopVideoStream() {
     if (activeStream) { activeStream.getTracks().forEach(t => t.stop()); activeStream = null; }
     captureVideo.srcObject = null;
     
-    // Properly remove the system key prevention handler with the same capture parameter
+    // Clean up all system key handlers properly
     if (window.preventSystemBlock) {
         document.removeEventListener('keydown', window.preventSystemBlock, true);
         window.preventSystemBlock = null;
-        console.log('## System key handler properly removed - Alt+Tab and Start button should work normally');
     }
-    console.log('🔧 Очистка обработчиков системных клавиш при остановке видео');
+    if (window.multiModeKeyHandler) {
+        document.removeEventListener('keydown', window.multiModeKeyHandler, true);
+        window.multiModeKeyHandler = null;
+    }
+    if (window.systemKeyHandler) {
+        document.removeEventListener('keydown', window.systemKeyHandler, true);
+        window.systemKeyHandler = null;
+        console.log('## Unified system key handler removed - Alt+Tab and Start button should work normally');
+    }
+    // Clean up periodic check interval
+    if (window.systemKeyCheckInterval) {
+        clearInterval(window.systemKeyCheckInterval);
+        window.systemKeyCheckInterval = null;
+    }
+    
+    // Clean up emergency failsafe interval
+    if (window.emergencyCleanupInterval) {
+        clearInterval(window.emergencyCleanupInterval);
+        window.emergencyCleanupInterval = null;
+    }
+    
+    // Clean up aggressive cleanup interval
+    if (window.aggressiveCleanupInterval) {
+        clearInterval(window.aggressiveCleanupInterval);
+        window.aggressiveCleanupInterval = null;
+    }
+    
+    // Force remove window level handlers
+    if (window.onkeydown) {
+        window.onkeydown = null;
+    }
+    
+    console.log('All system key handlers, intervals, failsafes and aggressive cleanup completed');
 }
 
 /* ══════════════════════════════════════════════
@@ -5697,7 +5719,7 @@ async function startCapture() {
         initMultiMode(); // Инициализация мультирежима
         updateWorkModeToggle(); // Обновляем быстрый тумблер
         
-        // Автоматический запуск если есть сохраненная область
+        // OCR processing is handled by recognizeTextAreas() - no duplicate launch needed
         if (isMultiMode) {
             // Для MULTI MODE всегда используем фиксированные координаты
             const fixedMultiRegion = {
@@ -5708,7 +5730,8 @@ async function startCapture() {
             };
             console.log('🚀 Автоматический запуск MULTI MODE с фиксированными координатами...');
             console.log('🎯 Использую фиксированные координаты для MULTI:', fixedMultiRegion);
-            setTimeout(() => processMultiRegionAsLines(fixedMultiRegion), 300);
+            // Start automatic OCR processing for MULTI mode
+            setTimeout(() => recognizeTextAreas(), 500);
         } else if (storedSingleRegion) {
             // Для SINGLE MODE используем сохраненные координаты
             console.log('🚀 Автоматический запуск SINGLE MODE с сохраненными координатами...');
@@ -5726,44 +5749,111 @@ async function startCapture() {
         }, 100);
         
         // Добавляем обработчик для предотвращения блокировки системных клавиш
-        window.preventSystemBlock = function preventSystemBlock(e) {
-            // Разрешаем Alt+Tab, Win+Tab, Win и другие системные комбинации
-            if (e.altKey || e.metaKey) {
-                e.stopPropagation();
-            }
-        };
-        document.addEventListener('keydown', window.preventSystemBlock, true);
-        
-        // Добавляем отдельный обработчик для MULTI режима
-        window.multiModeKeyHandler = function multiModeKeyHandler(e) {
-            // В MULTI режиме разрешаем Alt+Tab и Alt+Стрелки для навигации
-            if (isMultiMode) {
-                if (e.key === 'Tab' && e.altKey) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('🔄 Alt+Tab разрешен в MULTI режиме - переключение страниц');
-                } else if (e.altKey && ['ArrowLeft', 'ArrowRight'].includes(e.key)) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('🔄 Alt+Стрелка разрешена в MULTI режиме - навигация');
-                }
-            } else {
-                // В SINGLE режиме блокируем все Alt/Meta комбинации
-                if (e.altKey || e.metaKey) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-            }
-        };
-        
-        // Применяем соответствующий обработчик
-        if (isMultiMode) {
-            console.log('🎯 Активирован обработчик для MULTI режима');
-            document.addEventListener('keydown', window.multiModeKeyHandler, true);
-        } else {
-            console.log('🔵 Активирован стандартный обработчик для SINGLE режима');
-            document.addEventListener('keydown', window.preventSystemBlock, true);
+        // Clean up any existing handlers first
+        if (window.preventSystemBlock) {
+            document.removeEventListener('keydown', window.preventSystemBlock, true);
+            window.preventSystemBlock = null;
         }
+        if (window.multiModeKeyHandler) {
+            document.removeEventListener('keydown', window.multiModeKeyHandler, true);
+            window.multiModeKeyHandler = null;
+        }
+        
+        // Unified system key handler that works reliably
+        window.systemKeyHandler = function systemKeyHandler(e) {
+            // ALWAYS allow system keys - never block Alt+Tab, Win, etc.
+            if (e.altKey || e.metaKey) {
+                // Don't prevent default for system keys
+                console.log(`System key detected: Alt=${e.altKey}, Meta=${e.metaKey}, Key=${e.key}`);
+                return; // Let system handle it
+            }
+            
+            // Only block non-system keys that interfere with app
+            if (e.key === 'Escape' && !document.getElementById('multiQrOverlay').style.display === 'flex') {
+                // Allow Escape unless in modal
+                return;
+            }
+        };
+        
+        // Add the unified handler with capture but without preventDefault
+        document.addEventListener('keydown', window.systemKeyHandler, true);
+        console.log('Unified system key handler activated - Alt+Tab and Win keys should work');
+        
+        // Add periodic check to ensure system keys still work
+        window.systemKeyCheckInterval = setInterval(() => {
+            if (document.hidden) {
+                console.log('Document is hidden - system keys should work normally');
+            } else {
+                // Document is visible, ensure our handler doesn't block system keys
+                console.log('Document visible - checking system key handler status');
+            }
+        }, 5000); // Check every 5 seconds
+        
+        // Add emergency cleanup on page unload AND on multiple events
+        const emergencyCleanup = () => {
+            console.log('EMERGENCY CLEANUP - Removing all system key handlers');
+            if (window.systemKeyHandler) {
+                document.removeEventListener('keydown', window.systemKeyHandler, true);
+                window.systemKeyHandler = null;
+            }
+            if (window.preventSystemBlock) {
+                document.removeEventListener('keydown', window.preventSystemBlock, true);
+                window.preventSystemBlock = null;
+            }
+            if (window.multiModeKeyHandler) {
+                document.removeEventListener('keydown', window.multiModeKeyHandler, true);
+                window.multiModeKeyHandler = null;
+            }
+            if (window.systemKeyCheckInterval) {
+                clearInterval(window.systemKeyCheckInterval);
+                window.systemKeyCheckInterval = null;
+            }
+        };
+        
+        // Multiple cleanup events to ensure handlers are removed
+        window.addEventListener('beforeunload', emergencyCleanup);
+        window.addEventListener('unload', emergencyCleanup);
+        window.addEventListener('pagehide', emergencyCleanup);
+        
+        // Add visibility change cleanup when page becomes hidden
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                emergencyCleanup();
+                console.log('Page hidden - emergency cleanup executed');
+            }
+        });
+        
+        // Add window blur cleanup (when focus leaves window)
+        window.addEventListener('blur', emergencyCleanup);
+        
+        // Add emergency failsafe - force cleanup every 30 seconds AND aggressive cleanup
+        window.emergencyCleanupInterval = setInterval(() => {
+            if (document.hidden || !document.hasFocus()) {
+                emergencyCleanup();
+                console.log('Emergency failsafe cleanup executed');
+            }
+        }, 30000);
+        
+        // AGGRESSIVE CLEANUP: Remove ALL keydown handlers every 60 seconds as failsafe
+        window.aggressiveCleanupInterval = setInterval(() => {
+            const allHandlers = document.querySelectorAll('script');
+            console.log('AGGRESSIVE CLEANUP - Checking for stuck handlers');
+            
+            // Force remove any remaining system key handlers
+            emergencyCleanup();
+            
+            // Additional safety: remove event listeners from window level
+            if (window.onkeydown) {
+                window.onkeydown = null;
+                console.log('Removed window.onkeydown handler');
+            }
+            
+            // Force garbage collection hint
+            if (window.gc) {
+                window.gc();
+                console.log('Forced garbage collection');
+            }
+        }, 60000);
         
         // Handle visibility change (Alt+Tab, window switching) to prevent stream freeze
         window.videoVisibilityHandler = function handleVisibilityChange() {
@@ -6328,6 +6418,37 @@ if (!firebase.apps.length) {
 const dbQR = firebase.firestore();
 const authQR = firebase.auth();
 
+// Track if auth state has been determined
+let authStateDeterminedQR = false;
+
+// IMMEDIATE AUTH CHECK: Handle login blocker based on auth state
+function immediateAuthCheck() {
+    const user = authQR.currentUser;
+    const blocker = document.getElementById('loginBlocker');
+    
+    if (user && blocker) {
+        // User is logged in - ensure blocker is hidden
+        console.log('User already logged in - keeping login blocker hidden');
+        blocker.style.display = 'none';
+        currentUserIdQR = getUserIdQR();
+        updateAuthUI();
+    } else if (!user && blocker && authStateDeterminedQR) {
+        // User is definitely not logged in - show blocker
+        console.log('User not logged in - showing login blocker');
+        blocker.style.display = 'flex';
+    }
+    // If auth state not yet determined, do nothing (blocker stays hidden)
+}
+
+// Run immediate check right after Firebase init
+immediateAuthCheck();
+
+// FALLBACK CHECK: In case Firebase loads after DOM
+setTimeout(() => {
+    console.log('Fallback auth check - ensuring login blocker is properly handled');
+    immediateAuthCheck();
+}, 100);
+
 // Early definition of showAuthModal for login blocker
 window.showAuthModal = function() {
   const modal = document.getElementById('authModal');
@@ -6759,9 +6880,6 @@ async function handleChangePassword() {
   }
 }
 
-// Track if auth state has been determined
-let authStateDeterminedQR = false;
-
 // Auth state listener - key for cross-page sync
 authQR.onAuthStateChanged((user) => {
   // Mark auth state as determined
@@ -6775,8 +6893,11 @@ authQR.onAuthStateChanged((user) => {
     // Hide blocker when logged in
     if (blocker) blocker.style.display = 'none';
   } else {
-    // Show blocker when not logged in (modal will be shown by load event listener)
-    if (blocker) blocker.style.display = 'flex';
+    // Show blocker ONLY when auth state is determined and user is definitely not logged in
+    if (blocker && authStateDeterminedQR) {
+      blocker.style.display = 'flex';
+      console.log('User not logged in - showing login blocker');
+    }
   }
   
   updateAuthUI();
@@ -6789,6 +6910,12 @@ document.addEventListener('keydown', (e) => {
     const user = authQR.currentUser;
     if (user) hideAuthModal();
   }
+});
+
+// IMMEDIATE DOM-READY CHECK: Handle login blocker as soon as DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded - checking auth state immediately');
+    immediateAuthCheck();
 });
 
 // Setup login blocker button and auto-show modal if not logged in
