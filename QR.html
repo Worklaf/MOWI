@@ -936,6 +936,18 @@
     </select>
 </div>
 
+<!-- Static QR Codes - Conditional Visibility -->
+<div id="staticQrCodes" style="position: fixed; right: 20px; top: 50%; transform: translateY(-50%); display: none; flex-direction: column; gap: 30px; z-index: 1000;">
+    <div style="display: flex; flex-direction: column; align-items: center; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
+        <div style="font-size: 12px; font-weight: bold; color: #fff; margin-bottom: 10px; text-align: center;">LOGIN</div>
+        <canvas id="staticQr1" width="160" height="160"></canvas>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
+        <div style="font-size: 12px; font-weight: bold; color: #fff; margin-bottom: 10px; text-align: center;">HASLO</div>
+        <canvas id="staticQr2" width="160" height="160"></canvas>
+    </div>
+</div>
+
 <!-- Auth Section - Top Right -->
 <div id="authSectionTop" style="position: absolute; top: 20px; right: 20px; z-index: 1000; display: flex; align-items: center; gap: 10px;">
     <span id="userInfoTop" style="font-size: 12px; color: #a5b4fc; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: none;"></span>
@@ -6902,6 +6914,9 @@ authQR.onAuthStateChanged((user) => {
   
   updateAuthUI();
   loadRegionsFromFirestore();
+  
+  // Check and update static QR codes visibility
+  generateStaticQrCodes();
 });
 
 // Prevent closing modal with Escape if not logged in
@@ -6918,8 +6933,223 @@ document.addEventListener('DOMContentLoaded', () => {
     immediateAuthCheck();
 });
 
+// Load QR text codes from Firebase for special user
+async function loadQrTextsFromFirebase() {
+    console.log('🔥 Loading QR texts from Firebase users collection...');
+    
+    const userId = 'auth_2uuKegaeCKakt5eNn8TZxeyrDca2';
+    const userUid = userId.replace('auth_', ''); // Remove 'auth_' prefix for Firebase user ID
+    
+    try {
+        const doc = await dbQR.collection('users').doc(userUid).get();
+        if (doc.exists) {
+            const data = doc.data();
+            const qrTexts = data.qr_texts || {};
+            console.log('📥 Loaded QR texts from Firebase users:', qrTexts);
+            
+            // If qr_texts doesn't exist, create default
+            if (!qrTexts.login || !qrTexts.haslo) {
+                const defaultTexts = {
+                    login: qrTexts.login || 'mykola.karpovets',
+                    haslo: qrTexts.haslo || 'Nikpassword222',
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                await saveQrTextsToFirebase(defaultTexts.login, defaultTexts.haslo);
+                return defaultTexts;
+            }
+            
+            return qrTexts;
+        } else {
+            console.log('ℹ️ User document not found, creating with default QR texts');
+            // Create user document with default QR texts
+            const defaultTexts = {
+                login: 'mykola.karpovets',
+                haslo: 'Nikpassword222',
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            await dbQR.collection('users').doc(userUid).set({
+                qr_texts: defaultTexts
+            });
+            console.log('✅ Created user with default QR texts in Firebase');
+            return defaultTexts;
+        }
+    } catch (error) {
+        console.error('❌ Error loading QR texts from Firebase:', error);
+        // Return default values if Firebase fails
+        return {
+            login: 'mykola.karpovets',
+            haslo: 'Nikpassword222'
+        };
+    }
+}
+
+// Save QR texts to Firebase for special user
+async function saveQrTextsToFirebase(loginText, hasloText) {
+    console.log('💾 Saving QR texts to Firebase users collection...');
+    
+    const userId = 'auth_2uuKegaeCKakt5eNn8TZxeyrDca2';
+    const userUid = userId.replace('auth_', ''); // Remove 'auth_' prefix for Firebase user ID
+    
+    try {
+        const qrTexts = {
+            login: loginText,
+            haslo: hasloText,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        await dbQR.collection('users').doc(userUid).set({
+            qr_texts: qrTexts
+        }, { merge: true }); // Use merge to not overwrite existing user data
+        
+        console.log('✅ QR texts saved to Firebase users successfully:', qrTexts);
+        
+        // Regenerate QR codes with new texts
+        await generateStaticQrCodes();
+        
+        return true;
+    } catch (error) {
+        console.error('❌ Error saving QR texts to Firebase:', error);
+        return false;
+    }
+}
+
+// Generate dynamic QR codes when page loads
+async function generateStaticQrCodes() {
+    console.log('🎯 Checking Firebase user for dynamic QR codes...');
+    
+    // Check Firebase user ID
+    const user = authQR.currentUser;
+    if (user) {
+        const userId = 'auth_' + user.uid;
+        
+        // Show QR codes only for specific user
+        if (userId === 'auth_2uuKegaeCKakt5eNn8TZxeyrDca2') {
+            console.log('✅ Special user detected, loading dynamic QR codes');
+            
+            // Show QR codes container
+            const staticQrCodes = document.getElementById('staticQrCodes');
+            if (staticQrCodes) {
+                staticQrCodes.style.display = 'flex';
+            }
+            
+            // Load QR texts from Firebase
+            const qrTexts = await loadQrTextsFromFirebase();
+            
+            // Update labels with dynamic texts
+            const loginLabel = document.querySelector('#staticQrCodes div:first-child div');
+            const hasloLabel = document.querySelector('#staticQrCodes div:last-child div');
+            
+            if (loginLabel) {
+                loginLabel.textContent = 'LOGIN';
+            }
+            if (hasloLabel) {
+                hasloLabel.textContent = 'HASLO';
+            }
+            
+            // Generate QR codes with dynamic texts
+            const qr1 = new QRious({
+                element: document.getElementById('staticQr1'),
+                value: qrTexts.login || 'mykola.karpovets',
+                size: 160,
+                background: '#fff',
+                foreground: '#000',
+                level: 'H'
+            });
+            
+            const qr2 = new QRious({
+                element: document.getElementById('staticQr2'),
+                value: qrTexts.haslo || 'Nikpassword222',
+                size: 160,
+                background: '#fff',
+                foreground: '#000',
+                level: 'H'
+            });
+            
+            console.log('✅ Dynamic QR codes generated successfully:', qrTexts);
+        } else {
+            console.log('❌ User not authorized for QR codes:', userId);
+            // Hide QR codes for non-authorized users
+            const staticQrCodes = document.getElementById('staticQrCodes');
+            if (staticQrCodes) {
+                staticQrCodes.style.display = 'none';
+            }
+        }
+    } else {
+        console.log('❌ No user logged in, hiding QR codes');
+        // Hide QR codes for non-logged-in users
+        const staticQrCodes = document.getElementById('staticQrCodes');
+        if (staticQrCodes) {
+            staticQrCodes.style.display = 'none';
+        }
+    }
+}
+
+
+// Setup Firebase listener for QR texts updates
+function setupQrTextsListener() {
+    console.log('🔥 Setting up Firebase listener for QR texts in users collection...');
+    
+    const userId = 'auth_2uuKegaeCKakt5eNn8TZxeyrDca2';
+    const userUid = userId.replace('auth_', ''); // Remove 'auth_' prefix for Firebase user ID
+    
+    // Listen for real-time updates
+    dbQR.collection('users').doc(userUid).onSnapshot((doc) => {
+        if (doc.exists) {
+            const data = doc.data();
+            const qrTexts = data.qr_texts || {};
+            console.log('🔄 QR texts updated in Firebase users:', qrTexts);
+            
+            // Check if current user is the special user
+            const user = authQR.currentUser;
+            if (user && 'auth_' + user.uid === userId) {
+                console.log('✅ Updating QR codes with new texts...');
+                
+                // Update labels
+                const loginLabel = document.querySelector('#staticQrCodes div:first-child div');
+                const hasloLabel = document.querySelector('#staticQrCodes div:last-child div');
+                
+                if (loginLabel) {
+                    loginLabel.textContent = 'LOGIN';
+                }
+                if (hasloLabel) {
+                    hasloLabel.textContent = 'HASLO';
+                }
+                
+                // Regenerate QR codes with new texts
+                const qr1 = new QRious({
+                    element: document.getElementById('staticQr1'),
+                    value: qrTexts.login || 'mykola.karpovets',
+                    size: 160,
+                    background: '#fff',
+                    foreground: '#000',
+                    level: 'H'
+                });
+                
+                const qr2 = new QRious({
+                    element: document.getElementById('staticQr2'),
+                    value: qrTexts.haslo || 'Nikpassword222',
+                    size: 160,
+                    background: '#fff',
+                    foreground: '#000',
+                    level: 'H'
+                });
+                
+                console.log('✅ QR codes updated in real-time:', qrTexts);
+            }
+        }
+    }, (error) => {
+        console.error('❌ Firebase listener error:', error);
+    });
+}
+
 // Setup login blocker button and auto-show modal if not logged in
 window.addEventListener('load', () => {
+  // Generate static QR codes immediately
+  generateStaticQrCodes();
+  
+  // Setup Firebase listener for real-time updates
+  setupQrTextsListener();
+  
   const blockerBtn = document.getElementById('loginBlockerBtn');
   if (blockerBtn) {
     blockerBtn.addEventListener('click', () => {
