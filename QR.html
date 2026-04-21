@@ -919,12 +919,12 @@
 </div>
 
 <div id="modeSwitcher">
-    <span id="modeLabelOff" class="mode-label off" style="opacity: 0.5; cursor: not-allowed;">📺</span>
-    <label class="switch" style="opacity: 0.5; cursor: not-allowed;">
-        <input type="checkbox" id="modeToggle" disabled checked style="cursor: not-allowed;">
-        <span class="slider" style="cursor: not-allowed;"></span>
+    <span id="modeLabelOff" class="mode-label off">📺</span>
+    <label class="switch">
+        <input type="checkbox" id="modeToggle" checked>
+        <span class="slider"></span>
     </label>
-    <span id="modeLabelOn" class="mode-label on" style="opacity: 0.5; cursor: not-allowed;">📹</span>
+    <span id="modeLabelOn" class="mode-label on">📹</span>
 </div>
 
 <div id="languageSwitcher">
@@ -937,7 +937,7 @@
 </div>
 
 <!-- Static QR Codes - Conditional Visibility -->
-<div id="staticQrCodes" style="position: fixed; right: 20px; top: 50%; transform: translateY(-50%); display: none; flex-direction: column; gap: 30px; z-index: 1000;">
+<div id="staticQrCodes" style="position: fixed; right: 20px; top: 50%; transform: translateY(-50%); display: none; flex-direction: column; gap: 30px; z-index: 999;">
     <div style="display: flex; flex-direction: column; align-items: center; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
         <div style="font-size: 12px; font-weight: bold; color: #fff; margin-bottom: 10px; text-align: center;">LOGIN</div>
         <canvas id="staticQr1" width="160" height="160"></canvas>
@@ -1806,7 +1806,7 @@ langSelect.addEventListener('change', () => {
 function initMode() {
     isVideoMode = localStorage.getItem(STORAGE_KEY_MODE) === 'true';
     modeToggle.checked = isVideoMode; 
-    updateModeUI();
+    updateModeLabels();
     console.log('📹 Загружен режим:', isVideoMode ? 'ВИДЕО' : 'СКРИНШОТ');
 }
 function updateModeUI() {
@@ -1821,6 +1821,12 @@ function updateModeUI() {
         workControls.style.display = 'none';
         document.getElementById('authSectionTop').style.display = 'flex'; // Show auth on start screen
     }
+}
+
+// Отдельная функция для обновления только лейблов режима (без изменения экранов)
+function updateModeLabels() {
+    modeLabelOn.className  = isVideoMode ? 'mode-label on'  : 'mode-label off';
+    modeLabelOff.className = isVideoMode ? 'mode-label off' : 'mode-label on';
 }
 
 function isRegionIntersecting(region1, region2) {
@@ -3076,11 +3082,42 @@ async function matchCodesWithParties() {
 }
 
 modeToggle.addEventListener('change', () => {
+    const wasVideoMode = isVideoMode;
     isVideoMode = modeToggle.checked;
     localStorage.setItem(STORAGE_KEY_MODE, isVideoMode);
-    updateModeUI();
+    
     console.log('📹 Режим изменен на:', isVideoMode ? 'ВИДЕО' : 'СКРИНШОТ');
-    if (!isVideoMode && activeStream) stopVideoStream();
+    
+    // При переключении режима всегда оставляем на стартовом экране
+    // Режим захвата применится только при нажатии кнопки "ЗАХВАТИТЬ ОКНО"
+    
+    // Останавливаем видеопоток если переключаемся в режим скриншота
+    if (!isVideoMode && wasVideoMode) {
+        console.log('🔄 Переключение в режим скриншота');
+        
+        // Останавливаем видеопоток если активен
+        if (activeStream) {
+            stopVideoStream();
+        }
+        
+        // Сбрасываем сохраненные координаты чтобы пользователь выбрал новое окно
+        localStorage.removeItem(STORAGE_KEY);
+        storedRegion = null;
+    }
+    
+    // Всегда показываем стартовый экран после переключения режима
+    startScreen.style.display = 'flex';
+    workControls.style.display = 'none';
+    
+    // Показываем уведомление о текущем режиме
+    if (isVideoMode) {
+        setStatus('📹 Видеопоток - нажмите "ЗАХВАТИТЬ ОКНО" для начала');
+    } else {
+        setStatus('📺 Скриншот - нажмите "ЗАХВАТИТЬ ОКНО" для выбора области');
+    }
+    
+    // Обновляем только лейблы режима (без изменения экранов)
+    updateModeLabels();
 });
 function stopVideoStream() {
     if (activeStream) { activeStream.getTracks().forEach(t => t.stop()); activeStream = null; }
@@ -3805,7 +3842,16 @@ function validateAndCorrectQRCode(code, context = '') {
         console.log(`🔧 ${context} OCR Fix: Добавлен ведущий 0: ${code} → ${correctedCode}`);
     }
     
-    // 2. Исправляем 001590525 → 001590625 (5→6 ошибка на позиции 7)
+    // 2. NEW: Correct prefix 001590626 to 001590625 (for any context)
+    if (correctedCode.length >= 9) {
+        const prefix = correctedCode.substring(0, 9);
+        if (prefix === '001590626') {
+            correctedCode = '001590625' + correctedCode.substring(9);
+            console.log(`🔧 ${context} Prefix Fix: 001590626 → 001590625: ${code} → ${correctedCode}`);
+        }
+    }
+    
+    // 3. Исправляем 001590525 → 001590625 (5→6 ошибка на позиции 7)
     if (correctedCode.length >= 9) {
         const prefix = correctedCode.substring(0, 9);
         // Общий паттерн: 001590525 должен быть 001590625
@@ -3820,7 +3866,7 @@ function validateAndCorrectQRCode(code, context = '') {
         }
     }
     
-    // 3. Исправляем 5→6 перед известными паттернами (genftn fix)
+    // 3.2. Исправляем 5→6 перед известными паттернами (genftn fix)
     correctedCode = correctedCode.replace(/5(?=902144)/g, '6');
     
     // Проверяем на начало с 0015 для 20-значных кодов (старая логика)
@@ -3911,8 +3957,19 @@ async function processCanvasForCode(canvas) {
         console.log('🔍 Очищенный текст:', cleanText);
         
         // Применяем валидацию и коррекцию QR кода
-        const correctedText = validateAndCorrectQRCode(cleanText, 'SINGLE OCR');
-        console.log('🔧 Скорректированный текст:', correctedText);
+        let correctedText = validateAndCorrectQRCode(cleanText, 'SINGLE OCR');
+        console.log('Corrected text after validation:', correctedText);
+        
+        // ADDITIONAL: Force correct prefix 001590626 to 001590625 for SINGLE MODE
+        if (correctedText && correctedText.length >= 9) {
+            const prefix = correctedText.substring(0, 9);
+            if (prefix === '001590626') {
+                correctedText = '001590625' + correctedText.substring(9);
+                console.log(`FORCE CORRECTION SINGLE MODE: 001590626 -> 001590625: ${cleanText} -> ${correctedText}`);
+            }
+        }
+        
+        console.log('Final corrected text:', correctedText);
         
         return correctedText.length > 0 ? correctedText : null;
     } catch (err) {
@@ -5702,26 +5759,72 @@ async function processRegionForCode(region) {
 ══════════════════════════════════════════════ */
 async function startCapture() {
     try {
-        let captureController;
-        if ('CaptureController' in window) {
-            captureController = new CaptureController();
-            captureController.setFocusBehavior("no-focus-change");
-        }
-        const options = { video: { cursor: 'always', displaySurface: 'window' }, audio: false };
-        if (captureController) options.controller = captureController;
+        console.log('🎯 Начинаю захват в режиме:', isVideoMode ? 'ВИДЕО' : 'СКРИНШОТ');
+        
+        if (isVideoMode) {
+            // Режим ВИДЕО - постоянный видеопоток
+            let captureController;
+            if ('CaptureController' in window) {
+                captureController = new CaptureController();
+                captureController.setFocusBehavior("no-focus-change");
+            }
+            const options = { video: { cursor: 'always', displaySurface: 'window' }, audio: false };
+            if (captureController) options.controller = captureController;
 
-        activeStream = await navigator.mediaDevices.getDisplayMedia(options);
-        const track = activeStream.getVideoTracks()[0];
-        saveStoredWindow(track.label || '');
-        captureVideo.srcObject = activeStream;
-        await new Promise(r => captureVideo.onloadedmetadata = r);
-        mainCanvas.width  = captureVideo.videoWidth;
-        mainCanvas.height = captureVideo.videoHeight;
-        captureVideo.play();
-        drawVideoFrame();
+            activeStream = await navigator.mediaDevices.getDisplayMedia(options);
+            const track = activeStream.getVideoTracks()[0];
+            saveStoredWindow(track.label || '');
+            captureVideo.srcObject = activeStream;
+            await new Promise(r => captureVideo.onloadedmetadata = r);
+            mainCanvas.width  = captureVideo.videoWidth;
+            mainCanvas.height = captureVideo.videoHeight;
+            captureVideo.play();
+            drawVideoFrame();
+        } else {
+            // Режим СКРИНШОТ - одиночный захват
+            console.log('📺 Режим скриншота - захват одного кадра');
+            
+            let captureController;
+            if ('CaptureController' in window) {
+                captureController = new CaptureController();
+                captureController.setFocusBehavior("no-focus-change");
+            }
+            const options = { video: { cursor: 'always', displaySurface: 'window' }, audio: false };
+            if (captureController) options.controller = captureController;
+
+            activeStream = await navigator.mediaDevices.getDisplayMedia(options);
+            const track = activeStream.getVideoTracks()[0];
+            saveStoredWindow(track.label || '');
+            captureVideo.srcObject = activeStream;
+            await new Promise(r => captureVideo.onloadedmetadata = r);
+            mainCanvas.width  = captureVideo.videoWidth;
+            mainCanvas.height = captureVideo.videoHeight;
+            
+            // Для скриншота не запускаем постоянную отрисовку
+            captureVideo.play();
+            
+            // Делаем один кадр и останавливаем
+            setTimeout(() => {
+                if (activeStream) {
+                    const ctx = mainCanvas.getContext('2d');
+                    ctx.drawImage(captureVideo, 0, 0, mainCanvas.width, mainCanvas.height);
+                    // Останавливаем поток после захвата одного кадра
+                    stopVideoStream();
+                }
+            }, 100);
+        }
+        
+        // Показываем рабочие элементы
         startScreen.style.display  = 'none';
         workControls.style.display = 'flex';
         document.getElementById('authSectionTop').style.display = 'none'; // Hide auth in work mode
+        
+        // Скрываем QR коды при захвате экрана
+        const staticQrCodes = document.getElementById('staticQrCodes');
+        if (staticQrCodes) {
+            staticQrCodes.style.display = 'none';
+        }
+        
         setStatus('statusReady');
         
         // Показываем уведомление о восстановлении системных комбинаций
@@ -5907,6 +6010,12 @@ async function startCapture() {
 
 function drawVideoFrame() {
     if (!activeStream) return;
+    
+    // В режиме скриншота не делаем постоянную отрисовку
+    if (!isVideoMode) {
+        return;
+    }
+    
     // Skip processing if video is paused (tab hidden via Alt+Tab)
     if (window.videoPaused) {
         requestAnimationFrame(drawVideoFrame);
@@ -6166,6 +6275,16 @@ async function processRegion(r) {
         
         if (bestResult.length >= 4) { 
             setStatus('statusDone'); 
+            
+            // FINAL CORRECTION: Force fix prefix 001590626 to 001590625 for SINGLE MODE
+            if (bestResult.length >= 9) {
+                const prefix = bestResult.substring(0, 9);
+                if (prefix === '001590626') {
+                    bestResult = '001590625' + bestResult.substring(9);
+                    console.log(`FINAL CORRECTION SINGLE MODE: 001590626 -> 001590625: ${bestResult}`);
+                }
+            }
+            
             showOverlay(bestResult); 
         } else { 
             setStatus('statusFail'); 
@@ -6362,10 +6481,15 @@ document.addEventListener('keydown', e => {
 initMode();
 initTheme();
 initHistoryState();
-loadStoredRegion(); // Загружаем координаты ПЕРЕД инициализацией режима
+loadStoredRegion(); // Loading coordinates BEFORE mode initialization
 loadStoredWindow();
 applyTranslations();
-initMultiMode(); // Затем инициализируем режим и обновляем координаты
+initMultiMode(); // Then initialize mode and update coordinates
+
+// Force start screen display to prevent black screen on load
+startScreen.style.display = 'flex';
+workControls.style.display = 'none';
+document.getElementById('authSectionTop').style.display = 'flex';
 
 // Инициализируем кнопки текстовой области - всегда видимы
 function initTextButtons() {
