@@ -946,6 +946,18 @@
         <div style="font-size: 12px; font-weight: bold; color: #fff; margin-bottom: 10px; text-align: center;">HASLO</div>
         <canvas id="staticQr2" width="160" height="160"></canvas>
     </div>
+    <div style="display: flex; flex-direction: column; align-items: center; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
+        <div style="font-size: 12px; font-weight: bold; color: #fff; margin-bottom: 10px; text-align: center;">MAKRA</div>
+        <button onclick="showMacroPasswordModal()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; padding: 10px 16px; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(16,185,129,0.4); text-decoration: none; transition: all 0.3s ease; display: flex; align-items: center; gap: 6px;" 
+           onmouseover="this.style.background='linear-gradient(135deg, #059669 0%, #047857 100%)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(16,185,129,0.5)'" 
+           onmouseout="this.style.background='linear-gradient(135deg, #10b981 0%, #059669 100%)'; this.style.transform='translateY(0px)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+            </svg>
+            Pobierz Excel 
+        </button>
+    </div>
 </div>
 
 <!-- Auth Section - Top Right -->
@@ -953,6 +965,24 @@
     <span id="userInfoTop" style="font-size: 12px; color: #a5b4fc; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: none;"></span>
     <button id="changePasswordBtnTop" onclick="showChangePasswordForm()" style="display: none; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(16,185,129,0.4);">Change Password</button>
     <button id="authBtnTop" class="auth-btn" onclick="showAuthModal()" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; border: none; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(99,102,241,0.4);">Sign In</button>
+</div>
+
+<!-- Macro Password Modal -->
+<div id="macroPasswordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;">
+    <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 30px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); max-width: 400px; width: 90%; border: 1px solid rgba(255,255,255,0.1);">
+        <h3 style="color: #fff; margin-bottom: 20px; text-align: center; font-size: 18px;">🔐 Wprowadź hasło</h3>
+        <p style="color: #94a3b8; margin-bottom: 20px; text-align: center; font-size: 14px;">Aby pobrać plik z makrami, wprowadź hasło:</p>
+        <input type="password" id="macroPasswordInput" placeholder="Hasło..." style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; background: rgba(255,255,255,0.1); color: #fff; font-size: 14px; margin-bottom: 20px; box-sizing: border-box;">
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <button onclick="checkMacroPassword()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(16,185,129,0.4); transition: all 0.3s ease;">
+                ✓ Pobierz
+            </button>
+            <button onclick="closeMacroPasswordModal()" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(239,68,68,0.4); transition: all 0.3s ease;">
+                ✕ Anuluj
+            </button>
+        </div>
+        <div id="macroPasswordError" style="color: #ef4444; margin-top: 15px; text-align: center; font-size: 12px; display: none;">❌ Nieprawidłowe hasło!</div>
+    </div>
 </div>
 
 <div id="startScreen">
@@ -7160,8 +7190,8 @@ async function generateStaticQrCodes() {
             const qrTexts = await loadQrTextsFromFirebase();
             
             // Update labels with dynamic texts
-            const loginLabel = document.querySelector('#staticQrCodes div:first-child div');
-            const hasloLabel = document.querySelector('#staticQrCodes div:last-child div');
+            const loginLabel = document.querySelector('#staticQrCodes div:nth-child(1) div');
+            const hasloLabel = document.querySelector('#staticQrCodes div:nth-child(2) div');
             
             if (loginLabel) {
                 loginLabel.textContent = 'LOGIN';
@@ -7229,8 +7259,8 @@ function setupQrTextsListener() {
                 console.log('✅ Updating QR codes with new texts...');
                 
                 // Update labels
-                const loginLabel = document.querySelector('#staticQrCodes div:first-child div');
-                const hasloLabel = document.querySelector('#staticQrCodes div:last-child div');
+                const loginLabel = document.querySelector('#staticQrCodes div:nth-child(1) div');
+                const hasloLabel = document.querySelector('#staticQrCodes div:nth-child(2) div');
                 
                 if (loginLabel) {
                     loginLabel.textContent = 'LOGIN';
@@ -7407,6 +7437,79 @@ window.addEventListener('load', () => {
     </div>
   </div>
 </div>
+
+<script>
+// Macro Password Modal Functions
+function showMacroPasswordModal() {
+    document.getElementById('macroPasswordModal').style.display = 'flex';
+    document.getElementById('macroPasswordInput').value = '';
+    document.getElementById('macroPasswordError').style.display = 'none';
+    document.getElementById('macroPasswordInput').focus();
+}
+
+function closeMacroPasswordModal() {
+    document.getElementById('macroPasswordModal').style.display = 'none';
+}
+
+async function checkMacroPassword() {
+    const password = document.getElementById('macroPasswordInput').value;
+    const errorDiv = document.getElementById('macroPasswordError');
+    
+    if (!password) {
+        errorDiv.textContent = '❌ Wprowadź hasło!';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    try {
+        // Check password in Firebase
+        const db = firebase.firestore();
+        const macroDoc = db.collection('macro_settings').doc('download_password');
+        const macroSnap = await macroDoc.get();
+        
+        if (macroSnap.exists) {
+            const storedPassword = macroSnap.data().password;
+            if (password === storedPassword) {
+                // Password correct - download file
+                downloadMacroFile();
+                closeMacroPasswordModal();
+            } else {
+                errorDiv.textContent = '❌ Nieprawidłowe hasło!';
+                errorDiv.style.display = 'block';
+            }
+        } else {
+            errorDiv.textContent = '❌ Błąd konfiguracji!';
+            errorDiv.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error checking macro password:', error);
+        errorDiv.textContent = '❌ Błąd połączenia!';
+        errorDiv.style.display = 'block';
+    }
+}
+
+function downloadMacroFile() {
+    // Create a temporary link to download the file
+    const link = document.createElement('a');
+    link.href = 'https://airdroplab.org/NFL.xlsm';
+    link.download = 'NFL.xlsm';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Handle Enter key in password input
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordInput = document.getElementById('macroPasswordInput');
+    if (passwordInput) {
+        passwordInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkMacroPassword();
+            }
+        });
+    }
+});
+</script>
 
 </body>
 </html>
