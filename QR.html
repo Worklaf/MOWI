@@ -948,7 +948,7 @@
     </div>
     <div style="display: flex; flex-direction: column; align-items: center; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
         <div style="font-size: 12px; font-weight: bold; color: #fff; margin-bottom: 10px; text-align: center;">MAKRA</div>
-        <button onclick="showMacroPasswordModal()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; padding: 10px 16px; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(16,185,129,0.4); text-decoration: none; transition: all 0.3s ease; display: flex; align-items: center; gap: 6px;" 
+        <button onclick="showPasswordModal()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; padding: 10px 16px; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(16,185,129,0.4); text-decoration: none; transition: all 0.3s ease; display: flex; align-items: center; gap: 6px;" 
            onmouseover="this.style.background='linear-gradient(135deg, #059669 0%, #047857 100%)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(16,185,129,0.5)'" 
            onmouseout="this.style.background='linear-gradient(135deg, #10b981 0%, #059669 100%)'; this.style.transform='translateY(0px)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'">
             <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -967,21 +967,74 @@
     <button id="authBtnTop" class="auth-btn" onclick="showAuthModal()" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; border: none; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(99,102,241,0.4);">Sign In</button>
 </div>
 
-<!-- Macro Password Modal -->
-<div id="macroPasswordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;">
+<!-- Password Modal -->
+<div id="passwordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;">
     <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 30px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); max-width: 400px; width: 90%; border: 1px solid rgba(255,255,255,0.1);">
         <h3 style="color: #fff; margin-bottom: 20px; text-align: center; font-size: 18px;">🔐 Wprowadź hasło</h3>
         <p style="color: #94a3b8; margin-bottom: 20px; text-align: center; font-size: 14px;">Aby pobrać plik z makrami, wprowadź hasło:</p>
-        <input type="password" id="macroPasswordInput" placeholder="Hasło..." style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; background: rgba(255,255,255,0.1); color: #fff; font-size: 14px; margin-bottom: 20px; box-sizing: border-box;">
+        
+        <input type="password" id="passwordInput" placeholder="Hasło..." style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; background: rgba(255,255,255,0.1); color: #fff; font-size: 14px; margin-bottom: 20px; box-sizing: border-box;">
+        
+        <div id="passwordError" style="color: #ef4444; margin-bottom: 20px; text-align: center; font-size: 12px; display: none;">❌ Nieprawidłowe hasło!</div>
+        
         <div style="display: flex; gap: 10px; justify-content: center;">
-            <button onclick="checkMacroPassword()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(16,185,129,0.4); transition: all 0.3s ease;">
-                ✓ Pobierz
+            <button onclick="checkPassword()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(16,185,129,0.4); transition: all 0.3s ease;">
+                ✓ Dalej
             </button>
-            <button onclick="closeMacroPasswordModal()" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(239,68,68,0.4); transition: all 0.3s ease;">
+            <button onclick="closePasswordModal()" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(239,68,68,0.4); transition: all 0.3s ease;">
                 ✕ Anuluj
             </button>
         </div>
-        <div id="macroPasswordError" style="color: #ef4444; margin-top: 15px; text-align: center; font-size: 12px; display: none;">❌ Nieprawidłowe hasło!</div>
+    </div>
+</div>
+
+<!-- Download Options Modal -->
+<div id="downloadOptionsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;">
+    <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 30px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); max-width: 450px; width: 90%; border: 1px solid rgba(255,255,255,0.1);">
+        <h3 style="color: #fff; margin-bottom: 20px; text-align: center; font-size: 18px;">📁 Wybierz sposób pobierania</h3>
+        <p style="color: #94a3b8; margin-bottom: 25px; text-align: center; font-size: 14px;">Wybierz jedną z opcji pobierania pliku Excel:</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <!-- Option 1: Direct Link -->
+            <button onclick="downloadDirectFile()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; padding: 15px 20px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(16,185,129,0.4); text-decoration: none; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px;"
+               onmouseover="this.style.background='linear-gradient(135deg, #059669 0%, #047857 100%)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(16,185,129,0.5)'"
+               onmouseout="this.style.background='linear-gradient(135deg, #10b981 0%, #059669 100%)'; this.style.transform='translateY(0px)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                </svg>
+                🗃️ Dane Produkcji
+            </button>
+            
+            <!-- Option 2: JavaScript BLOB -->
+            <button onclick="downloadBlobFile(event)" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; border: none; border-radius: 8px; padding: 15px 20px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(99,102,241,0.4); text-decoration: none; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px;"
+               onmouseover="this.style.background='linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(99,102,241,0.5)'"
+               onmouseout="this.style.background='linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)'; this.style.transform='translateY(0px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.4)'">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                </svg>
+                🗃️ Dane Produkcji (BLOB)
+            </button>
+            
+            <!-- Option 3: SZTUKI.xlsm BLOB -->
+            <button onclick="downloadSztukiFile(event)" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; border-radius: 8px; padding: 15px 20px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(245,158,11,0.4); text-decoration: none; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px;"
+               onmouseover="this.style.background='linear-gradient(135deg, #d97706 0%, #b45309 100%)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(245,158,11,0.5)'"
+               onmouseout="this.style.background='linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'; this.style.transform='translateY(0px)'; this.style.boxShadow='0 4px 12px rgba(245,158,11,0.4)'">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                </svg>
+                🎨 SZTUKI (BLOB)
+            </button>
+        </div>
+        
+        <!-- Close Button -->
+        <div style="margin-top: 25px; text-align: center;">
+            <button onclick="closeDownloadOptionsModal()" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(239,68,68,0.4); transition: all 0.3s ease;">
+                ✕ Zamknij
+            </button>
+        </div>
     </div>
 </div>
 
@@ -7439,21 +7492,31 @@ window.addEventListener('load', () => {
 </div>
 
 <script>
-// Macro Password Modal Functions
-function showMacroPasswordModal() {
-    document.getElementById('macroPasswordModal').style.display = 'flex';
-    document.getElementById('macroPasswordInput').value = '';
-    document.getElementById('macroPasswordError').style.display = 'none';
-    document.getElementById('macroPasswordInput').focus();
+// Password Modal Functions
+function showPasswordModal() {
+    document.getElementById('passwordModal').style.display = 'flex';
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('passwordError').style.display = 'none';
+    document.getElementById('passwordInput').focus();
 }
 
-function closeMacroPasswordModal() {
-    document.getElementById('macroPasswordModal').style.display = 'none';
+function closePasswordModal() {
+    document.getElementById('passwordModal').style.display = 'none';
 }
 
-async function checkMacroPassword() {
-    const password = document.getElementById('macroPasswordInput').value;
-    const errorDiv = document.getElementById('macroPasswordError');
+// Download Options Modal Functions
+function showDownloadOptionsModal() {
+    document.getElementById('downloadOptionsModal').style.display = 'flex';
+}
+
+function closeDownloadOptionsModal() {
+    document.getElementById('downloadOptionsModal').style.display = 'none';
+}
+
+// Password Check Function
+async function checkPassword() {
+    const password = document.getElementById('passwordInput').value;
+    const errorDiv = document.getElementById('passwordError');
     
     if (!password) {
         errorDiv.textContent = '❌ Wprowadź hasło!';
@@ -7470,9 +7533,10 @@ async function checkMacroPassword() {
         if (macroSnap.exists) {
             const storedPassword = macroSnap.data().password;
             if (password === storedPassword) {
-                // Password correct - download file
-                downloadMacroFile();
-                closeMacroPasswordModal();
+                // Password correct - show download options
+                errorDiv.style.display = 'none';
+                closePasswordModal();
+                showDownloadOptionsModal();
             } else {
                 errorDiv.textContent = '❌ Nieprawidłowe hasło!';
                 errorDiv.style.display = 'block';
@@ -7482,32 +7546,241 @@ async function checkMacroPassword() {
             errorDiv.style.display = 'block';
         }
     } catch (error) {
-        console.error('Error checking macro password:', error);
+        console.error('Error checking password:', error);
         errorDiv.textContent = '❌ Błąd połączenia!';
         errorDiv.style.display = 'block';
     }
 }
 
-function downloadMacroFile() {
+// Direct Download Function
+function downloadDirectFile() {
+    console.log('🔄 Starting direct download...');
+    
     // Create a temporary link to download the file
     const link = document.createElement('a');
-    link.href = 'https://airdroplab.org/NFL.xlsm';
-    link.download = 'NFL.xlsm';
+    link.href = 'https://airdroplab.org/NFL.zip';
+    link.download = 'NFL.zip';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    
+    console.log('✅ Direct download completed');
+    
+    // Close modal after successful download
+    setTimeout(() => {
+        closeDownloadOptionsModal();
+    }, 1000);
+}
+
+// BLOB Download Function with CORS workaround
+async function downloadBlobFile(event) {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    try {
+        console.log('🔄 Starting BLOB download...');
+        
+        // Show loading state
+        button.innerHTML = '⏳ Pobieranie...';
+        button.disabled = true;
+        
+        // Try multiple URLs for CORS workaround
+        const urls = [
+            "https://pub-6f797b2842b7491297940c7f3f51e92f.r2.dev/NFL.xlsm",
+            "https://airdroplab.org/NFL.xlsm"
+        ];
+        
+        let response;
+        let success = false;
+        
+        for (const url of urls) {
+            try {
+                console.log(`🔄 Trying URL: ${url}`);
+                response = await fetch(url, {
+                    method: 'GET',
+                    mode: 'cors', // Try CORS first
+                    cache: 'no-cache'
+                });
+                
+                if (response.ok) {
+                    success = true;
+                    break;
+                }
+            } catch (corsError) {
+                console.log(`❌ CORS failed for ${url}, trying no-cors mode...`);
+                try {
+                    // Try no-cors mode as fallback
+                    response = await fetch(url, {
+                        method: 'GET',
+                        mode: 'no-cors',
+                        cache: 'no-cache'
+                    });
+                    
+                    // With no-cors, we can't check response.ok, so we'll try to proceed
+                    console.log(`🔄 Using no-cors mode for ${url}`);
+                    success = true;
+                    break;
+                } catch (noCorsError) {
+                    console.log(`❌ No-cors also failed for ${url}`);
+                    continue;
+                }
+            }
+        }
+        
+        if (!success) {
+            throw new Error('All download methods failed');
+        }
+        
+        // Create blob (this might not work with no-cors, but let's try)
+        const blob = await response.blob();
+        console.log('✅ BLOB created successfully');
+        
+        // Create download link
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "NFL.xlsm";
+        document.body.appendChild(a);
+        a.click();
+        
+        // Cleanup
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        console.log('✅ BLOB download completed');
+        
+        // Close modal after successful download
+        setTimeout(() => {
+            closeDownloadOptionsModal();
+        }, 1000);
+        
+    } catch (error) {
+        console.error('❌ BLOB download error:', error);
+        
+        // Restore button and show error
+        button.innerHTML = originalText;
+        button.disabled = false;
+        
+        // Show error message with fallback suggestion
+        alert('❌ Błąd pobierania BLOB. Spróbuj użyć pierwszej opcji "🗃️ Dane Produkcji" lub skontaktuj się z administratorem.');
+    }
+}
+
+// SZTUKI Download Function with BLOB method
+async function downloadSztukiFile(event) {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    try {
+        console.log('🔄 Starting SZTUKI BLOB download...');
+        
+        // Show loading state
+        button.innerHTML = '⏳ Pobieranie...';
+        button.disabled = true;
+        
+        // Fetch the SZTUKI file
+        const urls = [
+            "https://airdroplab.org/SZTUKI.xlsm"
+        ];
+        
+        let response;
+        let success = false;
+        
+        for (const url of urls) {
+            try {
+                console.log(`🔄 Trying SZTUKI URL: ${url}`);
+                response = await fetch(url, {
+                    method: 'GET',
+                    mode: 'cors',
+                    cache: 'no-cache'
+                });
+                
+                if (response.ok) {
+                    success = true;
+                    break;
+                }
+            } catch (corsError) {
+                console.log(`❌ CORS failed for ${url}, trying no-cors mode...`);
+                try {
+                    response = await fetch(url, {
+                        method: 'GET',
+                        mode: 'no-cors',
+                        cache: 'no-cache'
+                    });
+                    
+                    console.log(`🔄 Using no-cors mode for ${url}`);
+                    success = true;
+                    break;
+                } catch (noCorsError) {
+                    console.log(`❌ No-cors also failed for ${url}`);
+                    continue;
+                }
+            }
+        }
+        
+        if (!success) {
+            throw new Error('All SZTUKI download methods failed');
+        }
+        
+        // Create blob
+        const blob = await response.blob();
+        console.log('✅ SZTUKI BLOB created successfully');
+        
+        // Create download link
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "SZTUKI.xlsm";
+        document.body.appendChild(a);
+        a.click();
+        
+        // Cleanup
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        console.log('✅ SZTUKI download completed');
+        
+        // Close modal after successful download
+        setTimeout(() => {
+            closeDownloadOptionsModal();
+        }, 1000);
+        
+    } catch (error) {
+        console.error('❌ SZTUKI download error:', error);
+        
+        // Restore button and show error
+        button.innerHTML = originalText;
+        button.disabled = false;
+        
+        // Show error message
+        alert('❌ Błąd pobierania pliku SZTUKI. Spróbuj ponownie później.');
+    }
 }
 
 // Handle Enter key in password input
 document.addEventListener('DOMContentLoaded', function() {
-    const passwordInput = document.getElementById('macroPasswordInput');
+    const passwordInput = document.getElementById('passwordInput');
     if (passwordInput) {
         passwordInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                checkMacroPassword();
+                checkPassword();
             }
         });
     }
+    
+    // Handle Escape key to close modals
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const passwordModal = document.getElementById('passwordModal');
+            const downloadModal = document.getElementById('downloadOptionsModal');
+            
+            if (downloadModal && downloadModal.style.display === 'flex') {
+                closeDownloadOptionsModal();
+            } else if (passwordModal && passwordModal.style.display === 'flex') {
+                closePasswordModal();
+            }
+        }
+    });
 });
 </script>
 
