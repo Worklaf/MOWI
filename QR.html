@@ -1035,7 +1035,7 @@
             
             <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
                 <label style="color: #94a3b8; font-size: 12px; margin-right: 10px;">Wybierz plik:</label>
-                <input type="file" id="customButtonFile" onchange="uploadCustomFile()" style="flex: 1; padding: 8px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; background: rgba(255,255,255,0.1); color: #fff; font-size: 12px;">
+                <input type="file" id="customButtonFile" style="flex: 1; padding: 8px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; background: rgba(255,255,255,0.1); color: #fff; font-size: 12px;">
             </div>
             
             <div id="uploadProgress" style="display: none; margin-bottom: 15px;">
@@ -7829,92 +7829,83 @@ async function addCustomButton() {
     }
     
     try {
-        let url = '';
-        
-        // Check if file was selected for upload
-        if (fileInput && fileInput.files && fileInput.files[0]) {
-            // Upload file first, then create button
-            const file = fileInput.files[0];
-            const fileName = file.name;
-            const timestamp = Date.now();
-            const uniqueFileName = `${timestamp}_${fileName}`;
-            
-            // Show upload progress
-            document.getElementById('uploadProgress').style.display = 'block';
-            
-            try {
-                // Upload to R2 via Worker
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('fileName', uniqueFileName);
-                
-                const response = await fetch('https://r2-upload-proxy.nikolfar91.workers.dev/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    url = `https://pub-6f797b2842b7491297940c7f3f51e92f.r2.dev/uploads/${uniqueFileName}`;
-                    
-                    // Save file metadata to Firebase
-                    const db = firebase.firestore();
-                    await db.collection('uploaded_files').add({
-                        name: uniqueFileName,
-                        originalName: fileName,
-                        size: file.size,
-                        type: file.type,
-                        uploadDate: new Date().toISOString(),
-                        url: url,
-                        customButton: true
-                    });
-                    
-                    console.log('✅ File uploaded successfully:', result);
-                } else {
-                    throw new Error('Upload failed');
-                }
-            } catch (uploadError) {
-                console.error('Upload error:', uploadError);
-                error.textContent = '❌ Błąd przesyłania pliku!';
-                error.style.display = 'block';
-                return;
-            } finally {
-                // Hide upload progress
-                document.getElementById('uploadProgress').style.display = 'none';
-            }
-        } else {
-            // No file selected, use manual URL input
-            url = document.getElementById('customButtonUrl').value.trim();
-        }
-        
-        if (!url) {
-            error.textContent = '❌ Wybierz plik lub wpisz URL!';
+        // Check if file was selected
+        if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+            error.textContent = '❌ Wybierz plik!';
             error.style.display = 'block';
             return;
         }
         
-        // Save custom button to Firebase with automatic colors
-        const db = firebase.firestore();
-        const buttonData = {
-            name: name,
-            url: url,
-            color: '#10b981',
-            bgColor: '#059669',
-            createdAt: new Date().toISOString()
-        };
+        // Upload file first, then create button
+        const file = fileInput.files[0];
+        const fileName = file.name;
+        const timestamp = Date.now();
+        const uniqueFileName = `${timestamp}_${fileName}`;
         
-        await db.collection('custom_download_buttons').add(buttonData);
+        // Show upload progress
+        document.getElementById('uploadProgress').style.display = 'block';
         
-        // Refresh custom buttons display
-        loadCustomButtons();
-        
-        // Clear form
-        if (nameInput) nameInput.value = '';
-        if (document.getElementById('customButtonUrl')) document.getElementById('customButtonUrl').value = '';
-        if (fileInput) fileInput.value = '';
-        closeAddCustomButtonModal();
-        
-        alert('✅ Przycisk dodany pomyślnie!');
+        try {
+            // Upload to R2 via Worker
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('fileName', uniqueFileName);
+            
+            const response = await fetch('https://r2-upload-proxy.nikolfar91.workers.dev/upload', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                const url = `https://pub-6f797b2842b7491297940c7f3f51e92f.r2.dev/uploads/${uniqueFileName}`;
+                
+                // Save file metadata to Firebase
+                const db = firebase.firestore();
+                await db.collection('uploaded_files').add({
+                    name: uniqueFileName,
+                    originalName: fileName,
+                    size: file.size,
+                    type: file.type,
+                    uploadDate: new Date().toISOString(),
+                    url: url,
+                    customButton: true
+                });
+                
+                // Save custom button to Firebase with automatic colors
+                const buttonData = {
+                    name: name,
+                    url: url,
+                    color: '#10b981',
+                    bgColor: '#059669',
+                    createdAt: new Date().toISOString()
+                };
+                
+                await db.collection('custom_download_buttons').add(buttonData);
+                
+                console.log('✅ File uploaded successfully:', result);
+                
+                // Refresh custom buttons display
+                loadCustomButtons();
+                
+                // Clear form
+                if (nameInput) nameInput.value = '';
+                if (fileInput) fileInput.value = '';
+                closeAddCustomButtonModal();
+                
+                alert('✅ Przycisk dodany pomyślnie!');
+                
+            } else {
+                throw new Error('Upload failed');
+            }
+        } catch (uploadError) {
+            console.error('Upload error:', uploadError);
+            error.textContent = '❌ Błąd przesyłania pliku!';
+            error.style.display = 'block';
+        } finally {
+            // Hide upload progress
+            document.getElementById('uploadProgress').style.display = 'none';
+        }
         
     } catch (error) {
         console.error('Error adding custom button:', error);
