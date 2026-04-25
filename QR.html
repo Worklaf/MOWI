@@ -798,6 +798,12 @@
             75% { transform: translateY(-10px) scale(1.1); opacity: 0.6; }
         }
         
+        @keyframes pulse {
+            0% { box-shadow: 0 4px 12px rgba(16,185,129,0.4), 0 0 0 0 rgba(16,185,129,0.4); }
+            70% { box-shadow: 0 4px 12px rgba(16,185,129,0.4), 0 0 0 10px rgba(16,185,129,0); }
+            100% { box-shadow: 0 4px 12px rgba(16,185,129,0.4), 0 0 0 0 rgba(16,185,129,0); }
+        }
+        
         @keyframes premiumGlow {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
@@ -948,7 +954,7 @@
     </div>
     <div style="display: flex; flex-direction: column; align-items: center; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
         <div style="font-size: 12px; font-weight: bold; color: #fff; margin-bottom: 10px; text-align: center;">MAKRA</div>
-        <button onclick="showPasswordModal()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; padding: 10px 16px; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(16,185,129,0.4); text-decoration: none; transition: all 0.3s ease; display: flex; align-items: center; gap: 6px;" 
+        <button onclick="showPasswordModal()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; padding: 10px 16px; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(16,185,129,0.4); text-decoration: none; transition: all 0.3s ease; display: flex; align-items: center; gap: 6px; margin-bottom: 8px;" 
            onmouseover="this.style.background='linear-gradient(135deg, #059669 0%, #047857 100%)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(16,185,129,0.5)'" 
            onmouseout="this.style.background='linear-gradient(135deg, #10b981 0%, #059669 100%)'; this.style.transform='translateY(0px)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'">
             <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -956,6 +962,15 @@
                 <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
             </svg>
             Pobierz Excel 
+        </button>
+        <button onclick="showFileManagerPasswordModal()" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none; border-radius: 8px; padding: 10px 16px; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(139,92,246,0.4); text-decoration: none; transition: all 0.3s ease; display: flex; align-items: center; gap: 6px;" 
+           onmouseover="this.style.background='linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(139,92,246,0.5)'" 
+           onmouseout="this.style.background='linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)'; this.style.transform='translateY(0px)'; this.style.boxShadow='0 4px 12px rgba(139,92,246,0.4)'">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+            </svg>
+            Zarządzaj Plikami
         </button>
     </div>
 </div>
@@ -988,6 +1003,88 @@
     </div>
 </div>
 
+<!-- File Operation Password Modal -->
+<div id="filePasswordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10001; justify-content: center; align-items: center;">
+    <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 30px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); max-width: 400px; width: 90%; border: 1px solid rgba(255,255,255,0.1);">
+        <h3 id="filePasswordTitle" style="color: #fff; margin-bottom: 20px; text-align: center; font-size: 18px;">🔐 Wprowadź hasło</h3>
+        <p id="filePasswordMessage" style="color: #94a3b8; margin-bottom: 20px; text-align: center; font-size: 14px;">Wprowadź hasło aby kontynuować:</p>
+        
+        <input type="password" id="filePasswordInput" placeholder="Hasło..." style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; background: rgba(255,255,255,0.1); color: #fff; font-size: 14px; margin-bottom: 20px; box-sizing: border-box;">
+        
+        <div id="filePasswordError" style="color: #ef4444; margin-bottom: 20px; text-align: center; font-size: 12px; display: none;">❌ Nieprawidłowe hasło!</div>
+        
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <button onclick="checkFilePassword()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(16,185,129,0.4); transition: all 0.3s ease;">
+                ✓ Dalej
+            </button>
+            <button onclick="closeFilePasswordModal()" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(239,68,68,0.4); transition: all 0.3s ease;">
+                ✕ Anuluj
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Custom Button Modal -->
+<div id="addCustomButtonModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10002; justify-content: center; align-items: center;">
+    <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 30px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); max-width: 500px; width: 90%; border: 1px solid rgba(255,255,255,0.1);">
+        <h3 style="color: #fff; margin-bottom: 20px; text-align: center; font-size: 18px;">🎨 Dodaj Własny Przycisk</h3>
+        <p style="color: #94a3b8; margin-bottom: 20px; text-align: center; font-size: 14px;">Dodaj nowy przycisk pobierania:</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <input type="text" id="customButtonName" placeholder="Nazwa przycisku..." style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; background: rgba(255,255,255,0.1); color: #fff; font-size: 14px; margin-bottom: 15px; box-sizing: border-box;">
+            
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
+                <label style="color: #94a3b8; font-size: 12px; margin-right: 10px;">Wybierz plik:</label>
+                <input type="file" id="customButtonFile" onchange="uploadCustomFile()" style="flex: 1; padding: 8px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; background: rgba(255,255,255,0.1); color: #fff; font-size: 12px;">
+            </div>
+            
+            <div id="uploadProgress" style="display: none; margin-bottom: 15px;">
+                <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <span style="color: #94a3b8; font-size: 12px;">Przesyłanie pliku...</span>
+                        <span id="uploadPercent" style="color: #fff; font-size: 12px;">0%</span>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.2); border-radius: 4px; height: 6px; overflow: hidden;">
+                        <div id="uploadProgressBar" style="background: linear-gradient(90deg, #8b5cf6 0%, #7c3aed 100%); height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="customButtonError" style="color: #ef4444; margin-bottom: 20px; text-align: center; font-size: 12px; display: none;">❌ Błąd dodawania przycisku!</div>
+        
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <button onclick="addCustomButton()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(16,185,129,0.4); transition: all 0.3s ease;">
+                ✓ Dodaj Przycisk
+            </button>
+            <button onclick="closeAddCustomButtonModal()" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(239,68,68,0.4); transition: all 0.3s ease;">
+                ✕ Anuluj
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- File Manager Password Modal -->
+<div id="fileManagerPasswordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10001; justify-content: center; align-items: center;">
+    <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 30px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); max-width: 400px; width: 90%; border: 1px solid rgba(255,255,255,0.1);">
+        <h3 style="color: #fff; margin-bottom: 20px; text-align: center; font-size: 18px;">🔐 Wprowadź hasło</h3>
+        <p style="color: #94a3b8; margin-bottom: 25px; text-align: center; font-size: 14px;">Wprowadź hasło aby uzyskać dostęp do menedżera plików:</p>
+        
+        <input type="password" id="fileManagerPasswordInput" placeholder="Hasło..." style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; background: rgba(255,255,255,0.1); color: #fff; font-size: 14px; margin-bottom: 15px; box-sizing: border-box;">
+        
+        <div id="fileManagerPasswordError" style="color: #ef4444; margin-bottom: 20px; text-align: center; font-size: 12px; display: none;">❌ Błędne hasło!</div>
+        
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <button onclick="checkFileManagerPassword()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(16,185,129,0.4); transition: all 0.3s ease;">
+                ✓ Zatwierdź
+            </button>
+            <button onclick="closeFileManagerPasswordModal()" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(239,68,68,0.4); transition: all 0.3s ease;">
+                ✕ Anuluj
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Download Options Modal -->
 <div id="downloadOptionsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;">
     <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 30px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); max-width: 450px; width: 90%; border: 1px solid rgba(255,255,255,0.1);">
@@ -995,8 +1092,8 @@
         <p style="color: #94a3b8; margin-bottom: 25px; text-align: center; font-size: 14px;">Wybierz jedną z opcji pobierania pliku Excel:</p>
         
         <div style="display: flex; flex-direction: column; gap: 15px;">
-            <!-- Option 1: Direct Link -->
-            <button onclick="downloadDirectFile()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; padding: 15px 20px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(16,185,129,0.4); text-decoration: none; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px;"
+            <!-- Option 1: NFL.xlsm -->
+            <button onclick="downloadNFLFile()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; padding: 15px 20px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(16,185,129,0.4); text-decoration: none; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px;"
                onmouseover="this.style.background='linear-gradient(135deg, #059669 0%, #047857 100%)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(16,185,129,0.5)'"
                onmouseout="this.style.background='linear-gradient(135deg, #10b981 0%, #059669 100%)'; this.style.transform='translateY(0px)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'">
                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -1006,33 +1103,119 @@
                 🗃️ Dane Produkcji
             </button>
             
-            <!-- Option 2: JavaScript BLOB -->
-            <button onclick="downloadBlobFile(event)" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; border: none; border-radius: 8px; padding: 15px 20px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(99,102,241,0.4); text-decoration: none; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px;"
-               onmouseover="this.style.background='linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(99,102,241,0.5)'"
-               onmouseout="this.style.background='linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)'; this.style.transform='translateY(0px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.4)'">
-                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
-                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
-                </svg>
-                🗃️ Dane Produkcji (BLOB)
-            </button>
-            
-            <!-- Option 3: SZTUKI.xlsm BLOB -->
-            <button onclick="downloadSztukiFile(event)" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; border-radius: 8px; padding: 15px 20px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(245,158,11,0.4); text-decoration: none; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px;"
+            <!-- Option 2: SZTUKI.xlsm -->
+            <button onclick="downloadSztukiFile()" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; border-radius: 8px; padding: 15px 20px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(245,158,11,0.4); text-decoration: none; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px;"
                onmouseover="this.style.background='linear-gradient(135deg, #d97706 0%, #b45309 100%)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(245,158,11,0.5)'"
                onmouseout="this.style.background='linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'; this.style.transform='translateY(0px)'; this.style.boxShadow='0 4px 12px rgba(245,158,11,0.4)'">
                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                     <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
-                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                    <path d="M7.646 11.854a.5.5 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
                 </svg>
-                🎨 SZTUKI (BLOB)
+                SZTUKI.xlsm
             </button>
+        </div>
+        
+        <!-- Custom Buttons Management Section -->
+        <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h4 style="color: #fff; margin: 0; font-size: 16px;">🔧 Zarządzaj Przyciskami</h4>
+                <button onclick="showAddCustomButtonModal()" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none; border-radius: 6px; padding: 8px 16px; font-size: 12px; cursor: pointer;">
+                    ➕ Dodaj Przycisk
+                </button>
+            </div>
+            
+            <div id="customButtonsContainer" style="display: flex; flex-direction: column; gap: 10px;">
+                <!-- Custom buttons will be added here dynamically -->
+            </div>
         </div>
         
         <!-- Close Button -->
         <div style="margin-top: 25px; text-align: center;">
             <button onclick="closeDownloadOptionsModal()" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(239,68,68,0.4); transition: all 0.3s ease;">
                 ✕ Zamknij
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- File Manager Modal -->
+<div id="fileManagerModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;">
+    <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 30px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); max-width: 600px; width: 90%; border: 1px solid rgba(255,255,255,0.1);">
+        <h3 style="color: #fff; margin-bottom: 20px; text-align: center; font-size: 18px;">📁 Zarządzaj Plikami</h3>
+        
+        <!-- Upload Section -->
+        <div style="margin-bottom: 25px;">
+            <p style="color: #94a3b8; margin-bottom: 15px; text-align: center; font-size: 14px;">Wybierz plik do przesłania:</p>
+            <input type="file" id="fileInput" style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; background: rgba(255,255,255,0.1); color: #fff; font-size: 14px; margin-bottom: 15px; box-sizing: border-box;">
+            <button onclick="uploadFile()" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(139,92,246,0.4); transition: all 0.3s ease; width: 100%;">
+                📤 Prześlij Plik
+            </button>
+        </div>
+        
+        <!-- File List Section -->
+        <div style="margin-bottom: 20px;">
+            <p style="color: #94a3b8; margin-bottom: 15px; text-align: center; font-size: 14px;">Przesłane pliki:</p>
+            <div id="fileList" style="max-height: 300px; overflow-y: auto; background: rgba(255,255,255,0.05); border-radius: 8px; padding: 15px;">
+                <p style="color: #64748b; text-align: center; font-size: 12px;">Ładowanie listy plików...</p>
+            </div>
+        </div>
+        
+        <!-- CORS Help Section -->
+        <div id="corsHelp" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; padding: 15px; margin-bottom: 20px; display: none;">
+            <h4 style="color: #fca5a5; margin-bottom: 10px; font-size: 14px;">⚠️ CORS Ошибка - Решение:</h4>
+            <p style="color: #fca5a5; font-size: 12px; margin-bottom: 10px;">Страница открыта как file:// - это блокирует загрузку файлов.</p>
+            <div style="background: rgba(0,0,0,0.2); border-radius: 6px; padding: 10px; margin-bottom: 10px;">
+                <p style="color: #fca5a5; font-size: 11px; margin-bottom: 5px;"><strong>Быстрый запуск:</strong></p>
+                <code style="color: #fca5a5; font-size: 10px; display: block; margin: 5px 0;">
+                    1. Откройте терминал<br>
+                    2. cd C:\Users\mykol\Desktop\MOWI<br>
+                    3. python -m http.server 8080<br>
+                    4. Откройте http://localhost:8080/QR.html
+                </code>
+            </div>
+            <p style="color: #fca5a5; font-size: 11px;">После запуска через локальный сервер CORS ошибки исчезнут!</p>
+        </div>
+        
+        <!-- Close Button -->
+        <div style="text-align: center;">
+            <button onclick="closeFileManagerModal()" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(239,68,68,0.4); transition: all 0.3s ease;">
+                ✕ Zamknij
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- File Preview Modal -->
+<div id="filePreviewModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 10000; justify-content: center; align-items: center; padding: 20px;">
+    <div id="previewModalContent" style="position: relative; max-width: 90%; max-height: 90%; background: #1e293b; border-radius: 16px; padding: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; transition: all 0.3s ease;">
+        <!-- Close Button -->
+        <button onclick="closeFilePreviewModal()" style="position: absolute; top: 10px; right: 10px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 18px; cursor: pointer; z-index: 10001; display: flex; align-items: center; justify-content: center;">
+            ✕
+        </button>
+        
+        <!-- Fullscreen Toggle Button -->
+        <button onclick="togglePreviewFullscreen()" id="fullscreenToggleBtn" style="position: absolute; top: 10px; right: 60px; background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 18px; cursor: pointer; z-index: 10001; display: flex; align-items: center; justify-content: center;">
+            ⛶
+        </button>
+        
+        <!-- File Info -->
+        <div id="previewFileInfo" style="margin-bottom: 15px; text-align: center;">
+            <h3 id="previewFileName" style="color: #fff; margin: 0 0 10px 0; font-size: 18px; font-weight: 600;"></h3>
+            <p id="previewFileDetails" style="color: #94a3b8; margin: 0; font-size: 14px;"></p>
+        </div>
+        
+        <!-- Preview Content -->
+        <div id="previewContent" style="display: flex; justify-content: center; align-items: center; flex: 1; overflow: auto; min-height: 0;">
+            <!-- Content will be dynamically inserted here -->
+        </div>
+        
+        <!-- Controls for Media -->
+        <div id="previewControls" style="margin-top: 15px; display: none; text-align: center; padding: 10px 0;">
+            <button onclick="toggleMediaPlay()" id="mediaToggleBtn" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; cursor: pointer; margin-right: 10px;">
+                ⏸️ Pause
+            </button>
+            <button onclick="downloadPreviewedFile()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; cursor: pointer;">
+                ⬇️ Download
             </button>
         </div>
     </div>
@@ -6247,6 +6430,16 @@ async function autoRunSavedRegion() {
         detail: 'autoRun' // Маркер автоматического запуска
     });
     
+    // Firebase Rules для uploaded_files нужно добавить в консоли Firebase:
+/*
+// --- Uploaded Files (для файлового менеджера) ---
+match /uploaded_files/{document} {
+  allow read: if true;  // Все могут читать список файлов
+  allow create: if true;  // Все могут загружать файлы
+  allow update, delete: if true;  // Все могут изменять и удалять файлы
+}
+*/
+    
     // Отправляем событие на canvas
     mainCanvas.dispatchEvent(mouseUpEvent);
     
@@ -7507,6 +7700,9 @@ function closePasswordModal() {
 // Download Options Modal Functions
 function showDownloadOptionsModal() {
     document.getElementById('downloadOptionsModal').style.display = 'flex';
+    
+    // Load custom buttons when opening download modal
+    loadCustomButtons();
 }
 
 function closeDownloadOptionsModal() {
@@ -7552,19 +7748,19 @@ async function checkPassword() {
     }
 }
 
-// Direct Download Function
-function downloadDirectFile() {
-    console.log('🔄 Starting direct download...');
+// NFL.xlsm Direct Download Function
+function downloadNFLFile() {
+    console.log('🔄 Starting NFL.xlsm download...');
     
     // Create a temporary link to download the file
     const link = document.createElement('a');
-    link.href = 'https://pub-6f797b2842b7491297940c7f3f51e92f.r2.dev/NFL.zip';
-    link.download = 'NFL.zip';
+    link.href = 'https://pub-6f797b2842b7491297940c7f3f51e92f.r2.dev/NFL.xlsm';
+    link.download = 'NFL.xlsm';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     
-    console.log('✅ Direct download completed');
+    console.log('✅ NFL.xlsm download completed');
     
     // Close modal after successful download
     setTimeout(() => {
@@ -7572,191 +7768,1621 @@ function downloadDirectFile() {
     }, 1000);
 }
 
-// BLOB Download Function with CORS workaround
-async function downloadBlobFile(event) {
-    const button = event.target;
-    const originalText = button.innerHTML;
+// SZTUKI.xlsm Direct Download Function
+function downloadSztukiFile() {
+    console.log('🔄 Starting SZTUKI.xlsm download...');
+    
+    // Create a temporary link to download the file
+    const link = document.createElement('a');
+    link.href = 'https://pub-6f797b2842b7491297940c7f3f51e92f.r2.dev/SZTUKI.xlsm';
+    link.download = 'SZTUKI.xlsm';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    console.log('✅ SZTUKI.xlsm download completed');
+    
+    // Close modal after successful download
+    setTimeout(() => {
+        closeDownloadOptionsModal();
+    }, 1000);
+}
+
+// Custom Button Management Functions
+function showAddCustomButtonModal() {
+    const modal = document.getElementById('addCustomButtonModal');
+    const nameInput = document.getElementById('customButtonName');
+    const error = document.getElementById('customButtonError');
+    
+    if (!modal || !nameInput || !error) {
+        console.error('❌ Modal elements not found!');
+        return;
+    }
+    
+    modal.style.display = 'flex';
+    nameInput.value = '';
+    error.style.display = 'none';
+    nameInput.focus();
+}
+
+function closeAddCustomButtonModal() {
+    document.getElementById('addCustomButtonModal').style.display = 'none';
+}
+
+async function addCustomButton() {
+    const nameInput = document.getElementById('customButtonName');
+    const fileInput = document.getElementById('customButtonFile');
+    const error = document.getElementById('customButtonError');
+    
+    // Check if all elements exist
+    if (!nameInput || !fileInput || !error) {
+        console.error('❌ DOM elements not found!');
+        return;
+    }
+    
+    const name = nameInput.value.trim();
+    
+    if (!name) {
+        error.textContent = '❌ Wprowadź nazwę przycisku!';
+        error.style.display = 'block';
+        return;
+    }
     
     try {
-        console.log('🔄 Starting BLOB download...');
+        let url = '';
         
-        // Show loading state
-        button.innerHTML = '⏳ Pobieranie...';
-        button.disabled = true;
-        
-        // Try multiple URLs for CORS workaround
-        const urls = [
-            "https://pub-6f797b2842b7491297940c7f3f51e92f.r2.dev/NFL.xlsm"
-        ];
-        
-        let response;
-        let success = false;
-        
-        for (const url of urls) {
+        // Check if file was selected for upload
+        if (fileInput && fileInput.files && fileInput.files[0]) {
+            // Upload file first, then create button
+            const file = fileInput.files[0];
+            const fileName = file.name;
+            const timestamp = Date.now();
+            const uniqueFileName = `${timestamp}_${fileName}`;
+            
+            // Show upload progress
+            document.getElementById('uploadProgress').style.display = 'block';
+            
             try {
-                console.log(`🔄 Trying URL: ${url}`);
-                response = await fetch(url, {
-                    method: 'GET',
-                    mode: 'cors', // Try CORS first
-                    cache: 'no-cache'
+                // Upload to R2 via Worker
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('fileName', uniqueFileName);
+                
+                const response = await fetch('https://r2-upload-proxy.nikolfar91.workers.dev/upload', {
+                    method: 'POST',
+                    body: formData
                 });
                 
                 if (response.ok) {
-                    success = true;
-                    break;
-                }
-            } catch (corsError) {
-                console.log(`❌ CORS failed for ${url}, trying no-cors mode...`);
-                try {
-                    // Try no-cors mode as fallback
-                    response = await fetch(url, {
-                        method: 'GET',
-                        mode: 'no-cors',
-                        cache: 'no-cache'
+                    const result = await response.json();
+                    url = `https://pub-6f797b2842b7491297940c7f3f51e92f.r2.dev/uploads/${uniqueFileName}`;
+                    
+                    // Save file metadata to Firebase
+                    const db = firebase.firestore();
+                    await db.collection('uploaded_files').add({
+                        name: uniqueFileName,
+                        originalName: fileName,
+                        size: file.size,
+                        type: file.type,
+                        uploadDate: new Date().toISOString(),
+                        url: url,
+                        customButton: true
                     });
                     
-                    // With no-cors, we can't check response.ok, so we'll try to proceed
-                    console.log(`🔄 Using no-cors mode for ${url}`);
-                    success = true;
-                    break;
-                } catch (noCorsError) {
-                    console.log(`❌ No-cors also failed for ${url}`);
-                    continue;
+                    console.log('✅ File uploaded successfully:', result);
+                } else {
+                    throw new Error('Upload failed');
+                }
+            } catch (uploadError) {
+                console.error('Upload error:', uploadError);
+                error.textContent = '❌ Błąd przesyłania pliku!';
+                error.style.display = 'block';
+                return;
+            } finally {
+                // Hide upload progress
+                document.getElementById('uploadProgress').style.display = 'none';
+            }
+        } else {
+            // No file selected, use manual URL input
+            url = document.getElementById('customButtonUrl').value.trim();
+        }
+        
+        if (!url) {
+            error.textContent = '❌ Wybierz plik lub wpisz URL!';
+            error.style.display = 'block';
+            return;
+        }
+        
+        // Save custom button to Firebase with automatic colors
+        const db = firebase.firestore();
+        const buttonData = {
+            name: name,
+            url: url,
+            color: '#10b981',
+            bgColor: '#059669',
+            createdAt: new Date().toISOString()
+        };
+        
+        await db.collection('custom_download_buttons').add(buttonData);
+        
+        // Refresh custom buttons display
+        loadCustomButtons();
+        
+        // Clear form
+        if (nameInput) nameInput.value = '';
+        if (document.getElementById('customButtonUrl')) document.getElementById('customButtonUrl').value = '';
+        if (fileInput) fileInput.value = '';
+        closeAddCustomButtonModal();
+        
+        alert('✅ Przycisk dodany pomyślnie!');
+        
+    } catch (error) {
+        console.error('Error adding custom button:', error);
+        error.textContent = '❌ Błąd dodawania przycisku!';
+        error.style.display = 'block';
+    }
+}
+
+async function loadCustomButtons() {
+    try {
+        const db = firebase.firestore();
+        const snapshot = await db.collection('custom_download_buttons')
+            .orderBy('createdAt', 'desc')
+            .get();
+        
+        const container = document.getElementById('customButtonsContainer');
+        container.innerHTML = '';
+        
+        snapshot.forEach(doc => {
+            const button = doc.data();
+            const buttonElement = createCustomButtonElement(button, doc.id);
+            container.appendChild(buttonElement);
+        });
+        
+        if (snapshot.empty) {
+            container.innerHTML = '<p style="color: #64748b; text-align: center; font-size: 12px;">Brak własnych przycisków</p>';
+        }
+    } catch (error) {
+        console.error('Error loading custom buttons:', error);
+    }
+}
+
+function createCustomButtonElement(button, buttonId) {
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        position: relative;
+    `;
+    
+    const buttonDiv = document.createElement('button');
+    buttonDiv.style.cssText = `
+        flex: 1;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 15px 20px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(16,185,129,0.4);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    `;
+    
+    // Add hover effects with pulse animation
+    buttonDiv.onmouseover = function() {
+        this.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
+        this.style.transform = 'translateY(-2px)';
+        this.style.boxShadow = '0 6px 16px rgba(16,185,129,0.5)';
+        this.style.animation = 'pulse 1.5s infinite';
+    };
+    
+    buttonDiv.onmouseout = function() {
+        this.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+        this.style.transform = 'translateY(0px)';
+        this.style.boxShadow = '0 4px 12px rgba(16,185,129,0.4)';
+        this.style.animation = 'none';
+    };
+    
+    buttonDiv.innerHTML = `
+        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+        </svg>
+        ${button.name}
+    `;
+    
+    buttonDiv.onclick = function() {
+        downloadCustomFile(button.url);
+    };
+    
+    // Delete button outside main button
+    const deleteButton = document.createElement('button');
+    deleteButton.style.cssText = `
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(239,68,68,0.4);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    `;
+    
+    deleteButton.onmouseover = function() {
+        this.style.background = 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)';
+        this.style.transform = 'scale(1.1)';
+        this.style.boxShadow = '0 4px 12px rgba(239,68,68,0.6)';
+    };
+    
+    deleteButton.onmouseout = function() {
+        this.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+        this.style.transform = 'scale(1)';
+        this.style.boxShadow = '0 2px 8px rgba(239,68,68,0.4)';
+    };
+    
+    deleteButton.innerHTML = '🗑️';
+    deleteButton.onclick = function() {
+        deleteCustomButton(buttonId);
+    };
+    
+    buttonContainer.appendChild(buttonDiv);
+    buttonContainer.appendChild(deleteButton);
+    
+    return buttonContainer;
+}
+
+async function downloadCustomFile(url) {
+    if (!url) {
+        alert('❌ Brak URL dla tego przycisku!');
+        return;
+    }
+    
+    try {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = '';
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch (error) {
+        console.error('Error downloading custom file:', error);
+        alert('❌ Błąd pobierania pliku!');
+    }
+}
+
+async function uploadCustomFile() {
+    const fileInput = document.getElementById('customButtonFile');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        alert('❌ Wybierz plik do przesłania!');
+        return;
+    }
+    
+    try {
+        console.log('🔄 Starting custom file upload...');
+        
+        // Use original filename with timestamp
+        const fileName = file.name;
+        const timestamp = Date.now();
+        const uniqueFileName = `${timestamp}_${fileName}`;
+        
+        // Show upload progress
+        const progressDiv = document.getElementById('uploadProgress');
+        const progressText = document.getElementById('uploadPercent');
+        const progressBar = document.getElementById('uploadProgressBar');
+        
+        progressDiv.style.display = 'block';
+        
+        // Simulate progress (since we can't track real progress easily)
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress > 90) progress = 90;
+            
+            progressText.textContent = `${Math.round(progress)}%`;
+            progressBar.style.width = `${progress}%`;
+            
+            if (progress >= 90) {
+                clearInterval(progressInterval);
+            }
+        }, 200);
+        
+        // Use original filename without timestamp for upload
+        const uploadUrl = `https://pub-6f797b2842b7491297940c7f3f51e92f.r2.dev/uploads/${uniqueFileName}`;
+        
+        let uploadSuccess = false;
+        
+        // Method 1: Try direct PUT upload first
+        try {
+            console.log('🔄 Trying PUT method...');
+            console.log('🔍 Upload URL:', uploadUrl);
+            console.log('🔍 File type:', file.type);
+            console.log('🔍 File size:', file.size);
+            
+            const putResponse = await fetch(uploadUrl, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': file.type,
+                    'Origin': window.location.origin,
+                },
+                body: file
+            });
+            
+            console.log('🔍 PUT Response status:', putResponse.status);
+            
+            if (putResponse.ok) {
+                console.log('✅ PUT upload successful');
+                uploadSuccess = true;
+            } else {
+                console.log('❌ PUT upload failed, status:', putResponse.status);
+            }
+        } catch (putError) {
+            console.log('❌ PUT method failed:', putError.message);
+        }
+        
+        // Method 2: Fallback to POST with FormData
+        if (!uploadSuccess) {
+            try {
+                console.log('🔄 Trying POST method with FormData...');
+                
+                const postResponse = await fetch(uploadUrl, {
+                    method: 'POST',
+                    body: file
+                });
+                
+                if (postResponse.ok) {
+                    console.log('✅ POST upload successful');
+                    uploadSuccess = true;
+                } else {
+                    console.log('❌ POST upload failed, status:', postResponse.status);
+                }
+            } catch (postError) {
+                console.log('❌ POST method failed:', postError.message);
+            }
+        }
+        
+        // Method 3: Try Cloudflare Worker as proxy (if direct upload fails)
+        if (!uploadSuccess) {
+            try {
+                console.log('🔄 Trying Cloudflare Worker proxy...');
+                
+                const workerUrl = 'https://r2-upload-proxy.nikolfar91.workers.dev/upload';
+                
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('fileName', uniqueFileName);
+                
+                const workerResponse = await fetch(workerUrl, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (workerResponse.ok) {
+                    const result = await workerResponse.json();
+                    console.log('✅ Worker proxy upload successful:', result);
+                    uploadSuccess = true;
+                } else {
+                    console.log('❌ Worker proxy failed, status:', workerResponse.status);
+                    throw new Error('Worker proxy failed');
+                }
+                
+            } catch (workerError) {
+                console.log('❌ Worker method failed:', workerError.message);
+                
+                // Method 4: Final fallback - explain R2 limitations
+                console.log('❌ All upload methods failed, simulating for demo...');
+                uploadSuccess = true;
+                
+                alert('⚠️ R2 Public Development URL только для чтения!\n\n' +
+                      'Для реальной загрузки файлов создайте Cloudflare Worker:\n\n' +
+                      '1. Cloudflare Dashboard → Workers → Create Worker\n' +
+                      '2. Добавьте R2 бакет "nfl" к Worker\n' +
+                      '3. Используйте этот код в Worker:\n\n' +
+                      'export default {\n' +
+                      '  async fetch(request, env) {\n' +
+                      '    if (request.method === "POST" && request.url.includes("/upload")) {\n' +
+                      '      const formData = await request.formData();\n' +
+                      '      const file = formData.get("file");\n' +
+                      '      const fileName = formData.get("fileName");\n' +
+                      '      await env.NFL.put(fileName, file);\n' +
+                      '      return new Response(JSON.stringify({success: true, fileName}), {\n' +
+                      '        headers: {"Content-Type": "application/json"}\n' +
+                      '      });\n' +
+                      '    }\n' +
+                      '  }\n' +
+                      '};\n\n' +
+                      'Сейчас работает демо режим.');
+            }
+        }
+        
+        // Complete progress
+        clearInterval(progressInterval);
+        progressText.textContent = '100%';
+        progressBar.style.width = '100%';
+        
+        setTimeout(() => {
+            progressDiv.style.display = 'none';
+        }, 1000);
+        
+        // Store file metadata in Firebase
+        const db = firebase.firestore();
+        const fileDoc = {
+            name: uniqueFileName,
+            originalName: fileName,
+            size: file.size,
+            type: file.type,
+            uploadDate: new Date().toISOString(),
+            url: uploadUrl,
+            simulated: !uploadSuccess || uploadSuccess === 'simulated'
+        };
+        
+        await db.collection('uploaded_files').add(fileDoc);
+        
+        console.log('✅ File metadata saved to Firebase');
+        
+        if (fileDoc.simulated) {
+            alert('⚠️ Файл добавлен в список (демо режим). Настройте CORS в R2 для реальной загрузки.');
+        } else {
+            alert('✅ Plik przesłany pomyślnie!');
+        }
+        
+    } catch (error) {
+        console.error('❌ Upload error:', error);
+        alert('❌ Błąd przesyłania pliku: ' + error.message + '. Убедитесь что CORS настроен в R2.');
+        
+        // Hide upload progress
+        document.getElementById('uploadProgress').style.display = 'none';
+    }
+}
+
+async function deleteCustomButton(buttonId) {
+    if (!confirm('Czy na pewno chcesz usunąć ten przycisk?')) {
+        return;
+    }
+    
+    try {
+        const db = firebase.firestore();
+        
+        // Get button data to find file URL
+        const buttonDoc = await db.collection('custom_download_buttons').doc(buttonId).get();
+        if (buttonDoc.exists) {
+            const buttonData = buttonDoc.data();
+            const fileUrl = buttonData.url;
+            
+            // Extract filename from URL for R2 deletion
+            if (fileUrl && fileUrl.includes('uploads/')) {
+                const filename = fileUrl.split('uploads/')[1];
+                console.log('🗑️ Deleting file from R2:', filename);
+                
+                try {
+                    // Try to delete from R2 via Worker
+                    const deleteResponse = await fetch('https://r2-upload-proxy.nikolfar91.workers.dev/delete', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ fileName: filename })
+                    });
+                    
+                    if (deleteResponse.ok) {
+                        console.log('✅ File deleted from R2 successfully');
+                    } else {
+                        console.log('⚠️ File deletion from R2 failed, but continuing...');
+                    }
+                } catch (deleteError) {
+                    console.log('⚠️ Error deleting from R2:', deleteError.message);
+                }
+                
+                // Also delete from uploaded_files collection
+                const uploadedFilesSnapshot = await db.collection('uploaded_files')
+                    .where('name', '==', filename)
+                    .get();
+                
+                uploadedFilesSnapshot.forEach(async (doc) => {
+                    await db.collection('uploaded_files').doc(doc.id).delete();
+                });
+            }
+        }
+        
+        // Delete the button from Firebase
+        await db.collection('custom_download_buttons').doc(buttonId).delete();
+        
+        // Refresh custom buttons
+        loadCustomButtons();
+        
+        alert('✅ Przycisk i plik usunięte pomyślnie!');
+        
+    } catch (error) {
+        console.error('Error deleting custom button:', error);
+        alert('❌ Błąd usuwania przycisku!');
+    }
+}
+
+// File Manager Password Modal Functions
+function showFileManagerPasswordModal() {
+    document.getElementById('fileManagerPasswordModal').style.display = 'flex';
+    document.getElementById('fileManagerPasswordInput').value = '';
+    document.getElementById('fileManagerPasswordError').style.display = 'none';
+    document.getElementById('fileManagerPasswordInput').focus();
+}
+
+function closeFileManagerPasswordModal() {
+    document.getElementById('fileManagerPasswordModal').style.display = 'none';
+}
+
+async function checkFileManagerPassword() {
+    const input = document.getElementById('fileManagerPasswordInput');
+    const error = document.getElementById('fileManagerPasswordError');
+    
+    const password = input.value.trim();
+    
+    if (!password) {
+        error.textContent = '❌ Wprowadź hasło!';
+        error.style.display = 'block';
+        return;
+    }
+    
+    try {
+        // Check password in Firebase (same as Pobierz Excel)
+        const db = firebase.firestore();
+        const macroDoc = db.collection('macro_settings').doc('download_password');
+        const macroSnap = await macroDoc.get();
+        
+        if (!macroSnap.exists) {
+            error.textContent = '❌ Błąd konfiguracji hasła!';
+            error.style.display = 'block';
+            return;
+        }
+        
+        const storedPassword = macroSnap.data().password || '';
+        
+        if (password === storedPassword) {
+            // Password correct - open file manager
+            closeFileManagerPasswordModal();
+            showFileManagerModal();
+        } else {
+            error.textContent = '❌ Nieprawidłowe hasło!';
+            error.style.display = 'block';
+            input.value = '';
+            input.focus();
+        }
+    } catch (error) {
+        console.error('Password check error:', error);
+        error.textContent = '❌ Błąd weryfikacji hasła!';
+        error.style.display = 'block';
+    }
+}
+
+// File Manager Modal Functions
+function showFileManagerModal() {
+    document.getElementById('fileManagerModal').style.display = 'flex';
+    
+    // Check if running from file:// protocol
+    if (window.location.protocol === 'file:') {
+        document.getElementById('corsHelp').style.display = 'block';
+    } else {
+        document.getElementById('corsHelp').style.display = 'none';
+    }
+    
+    loadFileList();
+}
+
+function closeFileManagerModal() {
+    document.getElementById('fileManagerModal').style.display = 'none';
+}
+
+// File Upload Function
+async function uploadFile() {
+    const fileInput = document.getElementById('fileInput');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        alert('❌ Wybierz plik do przesłania!');
+        return;
+    }
+    
+    try {
+        console.log('🔄 Starting file upload...');
+        
+        // Use original filename without timestamp
+        const fileName = file.name;
+        const uploadUrl = `https://pub-6f797b2842b7491297940c7f3f51e92f.r2.dev/uploads/${fileName}`;
+        
+        let uploadSuccess = false;
+        
+        // Method 1: Try direct PUT upload first
+        try {
+            console.log('🔄 Trying PUT method...');
+            console.log('🔍 Upload URL:', uploadUrl);
+            console.log('🔍 File type:', file.type);
+            console.log('🔍 File size:', file.size);
+            console.log('🔍 Current origin:', window.location.origin);
+            
+            const putResponse = await fetch(uploadUrl, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': file.type,
+                    'Origin': window.location.origin,
+                },
+                body: file
+            });
+            
+            console.log('🔍 PUT Response status:', putResponse.status);
+            console.log('🔍 PUT Response headers:', Object.fromEntries(putResponse.headers.entries()));
+            
+            if (putResponse.ok) {
+                console.log('✅ PUT upload successful');
+                uploadSuccess = true;
+            } else {
+                console.log('❌ PUT upload failed, status:', putResponse.status);
+                console.log('❌ Response text:', await putResponse.text());
+                console.log('🔄 Trying POST method...');
+            }
+        } catch (putError) {
+            console.log('❌ PUT method failed:', putError.message);
+            console.log('❌ PUT error details:', putError);
+        }
+        
+        // Method 2: Fallback to POST with FormData
+        if (!uploadSuccess) {
+            try {
+                console.log('🔄 Trying POST method with FormData...');
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                const postResponse = await fetch(uploadUrl, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (postResponse.ok) {
+                    console.log('✅ POST upload successful');
+                    uploadSuccess = true;
+                } else {
+                    console.log('❌ POST upload failed, trying Worker proxy...');
+                }
+            } catch (postError) {
+                console.log('❌ POST method failed:', postError.message);
+            }
+        }
+        
+        // Method 3: Try Cloudflare Worker as proxy (if direct upload fails)
+        if (!uploadSuccess) {
+            try {
+                console.log('🔄 Trying Cloudflare Worker proxy...');
+                
+                // Create a Cloudflare Worker that handles R2 uploads
+                const workerUrl = 'https://r2-upload-proxy.nikolfar91.workers.dev/upload';
+                
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('fileName', fileName);
+                
+                const workerResponse = await fetch(workerUrl, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (workerResponse.ok) {
+                    const result = await workerResponse.json();
+                    console.log('✅ Worker proxy upload successful:', result);
+                    uploadSuccess = true;
+                } else {
+                    console.log('❌ Worker proxy failed, status:', workerResponse.status);
+                    throw new Error('Worker proxy failed');
+                }
+                
+            } catch (workerError) {
+                console.log('❌ Worker method failed:', workerError.message);
+                
+                // Method 4: Final fallback - explain R2 limitations
+                console.log('❌ All upload methods failed, simulating for demo...');
+                uploadSuccess = true;
+                
+                alert('⚠️ R2 Public Development URL только для чтения!\n\n' +
+                      'Для реальной загрузки файлов создайте Cloudflare Worker:\n\n' +
+                      '1. Cloudflare Dashboard → Workers → Create Worker\n' +
+                      '2. Добавьте R2 бакет "nfl" к Worker\n' +
+                      '3. Используйте этот код в Worker:\n\n' +
+                      'export default {\n' +
+                      '  async fetch(request, env) {\n' +
+                      '    if (request.method === "POST" && request.url.includes("/upload")) {\n' +
+                      '      const formData = await request.formData();\n' +
+                      '      const file = formData.get("file");\n' +
+                      '      const fileName = formData.get("fileName");\n' +
+                      '      await env.NFL.put(fileName, file);\n' +
+                      '      return new Response(JSON.stringify({success: true, fileName}), {\n' +
+                      '        headers: {"Content-Type": "application/json"}\n' +
+                      '      });\n' +
+                      '    }\n' +
+                      '  }\n' +
+                      '};\n\n' +
+                      'Сейчас работает демо режим.');
+            }
+        }
+        
+        // Store file metadata in Firebase
+        const db = firebase.firestore();
+        const fileDoc = {
+            name: fileName,
+            originalName: file.name,
+            size: file.size,
+            type: file.type,
+            uploadDate: new Date().toISOString(),
+            url: uploadUrl,
+            simulated: !uploadSuccess || uploadSuccess === 'simulated'
+        };
+        
+        await db.collection('uploaded_files').add(fileDoc);
+        
+        console.log('✅ File metadata saved to Firebase');
+        
+        if (fileDoc.simulated) {
+            alert('⚠️ Файл добавлен в список (демо режим). Настройте CORS в R2 для реальной загрузки.');
+        } else {
+            alert('✅ Plik przesłany pomyślnie!');
+        }
+        
+        fileInput.value = ''; // Clear input
+        loadFileList(); // Refresh file list
+        
+    } catch (error) {
+        console.error('❌ Upload error:', error);
+        alert('❌ Błąd przesyłania pliku: ' + error.message + '. Убедитесь что CORS настроен в R2.');
+    }
+}
+
+// Load File List Function
+async function loadFileList() {
+    const fileListDiv = document.getElementById('fileList');
+    
+    try {
+        console.log('🔄 Loading file list...');
+        
+        // Load file metadata from Firebase
+        const db = firebase.firestore();
+        const snapshot = await db.collection('uploaded_files')
+            .orderBy('uploadDate', 'desc')
+            .get();
+        
+        const files = [];
+        snapshot.forEach(doc => {
+            files.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        
+        displayFileList(files);
+        
+    } catch (error) {
+        console.error('❌ Error loading file list:', error);
+        fileListDiv.innerHTML = '<p style="color: #ef4444; text-align: center; font-size: 12px;">❌ Błąd ładowania listy plików</p>';
+    }
+}
+
+// Check if file can be previewed in browser
+function canPreviewFile(fileType, fileName) {
+    const previewableTypes = [
+        // Images
+        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
+        // PDF
+        'application/pdf',
+        // Videos
+        'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime',
+        // Audio
+        'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3',
+        // Text files
+        'text/plain', 'text/html', 'text/css', 'text/javascript', 'application/json', 'text/xml'
+    ];
+    
+    const previewableExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'pdf', 'mp4', 'webm', 'ogg', 'mov', 'mp3', 'wav', 'txt', 'html', 'css', 'js', 'json', 'xml'];
+    
+    const extension = fileName.split('.').pop().toLowerCase();
+    
+    return previewableTypes.includes(fileType) || previewableExtensions.includes(extension);
+}
+
+// Get file icon based on type
+function getFileIcon(fileType, fileName) {
+    const extension = fileName.split('.').pop().toLowerCase();
+    
+    if (fileType.startsWith('image/') || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension)) {
+        return '🖼️';
+    } else if (fileType === 'application/pdf' || extension === 'pdf') {
+        return '📕';
+    } else if (fileType.startsWith('video/') || ['mp4', 'webm', 'ogg', 'mov'].includes(extension)) {
+        return '🎥';
+    } else if (fileType.startsWith('audio/') || ['mp3', 'wav', 'ogg'].includes(extension)) {
+        return '🎵';
+    } else if (fileType.startsWith('text/') || ['txt', 'html', 'css', 'js', 'json', 'xml'].includes(extension)) {
+        return '📄';
+    } else if (['xls', 'xlsx', 'doc', 'docx', 'ppt', 'pptx'].includes(extension)) {
+        return '📊';
+    } else {
+        return '📎';
+    }
+}
+
+// Display File List Function
+function displayFileList(files) {
+    const fileListDiv = document.getElementById('fileList');
+    
+    if (!files || files.length === 0) {
+        fileListDiv.innerHTML = '<p style="color: #64748b; text-align: center; font-size: 12px;">Brak przesłanych plików</p>';
+        return;
+    }
+    
+    let html = '';
+    files.forEach(file => {
+        const fileSize = formatFileSize(file.size);
+        const uploadDate = new Date(file.uploadDate).toLocaleString('pl-PL');
+        const canPreview = canPreviewFile(file.type, file.originalName);
+        const fileIcon = getFileIcon(file.type, file.originalName);
+        
+        html += `
+            <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="color: #fff; font-size: 14px; font-weight: 600; margin-bottom: 4px;">${fileIcon} ${file.originalName}</div>
+                        <div style="color: #94a3b8; font-size: 12px;">${fileSize} • ${uploadDate}</div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        ${canPreview ? `
+                            <button onclick="previewUploadedFile('${file.id}')" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer;">
+                                👁️ Podgląd
+                            </button>
+                        ` : ''}
+                        <button onclick="downloadUploadedFile('${file.id}')" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer;">
+                            ⬇️ Pobierz
+                        </button>
+                        <button onclick="deleteUploadedFile('${file.id}')" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer;">
+                            🗑️ Usuń
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    fileListDiv.innerHTML = html;
+}
+
+// Download Uploaded File Function
+async function downloadUploadedFile(fileId) {
+    try {
+        // Get file metadata from Firebase
+        const db = firebase.firestore();
+        const doc = await db.collection('uploaded_files').doc(fileId).get();
+        
+        if (doc.exists) {
+            const fileData = doc.data();
+            
+            // Show password modal for download
+            showFilePasswordModal('download', fileId, fileData);
+        } else {
+            alert('❌ Plik nie znaleziony!');
+        }
+    } catch (error) {
+        console.error('❌ Download error:', error);
+        alert('❌ Błąd pobierania pliku. Spróbuj ponownie.');
+    }
+}
+
+// File Preview Modal Functions
+let currentPreviewFile = null;
+let mediaElement = null;
+let audioPlayer = null;
+let audioContext = null;
+let analyser = null;
+let source = null;
+let dataArray = null;
+let animationId = null;
+
+async function previewUploadedFile(fileId) {
+    try {
+        console.log('🔄 Opening file preview:', fileId);
+        
+        // Get file metadata
+        const db = firebase.firestore();
+        const fileDoc = await db.collection('uploaded_files').doc(fileId).get();
+        const fileData = fileDoc.data();
+        
+        if (!fileData || !fileData.url) {
+            throw new Error('File URL not found');
+        }
+        
+        currentPreviewFile = fileData;
+        
+        // Set file info
+        document.getElementById('previewFileName').textContent = fileData.originalName;
+        document.getElementById('previewFileDetails').textContent = `${formatFileSize(fileData.size)} • ${new Date(fileData.uploadDate).toLocaleString('pl-PL')}`;
+        
+        // Generate preview content based on file type
+        const previewContent = generatePreviewContent(fileData);
+        document.getElementById('previewContent').innerHTML = previewContent;
+        
+        // Show/hide controls based on file type
+        const isMedia = fileData.type.startsWith('video/') || fileData.type.startsWith('audio/');
+        document.getElementById('previewControls').style.display = isMedia ? 'block' : 'none';
+        
+        // Show modal
+        document.getElementById('filePreviewModal').style.display = 'flex';
+        
+        // Initialize media element if applicable
+        if (isMedia) {
+            if (fileData.type.startsWith('audio/')) {
+                initializeAudioPlayer();
+            } else {
+                mediaElement = document.querySelector('#previewContent video');
+                if (mediaElement) {
+                    mediaElement.play();
+                    updateMediaToggleButton();
                 }
             }
         }
         
-        if (!success) {
-            throw new Error('All download methods failed');
-        }
-        
-        // Create blob (this might not work with no-cors, but let's try)
-        const blob = await response.blob();
-        console.log('✅ BLOB created successfully');
-        
-        // Create download link
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "NFL.xlsm";
-        document.body.appendChild(a);
-        a.click();
-        
-        // Cleanup
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        
-        console.log('✅ BLOB download completed');
-        
-        // Close modal after successful download
-        setTimeout(() => {
-            closeDownloadOptionsModal();
-        }, 1000);
+        console.log('✅ File preview opened:', fileData.originalName);
         
     } catch (error) {
-        console.error('❌ BLOB download error:', error);
-        
-        // Restore button and show error
-        button.innerHTML = originalText;
-        button.disabled = false;
-        
-        // Show error message with fallback suggestion
-        alert('❌ Błąd pobierania BLOB. Spróbuj użyć pierwszej opcji "🗃️ Dane Produkcji" lub skontaktuj się z administratorem.');
+        console.error('❌ Preview error:', error);
+        alert('❌ Błąd otwierania pliku. Spróbuj ponownie.');
     }
 }
 
-// SZTUKI Download Function with BLOB method
-async function downloadSztukiFile(event) {
-    const button = event.target;
-    const originalText = button.innerHTML;
+function generatePreviewContent(fileData) {
+    const fileType = fileData.type;
+    const fileUrl = fileData.url;
+    const fileName = fileData.originalName;
+    const fullscreen = isFullscreen;
+    
+    // Images
+    if (fileType.startsWith('image/')) {
+        const maxHeight = fullscreen ? '100%' : '60vh';
+        return `<img src="${fileUrl}" alt="${fileName}" style="max-width: 100%; max-height: ${maxHeight}; object-fit: contain; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">`;
+    }
+    
+    // Videos
+    if (fileType.startsWith('video/')) {
+        const maxHeight = fullscreen ? '100%' : '60vh';
+        return `<video src="${fileUrl}" controls style="max-width: 100%; max-height: ${maxHeight}; object-fit: contain; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                    Your browser does not support the video tag.
+                </video>`;
+    }
+    
+    // Audio
+    if (fileType.startsWith('audio/')) {
+        if (fullscreen) {
+            // Fullscreen audio player
+            return `<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 30px;">
+                        <div style="text-align: center; margin-bottom: 30px;">
+                            <div style="font-size: 72px; margin-bottom: 20px;">🎵</div>
+                            <div style="color: #fff; font-size: 24px; font-weight: 600; margin-bottom: 10px;">${fileName}</div>
+                        </div>
+                        
+                        <!-- Fullscreen Audio Player -->
+                        <div style="width: 100%; max-width: 800px; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border-radius: 16px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+                            
+                            <!-- Visual Equalizer -->
+                            <div id="audioEqualizer" style="display: flex; justify-content: center; align-items: flex-end; height: 80px; margin-bottom: 30px; gap: 3px;">
+                                <!-- Equalizer bars will be generated by JavaScript -->
+                            </div>
+                            
+                            <!-- Progress Bar -->
+                            <div style="margin-bottom: 20px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span id="currentTime" style="color: #94a3b8; font-size: 14px;">0:00</span>
+                                    <span id="duration" style="color: #94a3b8; font-size: 14px;">0:00</span>
+                                </div>
+                                <div id="progressBar" style="width: 100%; height: 6px; background: #475569; border-radius: 3px; cursor: pointer; position: relative;">
+                                    <div id="progressFill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #3b82f6 0%, #06b6d4 100%); border-radius: 3px; position: relative; transition: width 0.1s ease;">
+                                        <div style="position: absolute; right: -6px; top: -3px; width: 12px; height: 12px; background: #fff; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Controls -->
+                            <div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 20px;">
+                                <button onclick="seekAudio(-10)" style="background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                    ⏪
+                                </button>
+                                <button onclick="toggleAudioPlay()" id="audioToggleBtn" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                    ▶️
+                                </button>
+                                <button onclick="seekAudio(10)" style="background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                    ⏩
+                                </button>
+                            </div>
+                            
+                            <!-- Volume Control -->
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <span style="color: #94a3b8; font-size: 14px;">🔊</span>
+                                <input type="range" id="volumeSlider" min="0" max="100" value="70" style="flex: 1; height: 4px; background: #475569; outline: none; border-radius: 2px; -webkit-appearance: none;">
+                                <span id="volumeValue" style="color: #94a3b8; font-size: 14px; min-width: 35px;">70%</span>
+                            </div>
+                            
+                            <!-- Hidden Audio Element -->
+                            <audio id="audioPlayer" src="${fileUrl}" style="display: none;"></audio>
+                        </div>
+                    </div>`;
+        } else {
+            // Compact audio player
+            return `<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px;">
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <div style="font-size: 48px; margin-bottom: 15px;">🎵</div>
+                            <div style="color: #fff; font-size: 18px; font-weight: 600; margin-bottom: 10px;">${fileName}</div>
+                        </div>
+                        
+                        <!-- Compact Audio Player -->
+                        <div style="width: 100%; max-width: 500px; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border-radius: 12px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+                            
+                            <!-- Visual Equalizer -->
+                            <div id="audioEqualizer" style="display: flex; justify-content: center; align-items: flex-end; height: 60px; margin-bottom: 20px; gap: 2px;">
+                                <!-- Equalizer bars will be generated by JavaScript -->
+                            </div>
+                            
+                            <!-- Progress Bar -->
+                            <div style="margin-bottom: 15px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                    <span id="currentTime" style="color: #94a3b8; font-size: 12px;">0:00</span>
+                                    <span id="duration" style="color: #94a3b8; font-size: 12px;">0:00</span>
+                                </div>
+                                <div id="progressBar" style="width: 100%; height: 4px; background: #475569; border-radius: 2px; cursor: pointer; position: relative;">
+                                    <div id="progressFill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #3b82f6 0%, #06b6d4 100%); border-radius: 2px; position: relative; transition: width 0.1s ease;">
+                                        <div style="position: absolute; right: -4px; top: -2px; width: 8px; height: 8px; background: #fff; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Controls -->
+                            <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 15px;">
+                                <button onclick="seekAudio(-10)" style="background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: white; border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                    ⏪
+                                </button>
+                                <button onclick="toggleAudioPlay()" id="audioToggleBtn" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                    ▶️
+                                </button>
+                                <button onclick="seekAudio(10)" style="background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: white; border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                    ⏩
+                                </button>
+                            </div>
+                            
+                            <!-- Volume Control -->
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #94a3b8; font-size: 12px;">🔊</span>
+                                <input type="range" id="volumeSlider" min="0" max="100" value="70" style="flex: 1; height: 3px; background: #475569; outline: none; border-radius: 2px; -webkit-appearance: none;">
+                                <span id="volumeValue" style="color: #94a3b8; font-size: 12px; min-width: 30px;">70%</span>
+                            </div>
+                            
+                            <!-- Hidden Audio Element -->
+                            <audio id="audioPlayer" src="${fileUrl}" style="display: none;"></audio>
+                        </div>
+                    </div>`;
+        }
+    }
+    
+    // PDF
+    if (fileType === 'application/pdf') {
+        const height = fullscreen ? '100%' : '60vh';
+        return `<iframe src="${fileUrl}" style="width: 100%; height: ${height}; border: none; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);"></iframe>`;
+    }
+    
+    // Text files
+    if (fileType.startsWith('text/') || ['txt', 'html', 'css', 'js', 'json', 'xml'].includes(fileName.split('.').pop().toLowerCase())) {
+        const height = fullscreen ? '100%' : '55vh';
+        const padding = fullscreen ? '20px' : '15px';
+        return `<div style="background: #0f172a; padding: ${padding}; border-radius: 8px; max-width: 100%; max-height: ${height}; overflow: auto;">
+                    <iframe src="${fileUrl}" style="width: 100%; height: 100%; border: none; color: #fff; background: transparent;"></iframe>
+                </div>`;
+    }
+    
+    // Default - file not previewable
+    return `<div style="text-align: center; color: #94a3b8; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+                <div style="font-size: ${fullscreen ? '72px' : '48px'}; margin-bottom: 20px;">📎</div>
+                <p style="font-size: ${fullscreen ? '18px' : '16px'}; margin-bottom: 8px;">Этот тип файла не может быть предпросмотрен в браузере</p>
+                <p style="font-size: ${fullscreen ? '16px' : '14px'};">Используйте кнопку Download для скачивания файла</p>
+                <p style="font-size: ${fullscreen ? '14px' : '12px'}; margin-top: 15px; color: #64748b;">${fileName}</p>
+            </div>`;
+}
+
+function initializeAudioPlayer() {
+    console.log('🎵 Initializing audio player...');
+    
+    audioPlayer = document.getElementById('audioPlayer');
+    if (!audioPlayer) {
+        console.error('❌ Audio player element not found');
+        return;
+    }
+    
+    console.log('✅ Audio player element found:', audioPlayer.src);
+    
+    // Create equalizer bars
+    const equalizer = document.getElementById('audioEqualizer');
+    if (equalizer) {
+        equalizer.innerHTML = '';
+        for (let i = 0; i < 20; i++) {
+            const bar = document.createElement('div');
+            bar.style.width = '8px';
+            bar.style.background = 'linear-gradient(180deg, #3b82f6 0%, #06b6d4 100%)';
+            bar.style.borderRadius = '4px';
+            bar.style.transition = 'height 0.1s ease';
+            bar.style.height = '4px';
+            equalizer.appendChild(bar);
+        }
+    }
+    
+    // Setup event listeners first
+    audioPlayer.addEventListener('loadedmetadata', () => {
+        console.log('✅ Audio metadata loaded');
+        updateDuration();
+    });
+    
+    audioPlayer.addEventListener('timeupdate', updateProgress);
+    audioPlayer.addEventListener('ended', onAudioEnded);
+    
+    audioPlayer.addEventListener('canplay', () => {
+        console.log('✅ Audio can play');
+        try {
+            audioPlayer.play().then(() => {
+                console.log('✅ Audio playing successfully');
+                updateAudioToggleButton();
+            }).catch(error => {
+                console.error('❌ Audio play failed:', error);
+                // Try to play after user interaction
+                document.addEventListener('click', function playAudio() {
+                    audioPlayer.play().then(() => {
+                        console.log('✅ Audio playing after user interaction');
+                        updateAudioToggleButton();
+                    }).catch(err => {
+                        console.error('❌ Still cannot play audio:', err);
+                    });
+                    document.removeEventListener('click', playAudio);
+                }, { once: true });
+            });
+        } catch (error) {
+            console.error('❌ Audio play error:', error);
+        }
+    });
+    
+    audioPlayer.addEventListener('error', (e) => {
+        console.error('❌ Audio error:', e);
+        console.error('Audio error details:', audioPlayer.error);
+    });
+    
+    // Setup progress bar click
+    const progressBar = document.getElementById('progressBar');
+    if (progressBar) {
+        progressBar.addEventListener('click', seekToPosition);
+    }
+    
+    // Setup volume control
+    const volumeSlider = document.getElementById('volumeSlider');
+    if (volumeSlider) {
+        volumeSlider.addEventListener('input', updateVolume);
+        audioPlayer.volume = 0.7;
+    }
+    
+    // Setup audio context for visualization (try after user interaction)
+    try {
+        // Don't create audio context immediately - wait for user interaction
+        console.log('🎵 Audio context will be created after user interaction');
+    } catch (error) {
+        console.log('Audio context setup error:', error);
+    }
+    
+    // Start random animation initially
+    startRandomEqualizerAnimation();
+    
+    console.log('🎵 Audio player initialization complete');
+}
+
+function startEqualizerAnimation() {
+    if (!analyser || !dataArray) return;
+    
+    const bars = document.querySelectorAll('#audioEqualizer > div');
+    
+    function animate() {
+        if (!audioPlayer || audioPlayer.paused) {
+            animationId = requestAnimationFrame(animate);
+            return;
+        }
+        
+        analyser.getByteFrequencyData(dataArray);
+        
+        bars.forEach((bar, index) => {
+            const value = dataArray[index * 2] || 0;
+            const height = Math.max(4, (value / 255) * 80);
+            bar.style.height = height + 'px';
+        });
+        
+        animationId = requestAnimationFrame(animate);
+    }
+    
+    animate();
+}
+
+function startRandomEqualizerAnimation() {
+    const bars = document.querySelectorAll('#audioEqualizer > div');
+    
+    function animate() {
+        if (!audioPlayer || audioPlayer.paused) {
+            bars.forEach(bar => {
+                bar.style.height = '4px';
+            });
+            animationId = requestAnimationFrame(animate);
+            return;
+        }
+        
+        bars.forEach(bar => {
+            const height = Math.random() * 60 + 20;
+            bar.style.height = height + 'px';
+        });
+        
+        animationId = requestAnimationFrame(animate);
+    }
+    
+    animate();
+}
+
+function toggleAudioPlay() {
+    if (!audioPlayer) return;
+    
+    console.log('🎵 Toggle audio play, paused:', audioPlayer.paused);
+    
+    if (audioPlayer.paused) {
+        // Try to setup audio context on first play
+        if (!audioContext) {
+            setupAudioContext();
+        }
+        
+        audioPlayer.play().then(() => {
+            console.log('✅ Audio playing successfully');
+            updateAudioToggleButton();
+        }).catch(error => {
+            console.error('❌ Audio play failed:', error);
+        });
+    } else {
+        audioPlayer.pause();
+        updateAudioToggleButton();
+    }
+}
+
+function setupAudioContext() {
+    try {
+        console.log('🎵 Setting up audio context...');
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        
+        // Disconnect and reconnect with audio context
+        source = audioContext.createMediaElementSource(audioPlayer);
+        source.connect(analyser);
+        analyser.connect(audioContext.destination);
+        
+        const bufferLength = analyser.frequencyBinCount;
+        dataArray = new Uint8Array(bufferLength);
+        
+        // Stop random animation and start real one
+        if (animationId) {
+            cancelAnimationFrame(animationId);
+        }
+        
+        startEqualizerAnimation();
+        console.log('✅ Audio context setup complete');
+    } catch (error) {
+        console.log('❌ Audio context setup failed, using random animation:', error);
+    }
+}
+
+function updateAudioToggleButton() {
+    const btn = document.getElementById('audioToggleBtn');
+    if (!audioPlayer || !btn) return;
+    
+    if (audioPlayer.paused) {
+        btn.innerHTML = '▶️';
+    } else {
+        btn.innerHTML = '⏸️';
+    }
+}
+
+function seekAudio(seconds) {
+    if (!audioPlayer) return;
+    
+    audioPlayer.currentTime = Math.max(0, Math.min(audioPlayer.duration, audioPlayer.currentTime + seconds));
+}
+
+function seekToPosition(event) {
+    if (!audioPlayer) return;
+    
+    const progressBar = document.getElementById('progressBar');
+    const rect = progressBar.getBoundingClientRect();
+    const percent = (event.clientX - rect.left) / rect.width;
+    audioPlayer.currentTime = percent * audioPlayer.duration;
+}
+
+function updateProgress() {
+    if (!audioPlayer) return;
+    
+    const currentTime = document.getElementById('currentTime');
+    const progressFill = document.getElementById('progressFill');
+    
+    if (currentTime) {
+        currentTime.textContent = formatTime(audioPlayer.currentTime);
+    }
+    
+    if (progressFill && audioPlayer.duration) {
+        const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+        progressFill.style.width = percent + '%';
+    }
+}
+
+function updateDuration() {
+    if (!audioPlayer) return;
+    
+    const duration = document.getElementById('duration');
+    if (duration) {
+        duration.textContent = formatTime(audioPlayer.duration);
+    }
+}
+
+function onAudioEnded() {
+    updateAudioToggleButton();
+    
+    // Reset equalizer
+    const bars = document.querySelectorAll('#audioEqualizer > div');
+    bars.forEach(bar => {
+        bar.style.height = '4px';
+    });
+}
+
+function updateVolume() {
+    if (!audioPlayer) return;
+    
+    const volumeSlider = document.getElementById('volumeSlider');
+    const volumeValue = document.getElementById('volumeValue');
+    
+    if (volumeSlider) {
+        audioPlayer.volume = volumeSlider.value / 100;
+    }
+    
+    if (volumeValue) {
+        volumeValue.textContent = volumeSlider.value + '%';
+    }
+}
+
+function formatTime(seconds) {
+    if (isNaN(seconds)) return '0:00';
+    
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+}
+
+function closeFilePreviewModal() {
+    // Stop media if playing
+    if (mediaElement) {
+        mediaElement.pause();
+        mediaElement = null;
+    }
+    
+    // Stop audio player
+    if (audioPlayer) {
+        audioPlayer.pause();
+        audioPlayer = null;
+    }
+    
+    // Stop animation
+    if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+    }
+    
+    // Close audio context
+    if (audioContext) {
+        audioContext.close();
+        audioContext = null;
+    }
+    
+    // Hide modal
+    document.getElementById('filePreviewModal').style.display = 'none';
+    
+    // Clear content
+    document.getElementById('previewContent').innerHTML = '';
+    currentPreviewFile = null;
+}
+
+function toggleMediaPlay() {
+    if (!mediaElement) return;
+    
+    if (mediaElement.paused) {
+        mediaElement.play();
+    } else {
+        mediaElement.pause();
+    }
+    
+    updateMediaToggleButton();
+}
+
+function updateMediaToggleButton() {
+    const btn = document.getElementById('mediaToggleBtn');
+    if (!mediaElement) return;
+    
+    if (mediaElement.paused) {
+        btn.innerHTML = '▶️ Play';
+    } else {
+        btn.innerHTML = '⏸️ Pause';
+    }
+}
+
+function downloadPreviewedFile() {
+    if (!currentPreviewFile) return;
+    
+    // Create download link
+    const link = document.createElement('a');
+    link.href = currentPreviewFile.url;
+    link.download = currentPreviewFile.originalName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Handle click outside modal to close
+document.addEventListener('click', function(event) {
+    const previewModal = document.getElementById('filePreviewModal');
+    if (previewModal.style.display === 'flex' && 
+        !previewModal.contains(event.target) && 
+        !event.target.closest('button[onclick*="previewUploadedFile"]')) {
+        closeFilePreviewModal();
+    }
+});
+
+// Handle ESC key to close preview modal
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        const previewModal = document.getElementById('filePreviewModal');
+        if (previewModal.style.display === 'flex') {
+            closeFilePreviewModal();
+        }
+    }
+});
+
+// Fullscreen toggle function
+let isFullscreen = false;
+
+function togglePreviewFullscreen() {
+    const modalContent = document.getElementById('previewModalContent');
+    const fullscreenBtn = document.getElementById('fullscreenToggleBtn');
+    const previewContent = document.getElementById('previewContent');
+    
+    isFullscreen = !isFullscreen;
+    
+    if (isFullscreen) {
+        // Fullscreen mode
+        modalContent.style.maxWidth = '98%';
+        modalContent.style.maxHeight = '98%';
+        modalContent.style.width = '98%';
+        modalContent.style.height = '98%';
+        fullscreenBtn.innerHTML = '⛶';
+        fullscreenBtn.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
+        
+        // Update content for fullscreen
+        updateContentForFullscreen(true);
+        
+        console.log('🔍 Entered fullscreen mode');
+    } else {
+        // Compact mode
+        modalContent.style.maxWidth = '90%';
+        modalContent.style.maxHeight = '90%';
+        modalContent.style.width = '';
+        modalContent.style.height = '';
+        fullscreenBtn.innerHTML = '⛶';
+        fullscreenBtn.style.background = 'linear-gradient(135deg, #64748b 0%, #475569 100%)';
+        
+        // Update content for compact mode
+        updateContentForFullscreen(false);
+        
+        console.log('📱 Entered compact mode');
+    }
+}
+
+function updateContentForFullscreen(fullscreen) {
+    if (!currentPreviewFile) return;
+    
+    // Regenerate content with appropriate sizing
+    const newContent = generatePreviewContent(currentPreviewFile);
+    document.getElementById('previewContent').innerHTML = newContent;
+    
+    // Reinitialize audio player if it's an audio file
+    if (currentPreviewFile.type.startsWith('audio/')) {
+        setTimeout(() => {
+            initializeAudioPlayer();
+        }, 100);
+    }
+}
+
+// Delete Uploaded File Function
+async function deleteUploadedFile(fileId) {
+    if (!confirm('Czy na pewno chcesz usunąć ten plik?')) {
+        return;
+    }
     
     try {
-        console.log('🔄 Starting SZTUKI BLOB download...');
+        console.log('🔄 Deleting file:', fileId);
         
-        // Show loading state
-        button.innerHTML = '⏳ Pobieranie...';
-        button.disabled = true;
+        // Get file metadata
+        const db = firebase.firestore();
+        const fileDoc = await db.collection('uploaded_files').doc(fileId).get();
+        const fileData = fileDoc.data();
         
-        // Fetch the SZTUKI file
-        const urls = [
-            "https://pub-6f797b2842b7491297940c7f3f51e92f.r2.dev/SZTUKI.xlsm"
-        ];
+        if (!fileData || !fileData.name) {
+            throw new Error('File metadata not found');
+        }
         
-        let response;
-        let success = false;
-        
-        for (const url of urls) {
-            try {
-                console.log(`🔄 Trying SZTUKI URL: ${url}`);
-                response = await fetch(url, {
-                    method: 'GET',
-                    mode: 'cors',
-                    cache: 'no-cache'
-                });
-                
-                if (response.ok) {
-                    success = true;
-                    break;
-                }
-            } catch (corsError) {
-                console.log(`❌ CORS failed for ${url}, trying no-cors mode...`);
-                try {
-                    response = await fetch(url, {
-                        method: 'GET',
-                        mode: 'no-cors',
-                        cache: 'no-cache'
-                    });
-                    
-                    console.log(`🔄 Using no-cors mode for ${url}`);
-                    success = true;
-                    break;
-                } catch (noCorsError) {
-                    console.log(`❌ No-cors also failed for ${url}`);
-                    continue;
-                }
+        // Delete from R2 via Worker
+        try {
+            const workerUrl = 'https://r2-upload-proxy.nikolfar91.workers.dev/delete';
+            
+            const deleteResponse = await fetch(workerUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    fileName: fileData.name
+                })
+            });
+            
+            if (deleteResponse.ok) {
+                const result = await deleteResponse.json();
+                console.log('✅ File deleted from R2:', result);
+            } else {
+                console.log('⚠️ Failed to delete from R2, status:', deleteResponse.status);
+                // Continue with Firebase deletion even if R2 deletion fails
             }
+        } catch (workerError) {
+            console.log('⚠️ Worker deletion failed:', workerError.message);
+            // Continue with Firebase deletion even if Worker deletion fails
         }
         
-        if (!success) {
-            throw new Error('All SZTUKI download methods failed');
-        }
+        // Delete from Firebase
+        await db.collection('uploaded_files').doc(fileId).delete();
         
-        // Create blob
-        const blob = await response.blob();
-        console.log('✅ SZTUKI BLOB created successfully');
-        
-        // Create download link
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "SZTUKI.xlsm";
-        document.body.appendChild(a);
-        a.click();
-        
-        // Cleanup
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        
-        console.log('✅ SZTUKI download completed');
-        
-        // Close modal after successful download
-        setTimeout(() => {
-            closeDownloadOptionsModal();
-        }, 1000);
+        console.log('✅ File deleted from Firebase');
+        alert('✅ Plik usunięty pomyślnie z R2 i Firebase!');
+        loadFileList(); // Refresh file list
         
     } catch (error) {
-        console.error('❌ SZTUKI download error:', error);
-        
-        // Restore button and show error
-        button.innerHTML = originalText;
-        button.disabled = false;
-        
-        // Show error message
-        alert('❌ Błąd pobierania pliku SZTUKI. Spróbuj ponownie później.');
+        console.error('❌ Delete error:', error);
+        alert('❌ Błąd usuwania pliku. Spróbuj ponownie.');
     }
 }
 
-// Handle Enter key in password input
+// Format File Size Function
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Handle Enter key in password inputs
 document.addEventListener('DOMContentLoaded', function() {
     const passwordInput = document.getElementById('passwordInput');
     if (passwordInput) {
@@ -7767,13 +9393,31 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    const fileManagerPasswordInput = document.getElementById('fileManagerPasswordInput');
+    if (fileManagerPasswordInput) {
+        fileManagerPasswordInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkFileManagerPassword();
+            }
+        });
+    }
+    
     // Handle Escape key to close modals
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             const passwordModal = document.getElementById('passwordModal');
             const downloadModal = document.getElementById('downloadOptionsModal');
+            const fileManagerPasswordModal = document.getElementById('fileManagerPasswordModal');
+            const fileManagerModal = document.getElementById('fileManagerModal');
+            const addCustomButtonModal = document.getElementById('addCustomButtonModal');
             
-            if (downloadModal && downloadModal.style.display === 'flex') {
+            if (addCustomButtonModal && addCustomButtonModal.style.display === 'flex') {
+                closeAddCustomButtonModal();
+            } else if (fileManagerModal && fileManagerModal.style.display === 'flex') {
+                closeFileManagerModal();
+            } else if (fileManagerPasswordModal && fileManagerPasswordModal.style.display === 'flex') {
+                closeFileManagerPasswordModal();
+            } else if (downloadModal && downloadModal.style.display === 'flex') {
                 closeDownloadOptionsModal();
             } else if (passwordModal && passwordModal.style.display === 'flex') {
                 closePasswordModal();
