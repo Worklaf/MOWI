@@ -894,6 +894,136 @@
         .auth-error { margin-top: 15px; padding: 10px; background: #dc2626; color: white; border-radius: 6px; font-size: 12px; display: none; }
         .auth-success { margin-top: 15px; padding: 10px; background: #16a34a; color: white; border-radius: 6px; font-size: 12px; display: none; }
         .auth-close { background: transparent; border: none; color: #94a3b8; font-size: 18px; cursor: pointer; }
+        
+        /* Modal styles */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.8); 
+            display: none; z-index: 10001; 
+            justify-content: center; align-items: center;
+        }
+        
+        .modal-content {
+            background: linear-gradient(145deg, #1e293b 0%, #334155 50%, #1e293b 100%);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.1);
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow: hidden;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-close:hover {
+            background: rgba(255,255,255,0.1);
+            color: #f8fafc;
+        }
+        
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            max-height: calc(80vh - 80px);
+        }
+        
+        .preset-item {
+            background: linear-gradient(145deg, #1e293b 0%, #334155 50%, #1e293b 100%);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .preset-item:hover {
+            border-color: rgba(255,255,255,0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .preset-item.active {
+            border-color: #16a34a;
+            box-shadow: 0 4px 15px rgba(22,163,74,0.3);
+        }
+        
+        .preset-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .preset-name {
+            color: #f8fafc;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .preset-date {
+            color: #94a3b8;
+            font-size: 12px;
+        }
+        
+        .preset-info {
+            color: #cbd5f1;
+            font-size: 12px;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        
+        .preset-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .preset-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .preset-btn-load {
+            background: linear-gradient(145deg, #16a34a 0%, #15803d 50%, #16a34a 100%);
+            color: white;
+        }
+        
+        .preset-btn-load:hover {
+            box-shadow: 0 4px 15px rgba(22,163,74,0.4);
+        }
+        
+        .preset-btn-delete {
+            background: linear-gradient(145deg, #dc2626 0%, #b91c1c 50%, #dc2626 100%);
+            color: white;
+        }
+        
+        .preset-btn-delete:hover {
+            box-shadow: 0 4px 15px rgba(220,38,38,0.4);
+        }
     </style>
     
     <!-- Firebase SDK -->
@@ -1357,20 +1487,7 @@
             <span id="coordsDisplay" style="font-family: 'JetBrains Mono', 'Courier New', monospace; font-size:11px; font-weight:600; text-shadow: 0 1px 2px rgba(0,0,0,0.5); color: #cbd5f1;">x: — | y: — | w: — | h: —</span>
         </div>
         <span id="windowNameDisplay" style="display:none;">—</span>
-        <button id="clearCoordsBtn" class="btn-ghost" style="
-            background: linear-gradient(145deg, #1e293b 0%, #334155 50%, #1e293b 100%);
-            color: #f8fafc;
-            border: 1px solid rgba(255,255,255,0.2);
-            padding: 6px 10px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        ">🗑️ RESET</button>
-        <button id="clearSingleCoordsBtn" class="btn-ghost" style="
+        <button id="clearAllCoordsBtn" class="btn-ghost" style="
             background: linear-gradient(145deg, #dc2626 0%, #b91c1c 50%, #dc2626 100%);
             color: white;
             border: 1px solid rgba(255,255,255,0.2);
@@ -1382,20 +1499,7 @@
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(220,38,38,0.4), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2);
             text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        ">🗑️ SINGLE</button>
-        <button id="clearMultiCoordsBtn" class="btn-ghost" style="
-            background: linear-gradient(145deg, #16a34a 0%, #15803d 50%, #16a34a 100%);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.2);
-            padding: 6px 10px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(22,163,74,0.4), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        ">🗑️ MULTI</button>
+        "><span id="clearAllCoordsBtnText">🗑️ RESET</span></button>
         <button id="workTextRegionBtn" onclick="startTextRegionSelection()" style="
             background: linear-gradient(145deg, #8b5cf6 0%, #7c3aed 50%, #8b5cf6 100%);
             color: white;
@@ -1414,16 +1518,28 @@
             background: linear-gradient(145deg, #8b5cf6 0%, #7c3aed 50%, #8b5cf6 100%);
             color: white;
             border: 1px solid rgba(255,255,255,0.2);
-            padding: 6px 10px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: bold;
+            padding: 8px 16px;
+            border-radius: 20px;
             cursor: pointer;
-            margin-left: 5px;
+            font-size: 14px;
+            font-weight: 600;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(139, 92, 246,0.4), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2);
             text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        ">⚖️ <span id="workWeightBtnText">Waga</span></button>
+        ">⚖️ <span id="workWeightBtnText">Вес</span></button>
+        <button id="workPresetsBtn" onclick="showPresetsModal()" style="
+            background: linear-gradient(145deg, #f59e0b 0%, #d97706 50%, #f59e0b 100%);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(245, 158, 11,0.4), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        "><span id="workPresetsBtnText">📋 Сохранения</span></button>
         <button id="resetBtn" class="btn-small" style="
             background: linear-gradient(145deg, #dc2626 0%, #b91c1c 50%, #dc2626 100%);
             color: white;
@@ -1530,6 +1646,64 @@
 
 <canvas id="hiddenPreview"></canvas>
 
+<!-- ── PRESETS MODAL ── -->
+<div id="presetsModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
+        <div class="modal-header">
+            <h3 id="presetsModalTitle" style="margin: 0; color: #f8fafc; font-size: 18px; font-weight: 600;">📋 Горячие сохранения координат</h3>
+            <button class="modal-close" onclick="closePresetsModal()">✕</button>
+        </div>
+        
+        <div class="modal-body">
+            <!-- Сохранить текущие координаты -->
+            <div style="background: linear-gradient(145deg, #1e293b 0%, #334155 50%, #1e293b 100%); padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1);">
+                <h4 id="saveCurrentCoords" style="color: #f8fafc; margin: 0 0 10px 0; font-size: 14px;">💾 Сохранить текущие координаты</h4>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="presetNameInput" placeholder="Название сохранения..." style="
+                        flex: 1;
+                        background: rgba(255,255,255,0.1);
+                        border: 1px solid rgba(255,255,255,0.2);
+                        padding: 8px 12px;
+                        border-radius: 8px;
+                        color: #f8fafc;
+                        font-size: 14px;
+                    ">
+                    <button id="savePresetBtn" onclick="saveCurrentAsPreset()" style="
+                        background: linear-gradient(145deg, #16a34a 0%, #15803d 50%, #16a34a 100%);
+                        color: white;
+                        border: none;
+                        padding: 8px 16px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-weight: 600;
+                        font-size: 14px;
+                        box-shadow: 0 4px 15px rgba(22,163,74,0.4);
+                    ">Сохранить</button>
+                </div>
+                <div id="currentCoordsInfo" style="color: #94a3b8; font-size: 12px; margin-top: 8px;"></div>
+            </div>
+            
+            <!-- Список сохранений -->
+            <div id="presetsList" style="display: flex; flex-direction: column; gap: 10px;">
+                <!-- Пресеты будут добавлены динамически -->
+            </div>
+            
+            <!-- Пустое состояние -->
+            <div id="noPresetsMessage" style="
+                text-align: center;
+                padding: 40px;
+                color: #94a3b8;
+                font-size: 14px;
+                display: none;
+            ">
+                <div style="font-size: 48px; margin-bottom: 10px;">📋</div>
+                <div id="noPresetsTitle">Пока нет сохраненных координат</div>
+                <div id="noPresetsSubtitle" style="font-size: 12px; margin-top: 5px;">Выделите области и сохраните их для быстрого доступа</div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 /* ══════════════════════════════════════════════
    ELEMENTY DOM
@@ -1552,6 +1726,8 @@ let isSelectingMultiRegion = false; // Флаг для отслеживания 
 let isSelectingTextRegion = false; // Флаг для отслеживания выделения текстовой области
 let isSelectingWeightArea = false; // Флаг для отслеживания выделения области веса
 let weightRegions = [];           // Массив для хранения WEIGHT областей
+let coordinatePresets = [];       // Массив для хранения горячих сохранений координат
+let currentPresetIndex = -1;      // Индекс текущего выбранного пресета
 let currentWeightIndex = -1;   // Текущий индекс WEIGHT области
 let isHistoryVisible = true;
 let isCapturing   = false;
@@ -1585,9 +1761,7 @@ const overlayHintEl     = document.getElementById('hint');
 const spaceHintEl       = document.getElementById('spaceHint');
 const captureBtnText    = document.getElementById('captureBtnText');
 const coordsDisplay     = document.getElementById('coordsDisplay');
-const clearCoordsBtn    = document.getElementById('clearCoordsBtn');
-const clearSingleCoordsBtn = document.getElementById('clearSingleCoordsBtn');
-const clearMultiCoordsBtn = document.getElementById('clearMultiCoordsBtn');
+const clearAllCoordsBtn = document.getElementById('clearAllCoordsBtn');
 const windowNameDisplay = document.getElementById('windowNameDisplay');
 const htmlEl            = document.documentElement;
 const qhSidebar         = document.getElementById('qhSidebar');
@@ -1617,11 +1791,12 @@ const STORAGE_KEY_TEXT_REGION = 'maxqr_textRegion';    // Для текстов�
 const STORAGE_KEY_WEIGHT_REGION = 'maxqr_weightRegion';  // Для области веса партий
 const STORAGE_KEY_PARTY_NAMES = 'maxqr_partyNames';      // Для массива названий партий
 const STORAGE_KEY_PARTY_WEIGHTS = 'maxqr_partyWeights';  // Для массива весов партий
+const STORAGE_KEY_PRESETS = 'maxqr_coordinatePresets'; // Для горячих сохранений координат
 
 /* ══════════════════════════════════════════════
    MULTI MODE INITIALIZATION
 ══════════════════════════════════════════════ */
-function initMultiMode() {
+async function initMultiMode() {
     console.log('🚀 Инициализация мультирежима...');
     // Всегда SINGLE MODE по умолчанию при загрузке страницы
     isMultiMode = false;
@@ -1632,7 +1807,7 @@ function initMultiMode() {
     console.log('🔍 Главный тумблер удален, используем только быстрые тумблеры');
     
     if (isMultiMode) {
-        loadMultiRegions();
+        await loadMultiRegions();
         console.log('📁 MULTI MODE: загружены сохраненные области');
     } else {
         console.log('📁 SINGLE MODE: режим по умолчанию (принудительно)');
@@ -1662,11 +1837,22 @@ function initMultiMode() {
     console.log('✅ Инициализация мультирежима завершена');
 }
 
-function loadMultiRegions() {
+async function loadMultiRegions() {
     try {
         const saved = localStorage.getItem(STORAGE_KEY_MULTI_REGIONS);
         if (saved) {
             multiRegions = JSON.parse(saved);
+        }
+        
+        // Загружаем storedMultiRegion из localStorage
+        const multiRegionSaved = localStorage.getItem(STORAGE_KEY_MULTI_REGION);
+        if (multiRegionSaved) {
+            storedMultiRegion = JSON.parse(multiRegionSaved);
+        }
+        
+        // Если нет локальных данных, пробуем загрузить из Firebase
+        if (!storedMultiRegion) {
+            await loadRegionsFromFirestore();
         }
     } catch (err) {
         console.warn('Failed to load multi regions:', err);
@@ -1680,6 +1866,238 @@ function saveMultiRegions() {
     } catch (err) {
         console.warn('Failed to save multi regions:', err);
     }
+}
+
+/* ══════════════════════════════════════════════
+   COORDINATE PRESETS MANAGEMENT
+══════════════════════════════════════════════ */
+
+function loadCoordinatePresets() {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY_PRESETS);
+        if (saved) {
+            coordinatePresets = JSON.parse(saved);
+        }
+    } catch (err) {
+        console.warn('Failed to load coordinate presets:', err);
+        coordinatePresets = [];
+    }
+}
+
+function saveCoordinatePresets() {
+    try {
+        localStorage.setItem(STORAGE_KEY_PRESETS, JSON.stringify(coordinatePresets));
+        saveRegionsToFirestore(); // Sync to cloud (includes presets)
+    } catch (err) {
+        console.warn('Failed to save coordinate presets:', err);
+    }
+}
+
+function saveCurrentCoordinatesAsPreset(presetName) {
+    const preset = {
+        id: Date.now().toString(),
+        name: presetName || `Сохранение ${coordinatePresets.length + 1}`,
+        createdAt: new Date().toISOString(),
+        coordinates: {
+            single: storedSingleRegion,
+            multi: storedMultiRegion,
+            text: storedTextRegion,
+            weight: weightRegions
+        }
+    };
+    
+    coordinatePresets.push(preset);
+    saveCoordinatePresets();
+    console.log('✅ Сохранен новый preset:', preset);
+    return preset;
+}
+
+function loadPreset(presetId) {
+    const preset = coordinatePresets.find(p => p.id === presetId);
+    if (!preset) {
+        console.error('❌ Preset не найден:', presetId);
+        return false;
+    }
+    
+    // Загружаем координаты из пресета
+    storedSingleRegion = preset.coordinates.single;
+    storedMultiRegion = preset.coordinates.multi;
+    storedTextRegion = preset.coordinates.text;
+    weightRegions = preset.coordinates.weight || [];
+    
+    // Сохраняем в localStorage
+    if (storedSingleRegion) {
+        localStorage.setItem(STORAGE_KEY_SINGLE_REGION, JSON.stringify(storedSingleRegion));
+    }
+    if (storedMultiRegion) {
+        localStorage.setItem(STORAGE_KEY_MULTI_REGION, JSON.stringify(storedMultiRegion));
+    }
+    if (storedTextRegion) {
+        localStorage.setItem(STORAGE_KEY_TEXT_REGION, JSON.stringify(storedTextRegion));
+    }
+    if (weightRegions.length > 0) {
+        localStorage.setItem(STORAGE_KEY_WEIGHT_REGION, JSON.stringify(weightRegions));
+    }
+    
+    // Обновляем активную область
+    if (isMultiMode && storedMultiRegion) {
+        storedRegion = storedMultiRegion;
+    } else if (!isMultiMode && storedSingleRegion) {
+        storedRegion = storedSingleRegion;
+    }
+    
+    currentPresetIndex = coordinatePresets.findIndex(p => p.id === presetId);
+    
+    // Синхронизируем с Firebase
+    saveRegionsToFirestore();
+    
+    console.log(t('presetLoaded'), preset.name);
+    setStatus(t('loaded') + ' ' + preset.name);
+    
+    return true;
+}
+
+function deletePreset(presetId) {
+    const index = coordinatePresets.findIndex(p => p.id === presetId);
+    if (index === -1) return false;
+    
+    const deletedPreset = coordinatePresets.splice(index, 1)[0];
+    saveCoordinatePresets();
+    
+    // Если удалили текущий preset, сбрасываем индекс
+    if (currentPresetIndex === index) {
+        currentPresetIndex = -1;
+    } else if (currentPresetIndex > index) {
+        currentPresetIndex--;
+    }
+    
+    console.log('✅ Удален preset:', deletedPreset.name);
+    return true;
+}
+
+/* ══════════════════════════════════════════════
+   PRESETS MODAL MANAGEMENT
+══════════════════════════════════════════════ */
+
+function showPresetsModal() {
+    const modal = document.getElementById('presetsModal');
+    modal.style.display = 'flex';
+    renderPresetsList();
+    updateCurrentCoordsInfo();
+}
+
+function closePresetsModal() {
+    const modal = document.getElementById('presetsModal');
+    modal.style.display = 'none';
+}
+
+function renderPresetsList() {
+    const presetsList = document.getElementById('presetsList');
+    const noPresetsMessage = document.getElementById('noPresetsMessage');
+    
+    if (coordinatePresets.length === 0) {
+        presetsList.style.display = 'none';
+        noPresetsMessage.style.display = 'block';
+        return;
+    }
+    
+    presetsList.style.display = 'flex';
+    noPresetsMessage.style.display = 'none';
+    
+    presetsList.innerHTML = '';
+    
+    coordinatePresets.forEach((preset, index) => {
+        const presetItem = document.createElement('div');
+        presetItem.className = 'preset-item';
+        if (index === currentPresetIndex) {
+            presetItem.classList.add('active');
+        }
+        
+        const createdDate = new Date(preset.createdAt).toLocaleString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        const info = [];
+        if (preset.coordinates.single) {
+            info.push(`Single: ${preset.coordinates.single.x},${preset.coordinates.single.y}`);
+        }
+        if (preset.coordinates.multi) {
+            info.push(`Multi: ${preset.coordinates.multi.x},${preset.coordinates.multi.y}`);
+        }
+        if (preset.coordinates.text) {
+            info.push(`Partia: ${preset.coordinates.text.x},${preset.coordinates.text.y}`);
+        }
+        if (preset.coordinates.weight && preset.coordinates.weight.length > 0) {
+            info.push(`Waga: ${preset.coordinates.weight.length} ${t('weightAreas')}`);
+        }
+        
+        presetItem.innerHTML = `
+            <div class="preset-header">
+                <div class="preset-name">${preset.name}</div>
+                <div class="preset-date">${createdDate}</div>
+            </div>
+            <div class="preset-info">${info.join(' | ')}</div>
+            <div class="preset-actions">
+                <button class="preset-btn preset-btn-load" onclick="loadPreset('${preset.id}')">${t('loadBtn')}</button>
+                <button class="preset-btn preset-btn-delete" onclick="deletePreset('${preset.id}')">${t('deleteBtn')}</button>
+            </div>
+        `;
+        
+        presetsList.appendChild(presetItem);
+    });
+}
+
+function updateCurrentCoordsInfo() {
+    const infoDiv = document.getElementById('currentCoordsInfo');
+    const info = [];
+    
+    if (storedSingleRegion) {
+        info.push(`Single: ${storedSingleRegion.x},${storedSingleRegion.y}`);
+    }
+    if (storedMultiRegion) {
+        info.push(`Multi: ${storedMultiRegion.x},${storedMultiRegion.y}`);
+    }
+    if (storedTextRegion) {
+        info.push(`Text: ${storedTextRegion.x},${storedTextRegion.y}`);
+    }
+    if (weightRegions.length > 0) {
+        info.push(`Weight: ${weightRegions.length} областей`);
+    }
+    
+    if (info.length === 0) {
+        infoDiv.textContent = t('noRegionsToSave');
+    } else {
+        infoDiv.textContent = info.join(' | ');
+    }
+}
+
+function saveCurrentAsPreset() {
+    const nameInput = document.getElementById('presetNameInput');
+    const presetName = nameInput.value.trim();
+    
+    if (!presetName) {
+        setStatus(t('enterPresetName'));
+        return;
+    }
+    
+    // Проверяем есть ли что сохранять
+    if (!storedSingleRegion && !storedMultiRegion && !storedTextRegion && weightRegions.length === 0) {
+        setStatus(t('noRegionsToSave'));
+        return;
+    }
+    
+    const preset = saveCurrentCoordinatesAsPreset(presetName);
+    
+    // Очищаем поле ввода
+    nameInput.value = '';
+    
+    // Обновляем список
+    renderPresetsList();
+    
+    setStatus(t('saved') + ' ' + preset.name);
 }
 
 function updateWorkModeToggle() {
@@ -1820,7 +2238,7 @@ function initTheme() {
     // Добавляем обработчик для быстрого тумблера
     if (quickMultiToggle) {
         console.log('⚡ Быстрый тумблер найден, добавляю обработчик...');
-        quickMultiToggle.addEventListener('change', () => {
+        quickMultiToggle.addEventListener('change', async () => {
             console.log('⚡ Быстрый тумблер переключен!');
             isMultiMode = quickMultiToggle.checked;
             localStorage.setItem(STORAGE_KEY_MULTI, isMultiMode);
@@ -1828,16 +2246,16 @@ function initTheme() {
             
             if (isMultiMode) {
                 loadMultiRegions();
-                // Используем фиксированные рабочие координаты для MULTI MODE
+                // Загружаем multi координаты из Firebase если нет локальных
                 if (!storedMultiRegion) {
-                    storedMultiRegion = {
-                        x: 540,
-                        y: 241,
-                        w: 220,
-                        h: 606
-                    };
-                    localStorage.setItem(STORAGE_KEY_MULTI_REGION, JSON.stringify(storedMultiRegion));
-                    console.log('🎯 Установлены фиксированные координаты для MULTI MODE:', storedMultiRegion);
+                    await loadRegionsFromFirestore();
+                }
+                
+                if (!storedMultiRegion) {
+                    console.log('⚠️ MULTI область не найдена, нужно выделить вручную');
+                    setStatus('Выделите QR область для генерации кодов');
+                } else {
+                    console.log('🎯 Используются сохраненные MULTI координаты:', storedMultiRegion);
                 }
                 setStatus('statusMultiReady');
                 console.log('✅ MULTI MODE активирован (быстрый)');
@@ -1854,7 +2272,7 @@ function initTheme() {
     if (overlayModeToggle) {
         console.log('✅ Тумблер в overlay найден, добавляю обработчик...');
         overlayModeToggle.checked = isMultiMode;
-        overlayModeToggle.addEventListener('change', () => {
+        overlayModeToggle.addEventListener('change', async () => {
             console.log('🔄 Тумблер в overlay переключен!');
             isMultiMode = overlayModeToggle.checked;
             localStorage.setItem(STORAGE_KEY_MULTI, isMultiMode);
@@ -1865,16 +2283,16 @@ function initTheme() {
             
             if (isMultiMode) {
                 loadMultiRegions();
-                // Используем фиксированные рабочие координаты для MULTI MODE
+                // Загружаем multi координаты из Firebase если нет локальных
                 if (!storedMultiRegion) {
-                    storedMultiRegion = {
-                        x: 540,
-                        y: 241,
-                        w: 220,
-                        h: 606
-                    };
-                    localStorage.setItem(STORAGE_KEY_MULTI_REGION, JSON.stringify(storedMultiRegion));
-                    console.log('🎯 Установлены фиксированные координаты для MULTI MODE:', storedMultiRegion);
+                    await loadRegionsFromFirestore();
+                }
+                
+                if (!storedMultiRegion) {
+                    console.log('⚠️ MULTI область не найдена, нужно выделить вручную');
+                    setStatus('Выделите QR область для генерации кодов');
+                } else {
+                    console.log('🎯 Используются сохраненные MULTI координаты:', storedMultiRegion);
                 }
                 setStatus('statusMultiReady');
                 console.log('✅ MULTI MODE активирован (overlay)');
@@ -1967,7 +2385,7 @@ const translations = {
         statusAutoInit:'Automatyczne przetwarzanie...',
         statusAutoError:'Zapisany obszar poza kadrem.',
         statusCoordsCleared:'Współrzędne wyzerowane.',
-        clearCoordsBtn:'🗑️ RESET',
+        clearAllCoordsBtn:'🗑️ RESET WSZYSTKIE',
         spaceHint:'Naciśnij SPACJĘ dla kolejnego zrzutu',
         captureBtnText:'NOWY ZRZUT',
         statusSelectNew:'⚠️ Wybierz okno ponownie',
@@ -1980,6 +2398,22 @@ const translations = {
         needMultiModeConsole:'⚠️ Musisz przełączyć się w MULTI MODE do pracy z tekstem partii',
         textAreaSaved:'Obszar tekstowy zapisany',
         weightAreaSaved:'Obszar wagi zapisany',
+        // Presets modal translations
+        presetsBtn:'📋 Zapisane',
+        presetsModalTitle:'📋 Zapisane koordynaty',
+        saveCurrentCoords:'💾 Zapisz bieżące koordynaty',
+        presetNamePlaceholder:'Nazwa zapisania...',
+        saveBtn:'Zapisz',
+        noPresetsTitle:'Brak zapisanych koordynatów',
+        noPresetsSubtitle:'Zaznacz obszary i zapisz je dla szybkiego dostępu',
+        loadBtn:'Załaduj',
+        deleteBtn:'Usuń',
+        noRegionsToSave:'Brak zaznaczonych obszarów do zapisania',
+        enterPresetName:'Wprowadź nazwę zapisania',
+        saved:'Zapisano:',
+        loaded:'Załadowano:',
+        weightAreas:'obszarów wagi',
+        presetLoaded:'✅ Załadowany preset:',
     },
     uk: {
         startTitle:'MAX QR READER', startSubtitle:'Оберіть джерело зображення',
@@ -1994,7 +2428,7 @@ const translations = {
         statusAutoInit:'Автоматична обробка...',
         statusAutoError:'Збережена область поза кадром.',
         statusCoordsCleared:'Координати скинуто.',
-        clearCoordsBtn:'🗑️ СКИНУТИ',
+        clearAllCoordsBtn:'🗑️ СКИНУТИ ВСІ',
         spaceHint:'Натисніть ПРОБІЛ для нового зображення',
         captureBtnText:'НОВИЙ ЗНІМОК',
         statusSelectNew:'⚠️ Оберіть вікно знову',
@@ -2007,6 +2441,22 @@ const translations = {
         needMultiModeConsole:'⚠️ Потрібно переключитися в MULTI MODE для роботи з текстом партій',
         textAreaSaved:'Текстова область збережена',
         weightAreaSaved:'Область ваги збережена',
+        // Presets modal translations
+        presetsBtn:'📋 Збереження',
+        presetsModalTitle:'📋 Збереження координат',
+        saveCurrentCoords:'💾 Зберегти поточні координати',
+        presetNamePlaceholder:'Назва збереження...',
+        saveBtn:'Зберегти',
+        noPresetsTitle:'Немає збережених координат',
+        noPresetsSubtitle:'Виділіть області і збережіть їх для швидкого доступу',
+        loadBtn:'Завантажити',
+        deleteBtn:'Видалити',
+        noRegionsToSave:'Немає виділених областей для збереження',
+        enterPresetName:'Введіть назву збереження',
+        saved:'Збережено:',
+        loaded:'Завантажено:',
+        weightAreas:'областей ваги',
+        presetLoaded:'✅ Завантажено пресет:',
     },
     en: {
         startTitle:'MAX QR READER', startSubtitle:'Choose image source',
@@ -2020,7 +2470,7 @@ const translations = {
         overlayHint:'Click anywhere to close',
         statusAutoInit:'Auto processing...', statusAutoError:'Saved area out of frame.',
         statusCoordsCleared:'Coordinates cleared.',
-        clearCoordsBtn:'🗑️ RESET',
+        clearAllCoordsBtn:'🗑️ RESET ALL',
         spaceHint:'Press SPACE for next capture',
         captureBtnText:'NEW CAPTURE',
         statusSelectNew:'⚠️ Select window again',
@@ -2033,6 +2483,22 @@ const translations = {
         needMultiModeConsole:'⚠️ You need to switch to MULTI MODE to work with party text',
         textAreaSaved:'Text area saved',
         weightAreaSaved:'Weight area saved',
+        // Presets modal translations
+        presetsBtn:'📋 Presets',
+        presetsModalTitle:'📋 Saved Coordinates',
+        saveCurrentCoords:'💾 Save Current Coordinates',
+        presetNamePlaceholder:'Preset name...',
+        saveBtn:'Save',
+        noPresetsTitle:'No saved coordinates',
+        noPresetsSubtitle:'Select areas and save them for quick access',
+        loadBtn:'Load',
+        deleteBtn:'Delete',
+        noRegionsToSave:'No selected areas to save',
+        enterPresetName:'Enter preset name',
+        saved:'Saved:',
+        loaded:'Loaded:',
+        weightAreas:'weight areas',
+        presetLoaded:'✅ Loaded preset:',
     }
 };
 const ocrLangMap = { pl:'pol', uk:'ukr', en:'eng' };
@@ -2052,8 +2518,32 @@ function applyTranslations() {
     resetBtn.innerText        = t('resetBtn');
     overlayHintEl.innerText   = t('overlayHint');
     spaceHintEl.innerText     = t('spaceHint');
-    clearCoordsBtn.innerText  = t('clearCoordsBtn');
+    const clearAllCoordsBtnText = document.getElementById('clearAllCoordsBtnText');
+    if (clearAllCoordsBtnText) clearAllCoordsBtnText.textContent = t('clearAllCoordsBtn');
     captureBtnText.innerText  = t('captureBtnText');
+    
+    // Presets modal translations
+    const workPresetsBtnText = document.getElementById('workPresetsBtnText');
+    if (workPresetsBtnText) workPresetsBtnText.textContent = t('presetsBtn');
+    
+    const presetsModalTitle = document.getElementById('presetsModalTitle');
+    if (presetsModalTitle) presetsModalTitle.textContent = t('presetsModalTitle');
+    
+    const saveCurrentCoords = document.getElementById('saveCurrentCoords');
+    if (saveCurrentCoords) saveCurrentCoords.textContent = t('saveCurrentCoords');
+    
+    const presetNameInput = document.getElementById('presetNameInput');
+    if (presetNameInput) presetNameInput.placeholder = t('presetNamePlaceholder');
+    
+    const savePresetBtn = document.getElementById('savePresetBtn');
+    if (savePresetBtn) savePresetBtn.textContent = t('saveBtn');
+    
+    const noPresetsTitle = document.getElementById('noPresetsTitle');
+    if (noPresetsTitle) noPresetsTitle.textContent = t('noPresetsTitle');
+    
+    const noPresetsSubtitle = document.getElementById('noPresetsSubtitle');
+    if (noPresetsSubtitle) noPresetsSubtitle.textContent = t('noPresetsSubtitle');
+    
     refreshStatus(); updateCoordsDisplay(storedRegion);
 }
 langSelect.addEventListener('change', () => {
@@ -2412,7 +2902,7 @@ async function processWeightArea(region) {
         const imageData = preprocessWeightImage(weightCtx.getImageData(0, 0, region.w, region.h));
         
         // Увеличиваем изображение для лучшего OCR
-        const scaleFactor = 3.5; // Максимальное увеличение для цифр
+        const scaleFactor = 5; // Максимальное увеличение для цифр
         const scaledCanvas = document.createElement('canvas');
         scaledCanvas.width = Math.floor(region.w * scaleFactor);
         scaledCanvas.height = Math.floor(region.h * scaleFactor);
@@ -3147,7 +3637,7 @@ async function processTextRegion(region) {
         const imageData = preprocessTextImage(textCtx.getImageData(0, 0, region.w, region.h));
         
         // Увеличиваем изображение для лучшего OCR
-        const scaleFactor = 2.0;
+        const scaleFactor = 5;
         const scaledCanvas = document.createElement('canvas');
         scaledCanvas.width = Math.floor(region.w * scaleFactor);
         scaledCanvas.height = Math.floor(region.h * scaleFactor);
@@ -3505,38 +3995,40 @@ function storeRegion(r) {
     storedRegion = region;
     updateCoordsDisplay(storedRegion);
 }
-function clearStoredRegion() {
+function clearAllCoordinates() {
     // Очищаем все сохраненные области
     storedRegion = null;
     storedSingleRegion = null;
     storedMultiRegion = null;
+    storedTextRegion = null;
+    weightRegions = [];
     
     // Очищаем все ключи
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(STORAGE_KEY_SINGLE_REGION);
     localStorage.removeItem(STORAGE_KEY_MULTI_REGION);
+    localStorage.removeItem(STORAGE_KEY_TEXT_REGION);
+    localStorage.removeItem(STORAGE_KEY_WEIGHT_REGION);
     
+    // Обновляем UI
     updateCoordsDisplay(null); 
-    clearStoredWindow(); 
+    clearStoredWindow();
+    
+    // Обновляем кнопки
+    if (workTextRegionBtn) {
+        workTextRegionBtn.textContent = t('partyBtn');
+    }
+    if (workWeightRegionBtn) {
+        workWeightRegionBtn.textContent = t('weightBtn');
+    }
+    
+    // Перерисовываем канвас
+    redrawCanvasWithRegions();
+    
+    // Синхронизируем с Firebase
+    saveRegionsToFirestore();
+    
     setStatus('statusCoordsCleared');
-}
-
-function clearSingleRegion() {
-    // Очищаем только SINGLE MODE координаты
-    storedSingleRegion = null;
-    storedRegion = isMultiMode ? storedMultiRegion : null; // Обновляем общую переменную
-    localStorage.removeItem(STORAGE_KEY_SINGLE_REGION);
-    updateCoordsDisplay(storedRegion);
-    setStatus('SINGLE координаты очищены');
-}
-
-function clearMultiRegion() {
-    // Очищаем только MULTI MODE координаты
-    storedMultiRegion = null;
-    storedRegion = isMultiMode ? null : storedSingleRegion; // Обновляем общую переменную
-    localStorage.removeItem(STORAGE_KEY_MULTI_REGION);
-    updateCoordsDisplay(storedRegion);
-    setStatus('MULTI координаты очищены');
 }
 function updateCoordsDisplay(r) {
     coordsDisplay.textContent = r ? `x: ${r.x} | y: ${r.y} | w: ${r.w} | h: ${r.h}` : 'x: — | y: — | w: — | h: —';
@@ -3557,9 +4049,7 @@ function loadStoredWindow() {
     const w = localStorage.getItem(STORAGE_KEY_WINDOW);
     if (w) { lastWindowName = w; windowNameDisplay.textContent = `🖥 ${w}`; windowNameDisplay.style.display = 'inline-block'; }
 }
-clearCoordsBtn.addEventListener('click', clearStoredRegion);
-clearSingleCoordsBtn.addEventListener('click', clearSingleRegion);
-clearMultiCoordsBtn.addEventListener('click', clearMultiRegion);
+clearAllCoordsBtn.addEventListener('click', clearAllCoordinates);
 resetBtn.addEventListener('click', () => location.reload());
 
 /* ══════════════════════════════════════════════
@@ -3703,6 +4193,7 @@ mainCanvas.addEventListener('mouseup', async e => {
             // Сохраняем в storedMultiRegion для будущих переключений
             storedMultiRegion = region;
             localStorage.setItem(STORAGE_KEY_MULTI_REGION, JSON.stringify(region));
+            saveRegionsToFirestore(); // Sync to cloud
             
             setStatus('MULTI: Обработка строк...');
             await processMultiRegionAsLines(region);
@@ -3796,7 +4287,7 @@ async function processMultiRegionAsLines(region) {
         }
         
         // Автоматически увеличиваем изображение для лучшего распознавания
-        const scaleFactor = 1.46; // Идеальный масштаб по вашим тестам
+        const scaleFactor = 4; // Увеличиваем для лучшего распознавания 20-значных кодов
         console.log(`📏 Создаю canvas с масштабом ${scaleFactor}x`);
         
         const multiCanvas = document.createElement('canvas');
@@ -4731,11 +5222,127 @@ item.appendChild(canvas);
         border: 1px solid ${selectedTheme.name === 'White' ? 'rgba(157,78,221,0.3)' : 'rgba(255,255,255,0.3)'};
         position: relative;
         overflow: hidden;
+        cursor: pointer;
     `;
     codeText.textContent = qrValue;
+    
+    // Добавляем подсказку о возможности редактирования
+    codeText.title = 'Нажмите для редактирования QR кода';
+    
+    // Добавляем функциональность редактирования по клику
+    codeText.addEventListener('click', function(e) {
+        e.stopPropagation();
+        makeCodeEditable(codeText, canvas, qrValue, index);
+    });
+    
     item.appendChild(codeText);
     
     return item;
+}
+
+// Функция для редактирования QR кода
+function makeCodeEditable(codeTextElement, canvasElement, originalValue, index) {
+    // Проверяем не редактируется ли уже
+    if (codeTextElement.querySelector('input')) {
+        return;
+    }
+    
+    const originalText = codeTextElement.textContent;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = originalText;
+    input.style.cssText = `
+        background: rgba(0,0,0,0.8);
+        color: #fff;
+        border: 2px solid #3b82f6;
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-size: 14px;
+        font-weight: bold;
+        font-family: 'Courier New', monospace;
+        width: 100%;
+        box-sizing: border-box;
+        outline: none;
+        text-align: center;
+    `;
+    
+    // Заменяем текст на input
+    codeTextElement.innerHTML = '';
+    codeTextElement.appendChild(input);
+    input.focus();
+    input.select();
+    
+    // Функция для сохранения изменений
+    const saveChanges = () => {
+        const newValue = input.value.trim();
+        
+        if (newValue && newValue !== originalText) {
+            // Обновляем текст
+            codeTextElement.textContent = newValue;
+            
+            // Обновляем QR код
+            try {
+                new QRious({
+                    element: canvasElement,
+                    value: newValue,
+                    size: 500
+                });
+                
+                // Обновляем данные в массиве
+                if (multiCodes[index]) {
+                    if (typeof multiCodes[index] === 'object') {
+                        multiCodes[index].code = newValue;
+                    } else {
+                        multiCodes[index] = newValue;
+                    }
+                }
+                
+                // Добавляем визуальный эффект успешного редактирования
+                codeTextElement.style.background = 'linear-gradient(145deg, rgba(34,197,94,0.3) 0%, rgba(22,163,74,0.2) 50%, rgba(34,197,94,0.3) 100%)';
+                codeTextElement.style.borderColor = 'rgba(34,197,94,0.5)';
+                
+                setTimeout(() => {
+                    // Возвращаем оригинальный стиль
+                    const currentTheme = parseInt(localStorage.getItem('qrModalTheme') || '0');
+                    const selectedTheme = themes[currentTheme];
+                    codeTextElement.style.background = selectedTheme.name === 'White' 
+                        ? 'linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 25%, #1a1a1a 50%, #0d0d0d 75%, #1a1a1a 100%)'
+                        : 'linear-gradient(145deg, rgba(30,30,30,0.9) 0%, rgba(20,20,20,0.8) 50%, rgba(30,30,30,0.9) 100%)';
+                    codeTextElement.style.borderColor = selectedTheme.name === 'White' ? 'rgba(157,78,221,0.3)' : 'rgba(255,255,255,0.3)';
+                }, 1000);
+                
+                console.log(`✅ QR код ${index + 1} обновлен: ${originalText} → ${newValue}`);
+                
+            } catch (error) {
+                console.error('❌ Ошибка при обновлении QR кода:', error);
+                codeTextElement.textContent = originalText;
+            }
+        } else {
+            // Если значение не изменилось или пустое, возвращаем оригинал
+            codeTextElement.textContent = originalText;
+        }
+    };
+    
+    // Обработчики событий
+    input.addEventListener('blur', saveChanges);
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            saveChanges();
+        }
+    });
+    
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            codeTextElement.textContent = originalText;
+        }
+    });
+    
+    // Предотвращаем закрытие overlay при клике на input
+    input.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
 }
 
 function updateMultiQrOverlay() {
@@ -6409,6 +7016,14 @@ async function doQuickCapture() {
     if (isCapturing || isProcessing) return;
     closeHistViewer();
     qrOverlay.style.display = 'none';
+    
+    // Принудительно очищаем overlay текст перед новым OCR
+    const currentOverlayText = document.getElementById('overlayText');
+    if (currentOverlayText) {
+        currentOverlayText.innerHTML = '';
+        currentOverlayText.textContent = '';
+    }
+    
     if (activeStream && storedRegion) { await processRegion(storedRegion); return; }
     if (activeStream) { setStatus('statusReady'); return; }
     await startCapture();
@@ -6470,7 +7085,7 @@ async function processRegion(r) {
     if (activeStream && captureVideo.readyState >= 2) ctx.drawImage(captureVideo, 0, 0);
     
     // Автоматически увеличиваем изображение для лучшего распознавания
-    const scaleFactor = 2.5; // Увеличиваем для ускорения OCR
+    const scaleFactor = 4; // Увеличиваем для ускорения OCR
     previewCanvas.width = Math.floor(r.w * scaleFactor);
     previewCanvas.height = Math.floor(r.h * scaleFactor);
     
@@ -6683,10 +7298,188 @@ const bigQrCanvas  = document.getElementById('bigQrCanvas');
 const overlayTextEl = document.getElementById('overlayText');
 
 function showOverlay(code) {
-    overlayTextEl.textContent = code;
+    // Находим актуальный элемент каждый раз
+    const currentOverlayText = document.getElementById('overlayText');
+    
+    // Принудительно очищаем и обновляем текстовый элемент
+    currentOverlayText.innerHTML = ''; // Очищаем полностью
+    currentOverlayText.textContent = code; // Устанавливаем новый код
     new QRious({ element: bigQrCanvas, value: code, size: 400, background:'#fff', foreground:'#000' });
+    
+    // Добавляем функциональность редактирования для single режима
+    currentOverlayText.style.cursor = 'pointer';
+    currentOverlayText.title = 'Нажмите для редактирования QR кода';
+    
+    // Удаляем старые обработчики если есть - безопасный способ
+    try {
+        if (currentOverlayText.parentNode) {
+            const newOverlayText = currentOverlayText.cloneNode(true);
+            currentOverlayText.parentNode.replaceChild(newOverlayText, currentOverlayText);
+            
+            // Добавляем новый обработчик клика
+            newOverlayText.addEventListener('click', function(e) {
+                e.stopPropagation();
+                makeSingleCodeEditable(newOverlayText, bigQrCanvas, code);
+            });
+        } else {
+            // Если parentNode нет, просто добавляем обработчик
+            currentOverlayText.addEventListener('click', function(e) {
+                e.stopPropagation();
+                makeSingleCodeEditable(currentOverlayText, bigQrCanvas, code);
+            });
+        }
+    } catch (error) {
+        console.error('Ошибка при настройке редактирования:', error);
+        // Запасной вариант - просто добавляем обработчик
+        currentOverlayText.addEventListener('click', function(e) {
+            e.stopPropagation();
+            makeSingleCodeEditable(currentOverlayText, bigQrCanvas, code);
+        });
+    }
+    
     addToHistory(code);
     qrOverlay.style.display = 'flex';
+}
+
+// Функция для редактирования QR кода в single режиме
+function makeSingleCodeEditable(codeTextElement, canvasElement, originalValue) {
+    // Проверяем не редактируется ли уже
+    if (codeTextElement.querySelector('input')) {
+        return;
+    }
+    
+    const originalText = codeTextElement.textContent;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = originalText;
+    input.style.cssText = `
+        background: linear-gradient(145deg, rgba(30,30,30,0.9) 0%, rgba(20,20,20,0.8) 50%, rgba(30,30,30,0.9) 100%);
+        color: #fff;
+        border: 2px solid #3b82f6;
+        border-radius: 12px;
+        padding: 8px 16px;
+        font-size: 24px;
+        font-weight: bold;
+        font-family: 'Courier New', monospace;
+        width: auto;
+        min-width: 300px;
+        max-width: 90%;
+        box-sizing: border-box;
+        outline: none;
+        text-align: center;
+        letter-spacing: 1px;
+        box-shadow: 
+            0 4px 12px rgba(0,0,0,0.4),
+            0 1px 4px rgba(0,0,0,0.3),
+            inset 0 1px 2px rgba(255,255,255,0.2),
+            inset 0 -1px 2px rgba(0,0,0,0.3);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    `;
+    
+    // Добавляем hover эффект
+    input.addEventListener('mouseenter', () => {
+        input.style.borderColor = '#2563eb';
+        input.style.boxShadow = '0 6px 16px rgba(37,99,235,0.5), 0 1px 4px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.2), inset 0 -1px 2px rgba(0,0,0,0.3)';
+    });
+    
+    input.addEventListener('mouseleave', () => {
+        input.style.borderColor = '#3b82f6';
+        input.style.boxShadow = '0 4px 12px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.2), inset 0 -1px 2px rgba(0,0,0,0.3)';
+    });
+    
+    // Заменяем текст на input
+    codeTextElement.innerHTML = '';
+    codeTextElement.appendChild(input);
+    input.focus();
+    input.select();
+    
+    // Функция для сохранения изменений
+    const saveChanges = () => {
+        const newValue = input.value.trim();
+        
+        if (newValue && newValue !== originalText) {
+            // Обновляем текст
+            codeTextElement.textContent = newValue;
+            
+            // Обновляем QR код
+            try {
+                new QRious({
+                    element: canvasElement,
+                    value: newValue,
+                    size: 400,
+                    background: '#fff',
+                    foreground: '#000'
+                });
+                
+                // Добавляем в историю
+                addToHistory(newValue);
+                
+                // Добавляем визуальный эффект успешного редактирования
+                codeTextElement.style.background = 'linear-gradient(135deg, rgba(34,197,94,0.3) 0%, rgba(22,163,74,0.2) 50%, rgba(34,197,94,0.3) 100%)';
+                codeTextElement.style.webkitBackgroundClip = 'text';
+                codeTextElement.style.webkitTextFillColor = 'transparent';
+                codeTextElement.style.filter = 'drop-shadow(0 0 20px rgba(34,197,94,0.7))';
+                
+                setTimeout(() => {
+                    // Возвращаем оригинальный стиль для glow темы
+                    if (isGlowTheme) {
+                        codeTextElement.style.background = 'linear-gradient(135deg, #a78bfa 0%, #818cf8 45%, #38bdf8 100%)';
+                        codeTextElement.style.webkitBackgroundClip = 'text';
+                        codeTextElement.style.webkitTextFillColor = 'transparent';
+                        codeTextElement.style.filter = 'drop-shadow(0 0 16px rgba(99,102,241,0.7))';
+                    } else {
+                        codeTextElement.style.background = '';
+                        codeTextElement.style.webkitBackgroundClip = '';
+                        codeTextElement.style.webkitTextFillColor = '';
+                        codeTextElement.style.filter = '';
+                    }
+                }, 1000);
+                
+                console.log(`✅ Single QR код обновлен: ${originalText} → ${newValue}`);
+                
+            } catch (error) {
+                console.error('❌ Ошибка при обновлении QR кода:', error);
+                codeTextElement.textContent = originalText;
+            }
+        } else {
+            // Если значение не изменилось или пустое, возвращаем оригинал
+            codeTextElement.textContent = originalText;
+        }
+        
+        // Восстанавливаем обработчик клика
+        codeTextElement.addEventListener('click', function(e) {
+            e.stopPropagation();
+            makeSingleCodeEditable(codeTextElement, canvasElement, codeTextElement.textContent);
+        });
+    };
+    
+    // Обработчики событий
+    input.addEventListener('blur', saveChanges);
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            saveChanges();
+        }
+    });
+    
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            codeTextElement.textContent = originalText;
+            // Восстанавливаем обработчик клика
+            codeTextElement.addEventListener('click', function(e) {
+                e.stopPropagation();
+                makeSingleCodeEditable(codeTextElement, canvasElement, codeTextElement.textContent);
+            });
+        }
+    });
+    
+    // Предотвращаем закрытие overlay при клике на input
+    input.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
 }
 
 function closeOverlay() {
@@ -6759,6 +7552,7 @@ initTheme();
 initHistoryState();
 loadStoredRegion(); // Loading coordinates BEFORE mode initialization
 loadStoredWindow();
+loadCoordinatePresets(); // Load coordinate presets
 applyTranslations();
 initMultiMode(); // Then initialize mode and update coordinates
 
@@ -6870,7 +7664,8 @@ window.showAuthModal = function() {
 };
 
 let currentUserIdQR = null;
-let isSyncingRegions = false;
+let isSyncingRegions = false; // Prevent overlapping syncs
+let isSyncingPresets = false; // Prevent overlapping preset syncs
 
 // Device fingerprint functions
 function generateDeviceFingerprintQR() {
@@ -6945,17 +7740,19 @@ async function saveRegionsToFirestore() {
       multi: storedMultiRegion,
       text: storedTextRegion,
       weight: weightRegions,
+      presets: coordinatePresets, // Добавляем пресеты в qr_regions
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
       deviceInfo: navigator.userAgent
     };
     await dbQR.collection('qr_regions').doc(userId).set(regionsData);
-    console.log('✅ Regions synced to Firestore for:', userId);
+    console.log('✅ Regions & Presets synced to Firestore for:', userId);
   } catch (e) {
     console.error('❌ Regions sync error:', e);
   } finally {
     isSyncingRegions = false;
   }
 }
+
 
 async function loadRegionsFromFirestore() {
   try {
@@ -6964,8 +7761,9 @@ async function loadRegionsFromFirestore() {
     const localMulti = localStorage.getItem(STORAGE_KEY_MULTI_REGION);
     const localText = localStorage.getItem(STORAGE_KEY_TEXT_REGION);
     const localWeight = localStorage.getItem(STORAGE_KEY_WEIGHT_REGION);
+    const localPresets = localStorage.getItem(STORAGE_KEY_PRESETS);
     
-    const hasLocalData = localSingle || localMulti || localText || localWeight;
+    const hasLocalData = localSingle || localMulti || localText || localWeight || localPresets;
     
     // Load from Firebase only for missing local data
     const userId = getUserIdQR();
@@ -7001,14 +7799,22 @@ async function loadRegionsFromFirestore() {
         loadedFromCloud = true;
       }
       
+      // Load presets from Firebase if missing locally
+      if (data.presets && data.presets.length > 0 && !localPresets) {
+        coordinatePresets = data.presets;
+        localStorage.setItem(STORAGE_KEY_PRESETS, JSON.stringify(coordinatePresets));
+        console.log('☁️ Loaded presets from Firebase (missing locally):', coordinatePresets.length, 'presets');
+        loadedFromCloud = true;
+      }
+      
       // Update current region based on mode
       storedRegion = isMultiMode ? storedMultiRegion : storedSingleRegion;
       updateCoordsDisplay(storedRegion);
       
       if (loadedFromCloud) {
-        console.log('✅ Some regions loaded from Firebase (local was missing)');
+        console.log('✅ Some regions/presets loaded from Firebase (local was missing)');
       } else if (hasLocalData) {
-        console.log('✅ Using local regions (Firebase has backup)');
+        console.log('✅ Using local regions/presets (Firebase has backup)');
       }
       return true;
     }
