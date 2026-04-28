@@ -17,7 +17,19 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Anti-cache meta tags -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>OCR: MAX QR</title>
+    <!-- VERSION: 2026-04-28-2048 - Force browser to reload -->
+    <script>
+        console.log('🔄 QR.HTML VERSION: 2026-04-28-2048 - translations fixed');
+        // Force reload if cached version detected
+        if (window.location.href.indexOf('?v=') === -1) {
+            window.location.href = window.location.href + '?v=202604282048';
+        }
+    </script>
     <link rel="icon" type="image/svg+xml" href="mowi-favicon.svg">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css">
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -86,6 +98,91 @@
             transform: translateX(26px); 
             box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.5);
         }
+        /* Специальный стиль для Cyan Background toggle */
+        #cyanBgToggle:checked + .slider {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), 0 0 12px rgba(139, 255, 250, 0.5);
+        }
+        
+        /* Правая панель управления */
+        #rightControlPanel {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 99999;
+        }
+        
+        #rightControlPanel .control-item {
+            background: linear-gradient(145deg, #1e293b 0%, #334155 50%, #1e293b 100%);
+            padding: 8px 12px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(148,163,184,0.2);
+            transition: all 0.3s ease;
+            min-width: 140px;
+        }
+        
+        #rightControlPanel .control-item:hover {
+            transform: translateX(-3px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.15);
+        }
+        
+        #rightControlPanel .control-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            min-width: 45px;
+        }
+        
+        #rightControlPanel select {
+            background: #374151;
+            color: #fff;
+            border: 1px solid #4b5563;
+            border-radius: 6px;
+            padding: 3px 6px;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            flex: 1;
+        }
+        
+        /* Кнопка СТАРТ */
+        #startBtn {
+            background: linear-gradient(145deg, #16a34a 0%, #15803d 50%, #16a34a 100%);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(22,163,74,0.4), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            margin-top: 5px;
+        }
+        
+        #startBtn:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 6px 20px rgba(22,163,74,0.5), 0 0 0 1px rgba(255,255,255,0.15), inset 0 1px 0 rgba(255,255,255,0.3);
+        }
+        
+        #startBtn:active {
+            transform: translateY(0) scale(0.98);
+        }
+        
+        #startBtn:disabled {
+            background: linear-gradient(145deg, #4b5563 0%, #374151 50%, #4b5563 100%);
+            cursor: not-allowed;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
         .mode-label { 
             font-weight: 700; font-size: 15px; 
             text-shadow: 0 1px 3px rgba(0,0,0,0.5);
@@ -1554,41 +1651,53 @@
             text-shadow: 0 1px 2px rgba(0,0,0,0.3);
         " onclick="location.reload()">🔄 RESET</button>
     </div>
-    <!-- Дополнительный тумблер в той же строке -->
-    <div style="display:flex; align-items:center; gap:8px; margin-top:3px;">
-        <div id="quickModeSwitcher" style="background: linear-gradient(145deg, #1e293b 0%, #334155 50%, #1e293b 100%); padding: 6px 10px; border-radius: 10px; box-shadow: 0 3px 12px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1); display: flex; align-items: center; gap: 6px; border: 1px solid rgba(148,163,184,0.2); transition: all 0.3s ease;">
-            <span style="color:#fbbf24; font-size:10px; font-weight:700; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">⚡ QUICK MULTI:</span>
-            <label class="switch" style="scale:0.6;">
+    
+    <!-- Правая панель управления: Режим, Масштабы, Фон, СТАРТ -->
+    <div id="rightControlPanel">
+        <!-- Режим: SINGLE / MULTI -->
+        <div class="control-item">
+            <span class="control-label" style="color:#fbbf24;" data-i18n="modeLabel">⚡ MODE:</span>
+            <label class="switch" style="scale:0.55; margin:0;">
                 <input type="checkbox" id="quickMultiToggle">
                 <span class="slider"></span>
             </label>
-            <span id="quickModeStatus" style="color:#888; font-size:10px; font-weight:700; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">SINGLE</span>
+            <span id="quickModeStatus" style="font-size:10px; font-weight:700; color:#888; min-width:45px;">SINGLE</span>
         </div>
         
-        <!-- Тумблер масштаба -->
-        <div id="scaleSwitcher" style="background: linear-gradient(145deg, #1e293b 0%, #334155 50%, #1e293b 100%); padding: 6px 10px; border-radius: 10px; box-shadow: 0 3px 12px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1); display: flex; align-items: center; gap: 6px; border: 1px solid rgba(148,163,184,0.2); transition: all 0.3s ease;">
-            <span style="color:#06b6d4; font-size:10px; font-weight:700; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">🔍 МАСШТАБ:</span>
-            <select id="scaleSelector" style="background: #374151; color: #fff; border: 1px solid #4b5563; border-radius: 6px; padding: 2px 6px; font-size: 10px; font-weight: 600; cursor: pointer;">
+        <!-- Масштаб QR -->
+        <div class="control-item">
+            <span class="control-label" style="color:#06b6d4;" data-i18n="qrScaleLabel">🔍 QR:</span>
+            <select id="scaleSelector">
                 <option value="2.5">2.5x</option>
                 <option value="4" selected>4x</option>
                 <option value="5">5x</option>
             </select>
         </div>
         
-        <!-- Тумблер контрастности (скрыт, фиксировано 3x) -->
-        <!--
-        <div id="contrastSwitcher" style="background: linear-gradient(145deg, #1e293b 0%, #334155 50%, #1e293b 100%); padding: 6px 10px; border-radius: 10px; box-shadow: 0 3px 12px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1); display: flex; align-items: center; gap: 6px; border: 1px solid rgba(148,163,184,0.2); transition: all 0.3s ease;">
-            <span style="color:#f59e0b; font-size:10px; font-weight:700; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">🎨 КОНТРАСТ:</span>
-            <select id="contrastSelector" style="background: #374151; color: #fff; border: 1px solid #4b5563; border-radius: 6px; padding: 2px 6px; font-size: 10px; font-weight: 600; cursor: pointer;">
-                <option value="1.5">1.5x</option>
-                <option value="2.0">2.0x</option>
+        <!-- Масштаб Партий -->
+        <div class="control-item">
+            <span class="control-label" style="color:#a855f7;" data-i18n="partyScaleLabel">📋 PARTIES:</span>
+            <select id="partyScaleSelector">
+                <option value="2">2x</option>
                 <option value="2.5">2.5x</option>
-                <option value="3.0" selected>3.0x</option>
-                <option value="3.5">3.5x</option>
-                <option value="4.0">4.0x</option>
+                <option value="3" selected>3x</option>
+                <option value="4">4x</option>
+                <option value="5">5x</option>
             </select>
         </div>
-        -->
+        
+        <!-- Цветной фон -->
+        <div class="control-item">
+            <span class="control-label" style="color:#8bfffa;" data-i18n="cyanBgLabel">🎨 BG:</span>
+            <label class="switch" style="scale:0.55; margin:0;">
+                <input type="checkbox" id="cyanBgToggle">
+                <span class="slider"></span>
+            </label>
+            <span id="cyanBgStatus" style="font-size:10px; font-weight:700; color:#888; min-width:35px;">OFF</span>
+        </div>
+        
+        <!-- Кнопка СТАРТ -->
+        <button id="startBtn">▶️ START</button>
     </div>
 </div>
 
@@ -1802,10 +1911,23 @@ const quickMultiToggle  = document.getElementById('quickMultiToggle');
 const quickModeStatus   = document.getElementById('quickModeStatus');
 const overlayModeToggle = document.getElementById('overlayModeToggle');
 const scaleSelector      = document.getElementById('scaleSelector');
+const partyScaleSelector = document.getElementById('partyScaleSelector');
+const cyanBgToggle        = document.getElementById('cyanBgToggle');
+const cyanBgStatus        = document.getElementById('cyanBgStatus');
+const startBtn            = document.getElementById('startBtn');
 const contrastSelector    = document.getElementById('contrastSelector');
 
-// Глобальная переменная для масштаба (изначально 4x)
+// Глобальная переменная для cyan background режима (вкл/выкл)
+let isCyanBackgroundEnabled = false;
+
+// Цвет cyan фона для OCR (яркий бирюзовый)
+const CYAN_BG_COLOR = { r: 139, g: 255, b: 250 }; // #8bfffa
+
+// Глобальная переменная для масштаба QR (изначально 4x)
 let currentScaleFactor = 4;
+
+// Глобальная переменная для масштаба ПАРТИЙ (изначально 3x)
+let currentPartyScaleFactor = 3;
 
 // Глобальная переменная для контрастности (фиксировано 3x)
 let currentContrastFactor = 3;
@@ -1850,6 +1972,71 @@ function showScaleNotification(scale) {
             notification.parentNode.removeChild(notification);
         }
     }, 2000);
+}
+
+// Функция для показа уведомления об изменении масштаба партий
+function showPartyScaleNotification(scale) {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, #a855f7, #7c3aed); color: white;
+        padding: 12px 20px; border-radius: 10px; font-weight: 600;
+        z-index: 10000; box-shadow: 0 8px 25px rgba(168, 85, 247, 0.4);
+        animation: fadeInOut 2s ease-in-out;
+    `;
+    notification.textContent = `📋 Масштаб партий изменен на ${scale}x`;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 2000);
+}
+
+// Функция для применения cyan фона к изображению (замена светлых пикселей на #8bfffa)
+function applyCyanBackground(imageData) {
+    if (!isCyanBackgroundEnabled) return imageData;
+    
+    const data = imageData.data;
+    const width = imageData.width;
+    const height = imageData.height;
+    
+    // Порог для определения "светлых" пикселей (белый/серый фон)
+    const LIGHT_THRESHOLD = 180; // Пиксели светлее этого считаем фоном
+    const DARK_THRESHOLD = 80;   // Пиксели темнее этого считаем текстом
+    
+    for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        
+        // Вычисляем яркость пикселя
+        const brightness = (r + g + b) / 3;
+        
+        // Если пиксель светлый (фон) - заменяем на cyan
+        if (brightness > LIGHT_THRESHOLD) {
+            data[i] = CYAN_BG_COLOR.r;     // R
+            data[i + 1] = CYAN_BG_COLOR.g; // G
+            data[i + 2] = CYAN_BG_COLOR.b; // B
+        }
+        // Если пиксель темный (текст) - оставляем черным или усиливаем контраст
+        else if (brightness < DARK_THRESHOLD) {
+            data[i] = 0;     // R - черный
+            data[i + 1] = 0; // G - черный
+            data[i + 2] = 0; // B - черный
+        }
+        // Промежуточные пиксели - градация между черным и cyan
+        else {
+            const factor = (brightness - DARK_THRESHOLD) / (LIGHT_THRESHOLD - DARK_THRESHOLD);
+            data[i] = Math.floor(CYAN_BG_COLOR.r * factor);
+            data[i + 1] = Math.floor(CYAN_BG_COLOR.g * factor);
+            data[i + 2] = Math.floor(CYAN_BG_COLOR.b * factor);
+        }
+        // Alpha оставляем неизменным
+    }
+    
+    return imageData;
 }
 
 // Функция для показа уведомления об изменении контрастности
@@ -2385,25 +2572,114 @@ function initTheme() {
         }
     }
     
-    // Обработчик контрастности отключен (фиксировано 3x)
-    // if (contrastSelector) {
-    //     console.log('🎨 Селектор контрастности найден, добавляю обработчик...');
-    //     contrastSelector.addEventListener('change', () => {
-    //         currentContrastFactor = parseFloat(contrastSelector.value);
-    //         console.log(`🎨 Контрастность изменена на ${currentContrastFactor}x`);
-    //         localStorage.setItem('maxqr_contrastFactor', currentContrastFactor);
-    //         updateContrastFactor();
-    //         showContrastNotification(currentContrastFactor);
-    //     });
-    //     
-    //     const savedContrast = localStorage.getItem('maxqr_contrastFactor');
-    //     if (savedContrast) {
-    //         currentContrastFactor = parseFloat(savedContrast);
-    //         contrastSelector.value = currentContrastFactor;
-    //         console.log(`🎨 Загружена сохраненная контрастность: ${currentContrastFactor}x`);
-    //     }
-    //     updateContrastFactor();
-    // }
+    // Добавляем обработчик для изменения масштаба ПАРТИЙ
+    if (partyScaleSelector) {
+        console.log('📋 Селектор масштаба партий найден, добавляю обработчик...');
+        partyScaleSelector.addEventListener('change', () => {
+            currentPartyScaleFactor = parseFloat(partyScaleSelector.value);
+            console.log(`📋 Масштаб партий изменен на ${currentPartyScaleFactor}x`);
+            localStorage.setItem('maxqr_partyScaleFactor', currentPartyScaleFactor);
+            
+            // Показываем уведомление об изменении
+            showPartyScaleNotification(currentPartyScaleFactor);
+        });
+        
+        // Загружаем сохраненный масштаб партий
+        const savedPartyScale = localStorage.getItem('maxqr_partyScaleFactor');
+        if (savedPartyScale) {
+            currentPartyScaleFactor = parseFloat(savedPartyScale);
+            partyScaleSelector.value = currentPartyScaleFactor;
+            console.log(`📋 Загружен сохраненный масштаб партий: ${currentPartyScaleFactor}x`);
+        }
+    }
+    
+    // Добавляем обработчик для Cyan Background режима
+    if (cyanBgToggle && cyanBgStatus) {
+        console.log('🎨 Тумблер Cyan Background найден, добавляю обработчик...');
+        
+        // Загружаем сохраненное состояние
+        const savedCyanBg = localStorage.getItem('maxqr_cyanBackground');
+        if (savedCyanBg === 'true') {
+            isCyanBackgroundEnabled = true;
+            cyanBgToggle.checked = true;
+            cyanBgStatus.textContent = 'ON';
+            cyanBgStatus.style.color = '#8bfffa';
+            console.log('🎨 Cyan Background загружен: ВКЛ');
+        }
+        
+        cyanBgToggle.addEventListener('change', () => {
+            isCyanBackgroundEnabled = cyanBgToggle.checked;
+            localStorage.setItem('maxqr_cyanBackground', isCyanBackgroundEnabled);
+            
+            if (isCyanBackgroundEnabled) {
+                cyanBgStatus.textContent = 'ON';
+                cyanBgStatus.style.color = '#8bfffa';
+                console.log('🎨 Cyan Background ВКЛЮЧЕН - фон будет заменен на #8bfffa');
+            } else {
+                cyanBgStatus.textContent = 'OFF';
+                cyanBgStatus.style.color = '#888';
+                console.log('🎨 Cyan Background ВЫКЛЮЧЕН - обычный режим');
+            }
+        });
+    }
+    
+    // Добавляем обработчик для кнопки СТАРТ
+    if (startBtn) {
+        console.log('▶️ Кнопка СТАРТ найдена, добавляю обработчик...');
+        startBtn.addEventListener('click', async () => {
+            if (isProcessing) {
+                console.log('⏳ Распознавание уже выполняется...');
+                return;
+            }
+            
+            console.log(`▶️ ЗАПУСК РАСПОЗНАВАНИЯ: Режим=${isMultiMode ? 'MULTI' : 'SINGLE'}, QR=${currentScaleFactor}x, Партии=${currentPartyScaleFactor}x, Фон=${isCyanBackgroundEnabled ? 'ON' : 'OFF'}`);
+            
+            // Показываем визуальный feedback
+            startBtn.disabled = true;
+            startBtn.textContent = t('startBtnWorking') || '⏳ WORKING...';
+            setStatus(t('statusRecognizing') || '🔄 Recognizing...');
+            
+            try {
+                if (isMultiMode) {
+                    // MULTI режим
+                    if (storedMultiRegion) {
+                        await processMultiRegionAsLines(storedMultiRegion);
+                        // Явно показываем overlay с QR кодами после обработки
+                        if (multiCodes && multiCodes.length > 0) {
+                            console.log('🎨 Показываю overlay с', multiCodes.length, 'QR кодами');
+                            showMultiQrOverlay();
+                            // Сопоставляем с партиями если есть
+                            if (partyNames.length > 0) {
+                                console.log('🔗 Найдены QR коды и партии, начинаю сопоставление...');
+                                await matchCodesWithParties();
+                            }
+                        }
+                    } else {
+                        setStatus(t('statusNoMultiRegion') || '❌ No saved MULTI region');
+                        console.log('❌ MULTI область не выбрана');
+                    }
+                } else {
+                    // SINGLE режим - используем сохраненную область
+                    const regionToUse = storedSingleRegion || storedRegion;
+                    if (regionToUse) {
+                        await processRegion(regionToUse);
+                    } else {
+                        setStatus(t('statusNoRegion') || '❌ No saved region');
+                        console.log('❌ Область не выбрана');
+                    }
+                }
+                
+                setStatus(t('statusDone') || '✅ Recognition complete');
+                console.log('✅ Распознавание успешно завершено');
+            } catch (err) {
+                console.error('❌ Ошибка при распознавании:', err);
+                setStatus((t('statusError') || '❌ Error') + ': ' + err.message);
+            } finally {
+                startBtn.disabled = false;
+                startBtn.textContent = t('startBtn') || '▶️ START';
+            }
+        });
+    }
     
     // Контрастность фиксирована на 3x
     updateContrastFactor();
@@ -2554,6 +2830,18 @@ const translations = {
         loaded:'Załadowano:',
         weightAreas:'obszarów wagi',
         presetLoaded:'✅ Załadowany preset:',
+        // Nowe elementy sterujące OCR
+        startBtn: '▶️ START',
+        startBtnWorking: '⏳ PRACUJĘ...',
+        statusRecognizing: '🔄 Rozpoznawanie...',
+        statusDone: '✅ Rozpoznawanie zakończone',
+        statusError: '❌ Błąd',
+        statusNoRegion: 'Brak zapisanych obszarów',
+        statusNoMultiRegion: 'Brak zapisanej MULTI obszaru',
+        qrScaleLabel: '🔍 QR:',
+        partyScaleLabel: '📋 PARTIE:',
+        cyanBgLabel: '🎨 TŁO:',
+        modeLabel: '⚡ TRYB:'
     },
     uk: {
         startTitle:'MAX QR READER', startSubtitle:'Оберіть джерело зображення',
@@ -2597,6 +2885,18 @@ const translations = {
         loaded:'Завантажено:',
         weightAreas:'областей ваги',
         presetLoaded:'✅ Завантажено пресет:',
+        // Нові елементи керування OCR
+        startBtn: '▶️ СТАРТ',
+        startBtnWorking: '⏳ ПРАЦЮЮ...',
+        statusRecognizing: '🔄 Розпізнавання...',
+        statusDone: '✅ Розпізнавання завершено',
+        statusError: '❌ Помилка',
+        statusNoRegion: 'Немає збереженої області',
+        statusNoMultiRegion: 'Немає збереженої MULTI області',
+        qrScaleLabel: '🔍 QR:',
+        partyScaleLabel: '📋 ПАРТІЇ:',
+        cyanBgLabel: '🎨 ФОН:',
+        modeLabel: '⚡ РЕЖИМ:'
     },
     en: {
         startTitle:'MAX QR READER', startSubtitle:'Choose image source',
@@ -2639,6 +2939,18 @@ const translations = {
         loaded:'Loaded:',
         weightAreas:'weight areas',
         presetLoaded:'✅ Loaded preset:',
+        // New OCR control elements
+        startBtn: '▶️ START',
+        startBtnWorking: '⏳ WORKING...',
+        statusRecognizing: '🔄 Recognizing...',
+        statusDone: '✅ Recognition complete',
+        statusError: '❌ Error',
+        statusNoRegion: 'No saved region',
+        statusNoMultiRegion: 'No saved MULTI region',
+        qrScaleLabel: '🔍 QR:',
+        partyScaleLabel: '📋 PARTIES:',
+        cyanBgLabel: '🎨 BG:',
+        modeLabel: '⚡ MODE:'
     }
 };
 const ocrLangMap = { pl:'pol', uk:'ukr', en:'eng' };
@@ -2683,6 +2995,23 @@ function applyTranslations() {
     
     const noPresetsSubtitle = document.getElementById('noPresetsSubtitle');
     if (noPresetsSubtitle) noPresetsSubtitle.textContent = t('noPresetsSubtitle');
+    
+    // Обновляем лейблы правой панели (data-i18n)
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (key) {
+            const translated = t(key);
+            if (translated && translated !== key) {
+                el.textContent = translated;
+            }
+        }
+    });
+    
+    // Обновляем кнопку СТАРТ
+    const startBtn = document.getElementById('startBtn');
+    if (startBtn && !startBtn.disabled) {
+        startBtn.textContent = t('startBtn') || '▶️ START';
+    }
     
     refreshStatus(); updateCoordsDisplay(storedRegion);
 }
@@ -3039,7 +3368,13 @@ async function processWeightArea(region) {
         }
         
         // Получаем изображение для OCR
-        const imageData = preprocessImage(weightCtx.getImageData(0, 0, region.w, region.h));
+        let imageData = preprocessImage(weightCtx.getImageData(0, 0, region.w, region.h));
+        
+        // Применяем cyan background если включен
+        if (isCyanBackgroundEnabled) {
+            imageData = applyCyanBackground(imageData);
+            console.log('🎨 Применен cyan фон (#8bfffa) для OCR весов');
+        }
         
         // Увеличиваем изображение для лучшего OCR
         const scaledCanvas = document.createElement('canvas');
@@ -3773,17 +4108,23 @@ async function processTextRegion(region) {
         }
         
         // Получаем изображение для OCR
-        const imageData = preprocessTextImage(textCtx.getImageData(0, 0, region.w, region.h));
+        let imageData = preprocessTextImage(textCtx.getImageData(0, 0, region.w, region.h));
         
-        // Увеличиваем изображение для лучшего OCR
+        // Применяем cyan background если включен
+        if (isCyanBackgroundEnabled) {
+            imageData = applyCyanBackground(imageData);
+            console.log('🎨 Применен cyan фон (#8bfffa) для OCR партий');
+        }
+        
+        // Увеличиваем изображение для лучшего OCR (отдельный масштаб для ПАРТИЙ)
         const scaledCanvas = document.createElement('canvas');
-        scaledCanvas.width = Math.floor(region.w * currentScaleFactor);
-        scaledCanvas.height = Math.floor(region.h * currentScaleFactor);
+        scaledCanvas.width = Math.floor(region.w * currentPartyScaleFactor);
+        scaledCanvas.height = Math.floor(region.h * currentPartyScaleFactor);
         const scaledCtx = scaledCanvas.getContext('2d');
         scaledCtx.imageSmoothingEnabled = false;
         scaledCtx.drawImage(textCanvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
         
-        console.log('📝 Увеличил текстовую область в', currentScaleFactor, 'раз для OCR');
+        console.log('📝 Увеличил текстовую область в', currentPartyScaleFactor, 'раз для OCR (партии)');
         
         // Execute OCR with extended whitelist for text
         if (typeof Tesseract === 'undefined') {
@@ -3813,7 +4154,7 @@ async function processTextRegion(region) {
         lineData.forEach(lineObj => {
             const lineText = lineObj.text || '';
             // Используем универсальную функцию для координат
-            const yReal = getYCoordinateFromLineData(lineObj, region, currentScaleFactor, 'Текст');
+            const yReal = getYCoordinateFromLineData(lineObj, region, currentPartyScaleFactor, 'Текст');
             
             if (yReal !== null) {
                 const parsed = parsePartyName(lineText.trim());
@@ -3835,9 +4176,9 @@ async function processTextRegion(region) {
                 if (parsed) {
                     // Y-координата: строка * высота строки + смещение
                     // Правильное преобразование из scaledCanvas в mainCanvas
-                    const qrY = region.y + ((i * lineH) / currentScaleFactor);
+                    const qrY = region.y + ((i * lineH) / currentPartyScaleFactor);
                     partyNames.push({ name: parsed, y: qrY });
-                    console.log(`✅ Партия (fallback): "${parsed}" Y=${qrY.toFixed(0)}`);
+                    console.log(`✅ Партия (fallback): "${parsed}" Y=${qrY.toFixed(0)} (масштаб партий: ${currentPartyScaleFactor}x)`);
                 }
             });
         }
@@ -4447,7 +4788,14 @@ async function processMultiRegionAsLines(region) {
         
         console.log(`🔍 MULTI: Автоматически увеличил изображение в ${currentScaleFactor}x: ${multiCanvas.width} x ${multiCanvas.height}`);
         
-        const imageData = multiCtx.getImageData(0, 0, multiCanvas.width, multiCanvas.height);
+        let imageData = multiCtx.getImageData(0, 0, multiCanvas.width, multiCanvas.height);
+        
+        // Применяем cyan background если включен
+        if (isCyanBackgroundEnabled) {
+            imageData = applyCyanBackground(imageData);
+            console.log('🎨 Применен cyan фон (#8bfffa) для MULTI OCR');
+        }
+        
         console.log('📊 Получил imageData:', imageData.width, 'x', imageData.height);
         
         // Анализируем изображение и находим строки
@@ -7265,6 +7613,14 @@ async function processRegion(r) {
             } else {
                 // Для canvas вариантов (вариант 4, 5)
                 variantCtx.drawImage(variants[i], 0, 0);
+            }
+            
+            // Применяем cyan background если включен
+            if (isCyanBackgroundEnabled) {
+                const imageData = variantCtx.getImageData(0, 0, variantCanvas.width, variantCanvas.height);
+                const processedData = applyCyanBackground(imageData);
+                variantCtx.putImageData(processedData, 0, 0);
+                console.log(`🎨 Вариант ${i + 1}: Применен cyan фон (#8bfffa)`);
             }
             
             // Выполняем OCR с расширенным whitelist для текста
