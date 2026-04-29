@@ -24,10 +24,10 @@
     <title>OCR: MAX QR</title>
     <!-- VERSION: 2026-04-28-2048 - Force browser to reload -->
     <script>
-        console.log('🔄 QR.HTML VERSION: 2026-04-28-2048 - translations fixed');
+        console.log('🔄 QR.HTML VERSION: 2026-04-29-2000 - Full translation support');
         // Force reload if cached version detected
         if (window.location.href.indexOf('?v=') === -1) {
-            window.location.href = window.location.href + '?v=202604282048';
+            window.location.href = window.location.href + '?v=202604292000';
         }
     </script>
     <link rel="icon" type="image/svg+xml" href="mowi-favicon.svg">
@@ -483,7 +483,7 @@
            HISTORY VIEWER
         ════════════════════════════════════════════════ */
         #histViewer {
-            position: fixed; inset: 0; z-index: 99999;
+            position: fixed; inset: 0; z-index: 100000;
             display: flex; align-items: center; justify-content: center;
         }
         #histViewer.hidden { display: none; }
@@ -1336,7 +1336,7 @@
                onmouseout="this.style.background='linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'; this.style.transform='translateY(0px)'; this.style.boxShadow='0 4px 12px rgba(245,158,11,0.4)'">
                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                     <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
-                    <path d="M7.646 11.854a.5.5 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
                 </svg>
                 SZTUKI.xlsm
             </button>
@@ -1610,7 +1610,7 @@
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(139, 92, 246,0.4), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2);
             text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        ">🏷️ <span id="workTextBtnText">Партии</span></button>
+        ">🏷️ <span id="workTextBtnText" data-i18n="parties">📋</span></button>
         <button id="workWeightRegionBtn" onclick="startWeightAreaSelection()" style="
             background: linear-gradient(145deg, #8b5cf6 0%, #7c3aed 50%, #8b5cf6 100%);
             color: white;
@@ -1623,7 +1623,7 @@
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(139, 92, 246,0.4), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2);
             text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        ">⚖️ <span id="workWeightBtnText">Вес</span></button>
+        ">⚖️ <span id="workWeightBtnText" data-i18n="weight">⚖️</span></button>
         <button id="workPresetsBtn" onclick="showPresetsModal()" style="
             background: linear-gradient(145deg, #f59e0b 0%, #d97706 50%, #f59e0b 100%);
             color: white;
@@ -1636,7 +1636,7 @@
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(245, 158, 11,0.4), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2);
             text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        "><span id="workPresetsBtnText">📋 Сохранения</span></button>
+        "><span id="workPresetsBtnText" data-i18n="presetsBtn">📋</span></button>
         <button id="resetBtn" class="btn-small" style="
             background: linear-gradient(145deg, #dc2626 0%, #b91c1c 50%, #dc2626 100%);
             color: white;
@@ -1686,6 +1686,32 @@
             </select>
         </div>
         
+        <!-- Режим PRO: Авто-смещение -->
+        <div class="control-item">
+            <span class="control-label" style="color:#f97316;" data-i18n="proModeLabel">🎯 PRO:</span>
+            <label class="switch" style="scale:0.55; margin:0;">
+                <input type="checkbox" id="proModeToggle">
+                <span class="slider"></span>
+            </label>
+            <span id="proModeStatus" style="font-size:10px; font-weight:700; color:#888; min-width:35px;">OFF</span>
+        </div>
+        
+        <!-- Шаг смещения PRO режима -->
+        <div class="control-item" id="proStepContainer" style="display:none;">
+            <span class="control-label" style="color:#f97316;" data-i18n="proStepLabel">📐 STEP:</span>
+            <select id="proStepSelector">
+                <option value="15">15px</option>
+                <option value="16">16px</option>
+                <option value="17">17px</option>
+                <option value="18" selected>18px (31 kod)</option>
+                <option value="19">19px</option>
+                <option value="20">20px</option>
+                <option value="22">22px</option>
+                <option value="25">25px</option>
+                <option value="30">30px</option>
+            </select>
+        </div>
+        
         <!-- Цветной фон -->
         <div class="control-item">
             <span class="control-label" style="color:#8bfffa;" data-i18n="cyanBgLabel">🎨 BG:</span>
@@ -1725,7 +1751,7 @@
         
         <!-- SIDEBAR -->
         <div id="qhSidebar" onclick="event.stopPropagation()">
-            <div class="qh-header">Historia</div>
+            <div class="qh-header" data-i18n="history">📋</div>
             <div id="qhList"></div>
         </div>
 
@@ -1748,8 +1774,8 @@
                     transition: all 0.3s;
                 ">SINGLE</div>
                 <div class="qr-box" onclick="if(scansHistory.length) openHistViewer(0)">
-                    <canvas id="bigQrCanvas"></canvas>
-                    <div id="overlayText">000000</div>
+                    <canvas id="bigQrCanvas" onclick="if(scansHistory.length) { event.stopPropagation(); openHistViewer(0); }"></canvas>
+                    <div id="overlayText" onclick="if(scansHistory.length) { event.stopPropagation(); openHistViewer(0); }">000000</div>
                 </div>
             </div>
         </div>
@@ -1757,12 +1783,12 @@
     </div>
 
     <div class="qr-overlay-footer">
-        <div id="hint">Kliknij dowolne miejsce, aby zamknąć</div>
-        <div id="spaceHint">Naciśnij SPACJĘ dla kolejnego zrzutu</div>
+        <div id="hint" data-i18n="closeHint">👆</div>
+        <div id="spaceHint" data-i18n="spaceHint">⌨️</div>
         <div style="display:flex; gap:10px; align-items:center;">
             <button id="themeToggleBtn" onclick="event.stopPropagation(); toggleOverlayTheme();">
                 <span class="dot"></span>
-                <span id="themeBtnLabel">✨ Glow OFF</span>
+                <span id="themeBtnLabel" data-i18n="glowOff">✨</span>
             </button>
         </div>
     </div>
@@ -1779,19 +1805,17 @@
 </div>
 
 <canvas id="hiddenPreview"></canvas>
-
-<!-- ── PRESETS MODAL ── -->
 <div id="presetsModal" class="modal" style="display: none;">
     <div class="modal-content" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
         <div class="modal-header">
-            <h3 id="presetsModalTitle" style="margin: 0; color: #f8fafc; font-size: 18px; font-weight: 600;">📋 Горячие сохранения координат</h3>
+            <h3 id="presetsModalTitle" style="color: #f8fafc; font-size: 18px; font-weight: 600;" data-i18n="coordinatePresets">📋</h3>
             <button class="modal-close" onclick="closePresetsModal()">✕</button>
         </div>
         
         <div class="modal-body">
             <!-- Сохранить текущие координаты -->
             <div style="background: linear-gradient(145deg, #1e293b 0%, #334155 50%, #1e293b 100%); padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1);">
-                <h4 id="saveCurrentCoords" style="color: #f8fafc; margin: 0 0 10px 0; font-size: 14px;">💾 Сохранить текущие координаты</h4>
+                <h4 id="saveCurrentCoords" style="color: #f8fafc; margin: 0 0 10px 0; font-size: 14px;" data-i18n="saveCurrentCoords">💾</h4>
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <input type="text" id="presetNameInput" placeholder="Название сохранения..." style="
                         flex: 1;
@@ -1812,7 +1836,7 @@
                         font-weight: 600;
                         font-size: 14px;
                         box-shadow: 0 4px 15px rgba(22,163,74,0.4);
-                    ">Сохранить</button>
+                    " data-i18n="save">💾</button>
                 </div>
                 <div id="currentCoordsInfo" style="color: #94a3b8; font-size: 12px; margin-top: 8px;"></div>
             </div>
@@ -1831,8 +1855,8 @@
                 display: none;
             ">
                 <div style="font-size: 48px; margin-bottom: 10px;">📋</div>
-                <div id="noPresetsTitle">Пока нет сохраненных координат</div>
-                <div id="noPresetsSubtitle" style="font-size: 12px; margin-top: 5px;">Выделите области и сохраните их для быстрого доступа</div>
+                <div id="noPresetsTitle" data-i18n="noPresetsTitle"></div>
+                <div id="noPresetsSubtitle" style="font-size: 12px; margin-top: 5px;" data-i18n="noPresetsSubtitle"></div>
             </div>
         </div>
     </div>
@@ -1868,6 +1892,10 @@ let isCapturing   = false;
 let isProcessing  = false; // Восстанавливаем переменную isProcessing
 let isVideoMode   = false;
 let isMultiMode   = false;
+let isSingleProfessionalMode = true; // Новый режим: professional single с авто-смещением - ВКЛЮЧЕН по умолчанию
+let professionalStepPixels = 18; // Шаг смещения: 559px ÷ 31 кодов = 18px
+let professionalCurrentIndex = 0; // Текущий индекс в professional режиме
+let professionalScannedRegions = []; // Массив для хранения истории отсканированных областей
 let multiRegions  = [];
 let multiCodes    = [];
 let currentMultiPage = 0;
@@ -1964,7 +1992,7 @@ function showScaleNotification(scale) {
         z-index: 10000; box-shadow: 0 8px 25px rgba(6, 182, 212, 0.4);
         animation: fadeInOut 2s ease-in-out;
     `;
-    notification.textContent = `🔍 Масштаб изменен на ${scale}x`;
+    notification.textContent = t('scaleChanged').replace('{scale}', scale);
     document.body.appendChild(notification);
     
     setTimeout(() => {
@@ -1984,7 +2012,7 @@ function showPartyScaleNotification(scale) {
         z-index: 10000; box-shadow: 0 8px 25px rgba(168, 85, 247, 0.4);
         animation: fadeInOut 2s ease-in-out;
     `;
-    notification.textContent = `📋 Масштаб партий изменен на ${scale}x`;
+    notification.textContent = t('partyScaleChanged').replace('{scale}', scale);
     document.body.appendChild(notification);
     
     setTimeout(() => {
@@ -2049,7 +2077,7 @@ function showContrastNotification(contrast) {
         z-index: 10000; box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
         animation: fadeInOut 2s ease-in-out;
     `;
-    notification.textContent = `🎨 Контрастность изменена на ${contrast}x`;
+    notification.textContent = t('contrastChanged').replace('{contrast}', contrast);
     document.body.appendChild(notification);
     
     setTimeout(() => {
@@ -2397,10 +2425,10 @@ function updateWorkModeToggle() {
     const modeIndicator = document.getElementById('modeIndicator');
     if (modeIndicator) {
         if (isMultiMode) {
-            modeIndicator.textContent = 'MULTI';
+            modeIndicator.textContent = t('multi');
             modeIndicator.style.background = '#ef4444';
         } else {
-            modeIndicator.textContent = 'SINGLE';
+            modeIndicator.textContent = t('single');
             modeIndicator.style.background = '#22c55e';
         }
     }
@@ -2412,7 +2440,7 @@ function updateWorkModeToggle() {
     if (quickMultiToggle) {
         quickMultiToggle.checked = isMultiMode;
         if (quickModeStatus) {
-            quickModeStatus.textContent = isMultiMode ? 'MULTI' : 'SINGLE';
+            quickModeStatus.textContent = isMultiMode ? t('multi') : t('single');
             quickModeStatus.style.color = isMultiMode ? '#4ade80' : '#888';
         }
         console.log('⚡ Быстрый тумблер обновлен:', isMultiMode ? 'MULTI' : 'SINGLE');
@@ -2593,6 +2621,81 @@ function initTheme() {
         }
     }
     
+    // Добавляем обработчик для PRO режима
+    const proModeToggle = document.getElementById('proModeToggle');
+    const proStepSelector = document.getElementById('proStepSelector');
+    const proStepContainer = document.getElementById('proStepContainer');
+    const proModeStatus = document.getElementById('proModeStatus');
+    
+    if (proModeToggle && proStepSelector) {
+        console.log('🎯 PRO режим найден, добавляю обработчики...');
+
+        // Устанавливаем тумблер в ON по умолчанию
+        proModeToggle.checked = isSingleProfessionalMode;
+        proStepContainer.style.display = isSingleProfessionalMode ? 'flex' : 'none';
+        proModeStatus.textContent = isSingleProfessionalMode ? t('on') : t('off');
+        proModeStatus.style.color = isSingleProfessionalMode ? '#f97316' : '#888';
+        if (isSingleProfessionalMode) {
+            console.log('🎯 PRO режим ВКЛЮЧЕН по умолчанию');
+            setStatus('🎯 PRO режим: SPACE = авто-смещение вниз');
+        }
+
+        // Обработчик включения/выключения PRO режима
+        proModeToggle.addEventListener('change', () => {
+            isSingleProfessionalMode = proModeToggle.checked;
+            
+            if (isSingleProfessionalMode) {
+                // Включаем PRO режим - показываем настройки шага
+                proStepContainer.style.display = 'flex';
+                proModeStatus.textContent = t('on');
+                proModeStatus.style.color = '#f97316';
+                professionalCurrentIndex = 0; // Сбрасываем индекс
+                professionalScannedRegions = []; // Очищаем историю отсканированных областей
+                console.log('🎯 PRO режим ВКЛЮЧЕН');
+                
+                // Проверяем что есть SINGLE область
+                if (storedSingleRegion) {
+                    console.log('🎯 Автоматически использую SINGLE область для PRO режима');
+                    setStatus('🎯 PRO режим: SPACE = авто-смещение вниз');
+                } else {
+                    alert('⚠️ Выберите область SINGLE (зеленая рамка) перед использованием PRO режима!');
+                    proModeToggle.checked = false;
+                    isSingleProfessionalMode = false;
+                    proStepContainer.style.display = 'none';
+                    proModeStatus.textContent = t('off');
+                    proModeStatus.style.color = '#888';
+                }
+            } else {
+                // Выключаем PRO режим
+                proStepContainer.style.display = 'none';
+                proModeStatus.textContent = t('off');
+                proModeStatus.style.color = '#888';
+                professionalCurrentIndex = 0;
+                professionalScannedRegions = []; // Очищаем историю
+                // Перерисовываем canvas без PRO рамок
+                if (!isVideoMode) {
+                    redrawCanvasWithRegions();
+                }
+                console.log('🎯 PRO режим ОТКЛЮЧЕН');
+            }
+        });
+        
+        // Обработчик изменения шага
+        proStepSelector.addEventListener('change', () => {
+            professionalStepPixels = parseInt(proStepSelector.value);
+            console.log(`🎯 Шаг PRO режима изменен на ${professionalStepPixels}px`);
+            professionalCurrentIndex = 0; // Сбрасываем индекс при смене шага
+        });
+        
+        // Загружаем сохраненные настройки PRO режима
+        const savedProStep = localStorage.getItem('maxqr_proStepPixels');
+        if (savedProStep) {
+            professionalStepPixels = parseInt(savedProStep);
+            proStepSelector.value = professionalStepPixels;
+            console.log(`🎯 Загружен сохраненный шаг PRO режима: ${professionalStepPixels}px`);
+        }
+    }
+    
     // Добавляем обработчик для Cyan Background режима
     if (cyanBgToggle && cyanBgStatus) {
         console.log('🎨 Тумблер Cyan Background найден, добавляю обработчик...');
@@ -2602,7 +2705,7 @@ function initTheme() {
         if (savedCyanBg === 'true') {
             isCyanBackgroundEnabled = true;
             cyanBgToggle.checked = true;
-            cyanBgStatus.textContent = 'ON';
+            cyanBgStatus.textContent = t('on');
             cyanBgStatus.style.color = '#8bfffa';
             console.log('🎨 Cyan Background загружен: ВКЛ');
         }
@@ -2612,11 +2715,11 @@ function initTheme() {
             localStorage.setItem('maxqr_cyanBackground', isCyanBackgroundEnabled);
             
             if (isCyanBackgroundEnabled) {
-                cyanBgStatus.textContent = 'ON';
+                cyanBgStatus.textContent = t('on');
                 cyanBgStatus.style.color = '#8bfffa';
                 console.log('🎨 Cyan Background ВКЛЮЧЕН - фон будет заменен на #8bfffa');
             } else {
-                cyanBgStatus.textContent = 'OFF';
+                cyanBgStatus.textContent = t('off');
                 cyanBgStatus.style.color = '#888';
                 console.log('🎨 Cyan Background ВЫКЛЮЧЕН - обычный режим');
             }
@@ -2739,12 +2842,12 @@ function toggleOverlayTheme() {
 function applyTheme() {
     if (isGlowTheme) {
         qrOverlay.classList.add('theme-glow');
-        themeBtnLabel.textContent = '✨ Glow ON';
+        themeBtnLabel.textContent = t('glowOn');
         themeToggleBtn.querySelector('.dot').style.background = 'radial-gradient(circle, #a78bfa, #6366f1)';
         themeToggleBtn.querySelector('.dot').style.boxShadow = '0 0 8px rgba(124,58,237,0.8)';
     } else {
         qrOverlay.classList.remove('theme-glow');
-        themeBtnLabel.textContent = '✨ Glow OFF';
+        themeBtnLabel.textContent = t('glowOff');
         themeToggleBtn.querySelector('.dot').style.background = '#555';
         themeToggleBtn.querySelector('.dot').style.boxShadow = 'none';
     }
@@ -2841,7 +2944,19 @@ const translations = {
         qrScaleLabel: '🔍 QR:',
         partyScaleLabel: '📋 PARTIE:',
         cyanBgLabel: '🎨 TŁO:',
-        modeLabel: '⚡ TRYB:'
+        modeLabel: '⚡ TRYB:',
+        // Nowe tooltipy i powiadomienia
+        qrClickTooltip: '👆 Kliknij - otwórz galerię | ✏️ Podwójne kliknięcie - edytuj',
+        scaleChanged: '🔍 Skala zmieniona na {scale}x',
+        partyScaleChanged: '📋 Skala partii zmieniona na {scale}x',
+        contrastChanged: '🎨 Kontrast zmieniony na {contrast}x',
+        history: 'Historia',
+        glowOff: '✨ Glow OFF',
+        glowOn: '✨ Glow ON',
+        on: 'ON',
+        off: 'OFF',
+        single: 'SINGLE',
+        multi: 'MULTI'
     },
     uk: {
         startTitle:'MAX QR READER', startSubtitle:'Оберіть джерело зображення',
@@ -2896,7 +3011,19 @@ const translations = {
         qrScaleLabel: '🔍 QR:',
         partyScaleLabel: '📋 ПАРТІЇ:',
         cyanBgLabel: '🎨 ФОН:',
-        modeLabel: '⚡ РЕЖИМ:'
+        modeLabel: '⚡ РЕЖИМ:',
+        // Нові підказки та сповіщення
+        qrClickTooltip: '👆 Клік - відкрити галерею | ✏️ Подвійний клік - редагувати',
+        scaleChanged: '🔍 Масштаб змінено на {scale}x',
+        partyScaleChanged: '📋 Масштаб партій змінено на {scale}x',
+        contrastChanged: '🎨 Контрастність змінена на {contrast}x',
+        history: 'Історія',
+        glowOff: '✨ Glow OFF',
+        glowOn: '✨ Glow ON',
+        on: 'ON',
+        off: 'OFF',
+        single: 'SINGLE',
+        multi: 'MULTI'
     },
     en: {
         startTitle:'MAX QR READER', startSubtitle:'Choose image source',
@@ -2950,7 +3077,19 @@ const translations = {
         qrScaleLabel: '🔍 QR:',
         partyScaleLabel: '📋 PARTIES:',
         cyanBgLabel: '🎨 BG:',
-        modeLabel: '⚡ MODE:'
+        modeLabel: '⚡ MODE:',
+        // New tooltips and notifications
+        qrClickTooltip: '👆 Click - open gallery | ✏️ Double click - edit',
+        scaleChanged: '🔍 Scale changed to {scale}x',
+        partyScaleChanged: '📋 Party scale changed to {scale}x',
+        contrastChanged: '🎨 Contrast changed to {contrast}x',
+        history: 'History',
+        glowOff: '✨ Glow OFF',
+        glowOn: '✨ Glow ON',
+        on: 'ON',
+        off: 'OFF',
+        single: 'SINGLE',
+        multi: 'MULTI'
     }
 };
 const ocrLangMap = { pl:'pol', uk:'ukr', en:'eng' };
@@ -3011,6 +3150,34 @@ function applyTranslations() {
     const startBtn = document.getElementById('startBtn');
     if (startBtn && !startBtn.disabled) {
         startBtn.textContent = t('startBtn') || '▶️ START';
+    }
+    
+    // Обновляем индикаторы режимов и статусов
+    const modeIndicator = document.getElementById('modeIndicator');
+    if (modeIndicator) {
+        modeIndicator.textContent = isMultiMode ? t('multi') : t('single');
+    }
+    
+    const quickModeStatus = document.getElementById('quickModeStatus');
+    if (quickModeStatus) {
+        quickModeStatus.textContent = isMultiMode ? t('multi') : t('single');
+    }
+    
+    const proModeStatus = document.getElementById('proModeStatus');
+    if (proModeStatus) {
+        proModeStatus.textContent = isSingleProfessionalMode ? t('on') : t('off');
+    }
+    
+    const cyanBgStatus = document.getElementById('cyanBgStatus');
+    if (cyanBgStatus) {
+        cyanBgStatus.textContent = isCyanBackgroundEnabled ? t('on') : t('off');
+    }
+    
+    // Обновляем themeBtnLabel в зависимости от текущего состояния
+    const themeBtnLabel = document.getElementById('themeBtnLabel');
+    if (themeBtnLabel) {
+        const isGlow = document.getElementById('qrOverlay').classList.contains('theme-glow');
+        themeBtnLabel.textContent = isGlow ? t('glowOn') : t('glowOff');
     }
     
     refreshStatus(); updateCoordsDisplay(storedRegion);
@@ -4763,8 +4930,11 @@ async function processMultiRegionAsLines(region) {
         if (activeStream && captureVideo.readyState >= 2) {
             console.log('📹 Рисую видео кадр');
             ctx.drawImage(captureVideo, 0, 0);
+        } else if (!isVideoMode && imgDataSnapshot) {
+            console.log('🖼️ Восстанавливаю сохраненное изображение');
+            ctx.putImageData(imgDataSnapshot, 0, 0);
         }
-        
+
         // Автоматически увеличиваем изображение для лучшего распознавания
         console.log(`📏 Создаю canvas с масштабом ${currentScaleFactor}x`);
         
@@ -4942,6 +5112,10 @@ async function processMultiRegionAsLines(region) {
     } finally {
         isProcessing = false;
         console.log('✅ Завершил processMultiRegionAsLines');
+        // Отрисовываем рамки после OCR для MULTI режима без видео
+        if (!isVideoMode) {
+            drawPermanentRegions();
+        }
     }
 }
 
@@ -7166,6 +7340,8 @@ async function startCapture() {
                 if (activeStream) {
                     const ctx = mainCanvas.getContext('2d');
                     ctx.drawImage(captureVideo, 0, 0, mainCanvas.width, mainCanvas.height);
+                    // Сохраняем чистый снимок изображения
+                    imgDataSnapshot = ctx.getImageData(0, 0, mainCanvas.width, mainCanvas.height);
                     // Останавливаем поток после захвата одного кадра
                     stopVideoStream();
                 }
@@ -7393,8 +7569,10 @@ function drawVideoFrame() {
 function drawPermanentRegions() {
     if (!mainCanvas.width || !mainCanvas.height) return;
     
-    // Сохраняем текущее изображение
-    const imageData = ctx.getImageData(0, 0, mainCanvas.width, mainCanvas.height);
+    // Восстанавливаем чистое изображение (если есть снимок)
+    if (imgDataSnapshot) {
+        ctx.putImageData(imgDataSnapshot, 0, 0);
+    }
     
     // Рисуем рамку для SINGLE MODE (зеленая) - всегда видна в MULTI MODE
     if (storedSingleRegion) {
@@ -7488,6 +7666,33 @@ function drawPermanentRegions() {
     ctx.lineWidth = 2;
     ctx.strokeStyle = '#000000'; // Черный цвет по умолчанию
     ctx.shadowBlur = 0;
+    
+    // Рисуем рамки для PRO режима (история отсканированных областей)
+    drawProfessionalRegions();
+}
+
+// Функция отрисовки рамок PRO режима
+function drawProfessionalRegions() {
+    if (!isSingleProfessionalMode || professionalScannedRegions.length === 0) return;
+    
+    professionalScannedRegions.forEach((region, index) => {
+        // Оранжевая рамка для отсканированных областей
+        ctx.strokeStyle = '#f97316'; // Оранжевый
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 3]); // Пунктирная линия
+        ctx.strokeRect(region.x, region.y, region.w, region.h);
+        
+        // Метка с номером
+        ctx.fillStyle = '#f97316';
+        ctx.fillRect(region.x + 2, region.y - 16, 20, 14);
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 10px Arial';
+        ctx.fillText((index + 1).toString(), region.x + 6, region.y - 6);
+    });
+    
+    // Сбрасываем стили
+    ctx.setLineDash([]);
+    ctx.lineWidth = 2;
 }
 
 function redrawCanvasWithRegions() {
@@ -7507,6 +7712,44 @@ async function doQuickCapture() {
     if (currentOverlayText) {
         currentOverlayText.innerHTML = '';
         currentOverlayText.textContent = '';
+    }
+    
+    // SINGLE PROFESSIONAL MODE: сдвигаем область вниз и распознаем
+    if (isSingleProfessionalMode && storedSingleRegion) {
+        console.log(`🎯 PRO режим: Сдвигаю область вниз на ${professionalStepPixels}px (шаг ${professionalCurrentIndex + 1})`);
+        
+        // Создаем новую область со смещением вниз
+        const shiftedRegion = {
+            x: storedSingleRegion.x,
+            y: storedSingleRegion.y + (professionalStepPixels * (professionalCurrentIndex + 1)),
+            w: storedSingleRegion.w,
+            h: storedSingleRegion.h
+        };
+        
+        // Проверяем что область не вышла за пределы canvas
+        if (shiftedRegion.y + shiftedRegion.h > mainCanvas.height) {
+            setStatus('❌ Достигнут конец изображения');
+            console.log('🎯 PRO режим: Область вышла за пределы изображения');
+            return;
+        }
+        
+        professionalCurrentIndex++;
+        console.log(`🎯 PRO режим: Новая область Y=${shiftedRegion.y}, шаг=${professionalCurrentIndex}`);
+
+        // Сохраняем область в историю
+        professionalScannedRegions.push({...shiftedRegion});
+
+        // Восстанавливаем чистое изображение перед отрисовкой рамок
+        if (!isVideoMode && imgDataSnapshot) {
+            ctx.putImageData(imgDataSnapshot, 0, 0);
+        }
+
+        // Рисуем ВСЕ рамки включая новую
+        drawPermanentRegions();
+        
+        // Делаем OCR для смещенной области
+        await processRegion(shiftedRegion);
+        return;
     }
     
     if (activeStream && storedRegion) { await processRegion(storedRegion); return; }
@@ -7553,6 +7796,8 @@ function handleFile(e) {
     img.onload = () => {
         mainCanvas.width = img.width; mainCanvas.height = img.height;
         ctx.drawImage(img, 0, 0);
+        // Сохраняем чистый снимок изображения
+        imgDataSnapshot = ctx.getImageData(0, 0, mainCanvas.width, mainCanvas.height);
         mainCanvas.dataset.hasImage = '1'; stopVideoStream();
         startScreen.style.display = 'none'; workControls.style.display = 'flex';
         document.getElementById('authSectionTop').style.display = 'none'; // Hide auth in work mode
@@ -7567,7 +7812,13 @@ function handleFile(e) {
 async function processRegion(r) {
     if (isProcessing) return;
     isProcessing = true; setStatus('statusProcessing');
-    if (activeStream && captureVideo.readyState >= 2) ctx.drawImage(captureVideo, 0, 0);
+    
+    // Восстанавливаем чистое изображение перед OCR (если не в режиме видео)
+    if (!isVideoMode && imgDataSnapshot) {
+        ctx.putImageData(imgDataSnapshot, 0, 0);
+    } else if (isVideoMode && activeStream && captureVideo.readyState >= 2) {
+        ctx.drawImage(captureVideo, 0, 0);
+    }
     
     // Автоматически увеличиваем изображение для лучшего распознавания
     const scaleFactor = 4; // Увеличиваем для ускорения OCR
@@ -7679,6 +7930,10 @@ async function processRegion(r) {
         setStatus('statusFail');
     } finally {
         isProcessing = false;
+        // Отрисовываем рамки после OCR для SINGLE режима без видео
+        if (!isVideoMode) {
+            drawPermanentRegions();
+        }
     }
 }
 
@@ -7799,9 +8054,9 @@ function showOverlay(code) {
     currentOverlayText.textContent = code; // Устанавливаем новый код
     new QRious({ element: bigQrCanvas, value: code, size: 400, background:'#fff', foreground:'#000' });
     
-    // Добавляем функциональность редактирования для single режима
+    // Добавляем функциональность для single режима
     currentOverlayText.style.cursor = 'pointer';
-    currentOverlayText.title = 'Нажмите для редактирования QR кода';
+    currentOverlayText.title = t('qrClickTooltip');
     
     // Удаляем старые обработчики если есть - безопасный способ
     try {
@@ -7809,22 +8064,28 @@ function showOverlay(code) {
             const newOverlayText = currentOverlayText.cloneNode(true);
             currentOverlayText.parentNode.replaceChild(newOverlayText, currentOverlayText);
             
-            // Добавляем новый обработчик клика
+            // Одиночный клик - открыть viewer (передаем родителю)
             newOverlayText.addEventListener('click', function(e) {
+                // Не останавливаем всплытие - позволяем qr-box обработать клик
+                console.log('👆 Клик на overlayText - открываю viewer');
+            });
+            // Двойной клик - редактировать
+            newOverlayText.addEventListener('dblclick', function(e) {
                 e.stopPropagation();
+                console.log('✏️ Двойной клик на overlayText - редактирование');
                 makeSingleCodeEditable(newOverlayText, bigQrCanvas, code);
             });
         } else {
-            // Если parentNode нет, просто добавляем обработчик
-            currentOverlayText.addEventListener('click', function(e) {
+            // Если parentNode нет, просто добавляем обработчик двойного клика
+            currentOverlayText.addEventListener('dblclick', function(e) {
                 e.stopPropagation();
                 makeSingleCodeEditable(currentOverlayText, bigQrCanvas, code);
             });
         }
     } catch (error) {
         console.error('Ошибка при настройке редактирования:', error);
-        // Запасной вариант - просто добавляем обработчик
-        currentOverlayText.addEventListener('click', function(e) {
+        // Запасной вариант - добавляем обработчик двойного клика
+        currentOverlayText.addEventListener('dblclick', function(e) {
             e.stopPropagation();
             makeSingleCodeEditable(currentOverlayText, bigQrCanvas, code);
         });
@@ -7995,8 +8256,13 @@ const hvBg       = document.getElementById('hvBg');
 let hvIndex = 0;
 
 function openHistViewer(idx) {
-    if (!scansHistory.length) return;
+    console.log('🔍 openHistViewer вызван с idx:', idx, 'scansHistory.length:', scansHistory.length);
+    if (!scansHistory.length) {
+        console.log('❌ scansHistory пуст, не открываю viewer');
+        return;
+    }
     hvIndex = Math.max(0, Math.min(idx, scansHistory.length - 1));
+    console.log('✅ Открываю viewer, hvIndex:', hvIndex, 'код:', scansHistory[hvIndex]);
     renderHistViewer();
     histViewer.classList.remove('hidden');
 }
