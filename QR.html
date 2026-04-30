@@ -30,6 +30,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css">
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         /* ... (wszystkie poprzednie style bez zmian) ... */
         
@@ -10186,18 +10187,19 @@ function canPreviewFile(fileType, fileName) {
     const previewableTypes = [
         // Images
         'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
-        // PDF
-        'application/pdf',
         // Videos
         'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime',
         // Audio
-        'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3',
+        'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4', 'audio/webm',
+        // Documents
+        'application/pdf',
+        // Excel files
+        'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         // Text files
-        'text/plain', 'text/html', 'text/css', 'text/javascript', 'application/json', 'text/xml'
+        'text/plain', 'text/html', 'text/css', 'text/javascript', 'text/xml', 'application/json', 'application/xml'
     ];
     
-    const previewableExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'pdf', 'mp4', 'webm', 'ogg', 'mov', 'mp3', 'wav', 'txt', 'html', 'css', 'js', 'json', 'xml'];
-    
+    const previewableExtensions = ['txt', 'html', 'css', 'js', 'json', 'xml', 'xls', 'xlsx', 'xlsm'];
     const extension = fileName.split('.').pop().toLowerCase();
     
     return previewableTypes.includes(fileType) || previewableExtensions.includes(extension);
@@ -10498,6 +10500,28 @@ function generatePreviewContent(fileData) {
     if (fileType === 'application/pdf') {
         const height = fullscreen ? '100%' : '60vh';
         return `<iframe src="${fileUrl}" style="width: 100%; height: ${height}; border: none; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);"></iframe>`;
+    }
+    
+    // Excel files
+    if (fileType.includes('excel') || ['xls', 'xlsx', 'xlsm'].includes(fileName.split('.').pop().toLowerCase())) {
+        // Trigger Excel loading after DOM is ready
+        setTimeout(() => loadExcelFile(fileUrl, fileName, fullscreen), 100);
+        
+        return `<div id="excelPreview" style="background: #1e293b; padding: 20px; border-radius: 8px; max-width: 100%; max-height: ${fullscreen ? '100vh' : '70vh'}; overflow: auto;">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="font-size: ${fullscreen ? '48px' : '36px'}; margin-bottom: 10px;">📊</div>
+                        <div style="color: #fff; font-size: ${fullscreen ? '20px' : '16px'}; font-weight: 600; margin-bottom: 5px;">${fileName}</div>
+                        <div style="color: #94a3b8; font-size: ${fullscreen ? '14px' : '12px'};" id="excelLoadingText">Загрузка таблицы...</div>
+                    </div>
+                    <div id="sheetSelector" style="margin-bottom: 15px; text-align: center; display: none;">
+                        <select id="sheetSelect" style="background: #374151; color: #fff; border: 1px solid #4b5563; border-radius: 6px; padding: 8px 12px; font-size: 14px; cursor: pointer;">
+                            <!-- Sheets will be added here -->
+                        </select>
+                    </div>
+                    <div id="excelContent" style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; overflow: auto; min-height: 400px;">
+                        <!-- Excel content will be loaded here -->
+                    </div>
+                </div>`;
     }
     
     // Text files
@@ -10861,6 +10885,175 @@ function downloadPreviewedFile() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+}
+
+// Load Excel file function
+function loadExcelFile(fileUrl, fileName, fullscreen) {
+    console.log('🔄 Loading Excel file:', fileName);
+    
+    // Update loading text
+    const loadingText = document.getElementById('excelLoadingText');
+    if (loadingText) {
+        loadingText.textContent = 'Загрузка таблицы...';
+    }
+    
+    // Load Excel file using SheetJS
+    fetch(fileUrl)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.arrayBuffer();
+        })
+        .then(arrayBuffer => {
+            console.log('📊 Excel file loaded, parsing...');
+            
+            // Parse Excel file
+            const workbook = XLSX.read(arrayBuffer, {type: 'array'});
+            console.log('📊 Workbook sheets:', workbook.SheetNames);
+            
+            // Store workbook globally for sheet switching
+            window.currentWorkbook = workbook;
+            
+            // Setup sheet selector
+            const sheetSelector = document.getElementById('sheetSelector');
+            const sheetSelect = document.getElementById('sheetSelect');
+            
+            if (sheetSelector && sheetSelect && workbook.SheetNames.length > 1) {
+                // Clear existing options
+                sheetSelect.innerHTML = '';
+                
+                // Add sheet options
+                workbook.SheetNames.forEach((sheetName, index) => {
+                    const option = document.createElement('option');
+                    option.value = sheetName;
+                    option.textContent = sheetName;
+                    if (index === 0) option.selected = true;
+                    sheetSelect.appendChild(option);
+                });
+                
+                // Show selector and add event listener
+                sheetSelector.style.display = 'block';
+                sheetSelect.addEventListener('change', function() {
+                    displayExcelSheet(this.value, fullscreen);
+                });
+            }
+            
+            // Display first sheet
+            displayExcelSheet(workbook.SheetNames[0], fullscreen);
+            
+            // Update loading text
+            if (loadingText) {
+                loadingText.textContent = 'Таблица загружена';
+                loadingText.style.color = '#10b981';
+            }
+            
+            console.log('✅ Excel file displayed successfully');
+        })
+        .catch(error => {
+            console.error('❌ Error loading Excel file:', error);
+            
+            // Show error message
+            const excelContent = document.getElementById('excelContent');
+            if (excelContent) {
+                excelContent.innerHTML = `<div style="text-align: center; color: #ef4444; padding: 40px;">
+                    <div style="font-size: 48px; margin-bottom: 20px;">❌</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">Ошибка загрузки Excel файла</div>
+                    <div style="font-size: 14px; color: #94a3b8;">${error.message}</div>
+                </div>`;
+            }
+            
+            if (loadingText) {
+                loadingText.textContent = 'Ошибка загрузки';
+                loadingText.style.color = '#ef4444';
+            }
+        });
+}
+
+// Display specific Excel sheet
+function displayExcelSheet(sheetName, fullscreen) {
+    const workbook = window.currentWorkbook;
+    if (!workbook) return;
+    
+    console.log('📊 Displaying sheet:', sheetName);
+    
+    const sheet = workbook.Sheets[sheetName];
+    const htmlTable = XLSX.utils.sheet_to_html(sheet);
+    
+    // Update content
+    const excelContent = document.getElementById('excelContent');
+    if (excelContent) {
+        excelContent.innerHTML = htmlTable;
+        
+        // Style the table with dark theme
+        const table = excelContent.querySelector('table');
+        if (table) {
+            table.style.width = '100%';
+            table.style.borderCollapse = 'collapse';
+            table.style.fontSize = fullscreen ? '16px' : '14px';
+            table.style.backgroundColor = '#0f172a';
+            
+            // Style cells with dark theme
+            const allCells = table.querySelectorAll('td, th');
+            allCells.forEach(cell => {
+                cell.style.border = '1px solid #334155';
+                cell.style.padding = fullscreen ? '12px' : '10px';
+                cell.style.textAlign = 'left';
+                cell.style.verticalAlign = 'top';
+                cell.style.color = '#e2e8f0';
+                cell.style.fontFamily = 'Consolas, Monaco, monospace';
+            });
+            
+            // Style headers with dark theme
+            const headers = table.querySelectorAll('th');
+            headers.forEach(header => {
+                header.style.backgroundColor = '#1e293b';
+                header.style.fontWeight = 'bold';
+                header.style.color = '#f1f5f9';
+                header.style.border = '1px solid #475569';
+                header.style.textTransform = 'uppercase';
+                header.style.fontSize = fullscreen ? '14px' : '12px';
+            });
+            
+            // Alternate row colors with dark theme
+            const rows = table.querySelectorAll('tr');
+            rows.forEach((row, index) => {
+                if (index % 2 === 0) {
+                    row.style.backgroundColor = '#1e293b';
+                } else {
+                    row.style.backgroundColor = '#0f172a';
+                }
+            });
+            
+            // Hover effect on individual cells to preserve row striping
+            const hoverCells = table.querySelectorAll('td, th');
+            hoverCells.forEach(cell => {
+                cell.addEventListener('mouseenter', function() {
+                    // Store original background
+                    this.originalBackground = this.style.backgroundColor;
+                    // Apply hover background only to this cell
+                    this.style.backgroundColor = '#334155';
+                    // Make border brighter on hover
+                    this.style.border = '1px solid #475569';
+                });
+                cell.addEventListener('mouseleave', function() {
+                    // Restore original background for this cell only
+                    this.style.backgroundColor = this.originalBackground || '';
+                    // Restore original border
+                    if (this.tagName === 'TH') {
+                        this.style.border = '1px solid #475569';
+                    } else {
+                        this.style.border = '1px solid #334155';
+                    }
+                });
+            });
+            
+            // Add scroll indicator if content is large
+            if (table.scrollHeight > excelContent.clientHeight) {
+                excelContent.style.borderRight = '3px solid #3b82f6';
+            }
+        }
+    }
 }
 
 // Handle click outside modal to close
