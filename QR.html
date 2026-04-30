@@ -24,11 +24,7 @@
     <title>OCR: MAX QR</title>
     <!-- VERSION: 2026-04-28-2048 - Force browser to reload -->
     <script>
-        console.log('🔄 QR.HTML VERSION: 2026-04-29-2000 - Full translation support');
-        // Force reload if cached version detected
-        if (window.location.href.indexOf('?v=') === -1) {
-            window.location.href = window.location.href + '?v=202604292000';
-        }
+        console.log('🔄 QR.HTML VERSION: 2026-04-29-2200');
     </script>
     <link rel="icon" type="image/svg+xml" href="mowi-favicon.svg">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css">
@@ -1664,26 +1660,52 @@
             <span id="quickModeStatus" style="font-size:10px; font-weight:700; color:#888; min-width:45px;">SINGLE</span>
         </div>
         
-        <!-- Масштаб QR -->
+        <!-- Масштаб SINGLE -->
         <div class="control-item">
-            <span class="control-label" style="color:#06b6d4;" data-i18n="qrScaleLabel">🔍 QR:</span>
-            <select id="scaleSelector">
-                <option value="2.5">2.5x</option>
-                <option value="4" selected>4x</option>
-                <option value="5">5x</option>
-            </select>
+            <span class="control-label" style="color:#06b6d4;" data-i18n="singleScaleLabel">🔍 SINGLE:</span>
+            <input type="number" id="singleScaleInput" value="4" min="1" max="10" step="0.1" style="
+                background: #374151;
+                color: #fff;
+                border: 1px solid #4b5563;
+                border-radius: 6px;
+                padding: 3px 6px;
+                font-size: 10px;
+                font-weight: 600;
+                width: 50px;
+                text-align: center;
+            ">
+        </div>
+        
+        <!-- Масштаб MULTI -->
+        <div class="control-item">
+            <span class="control-label" style="color:#22c55e;" data-i18n="multiScaleLabel">📊 MULTI:</span>
+            <input type="number" id="multiScaleInput" value="1.46" min="1" max="10" step="0.01" style="
+                background: #374151;
+                color: #fff;
+                border: 1px solid #4b5563;
+                border-radius: 6px;
+                padding: 3px 6px;
+                font-size: 10px;
+                font-weight: 600;
+                width: 50px;
+                text-align: center;
+            ">
         </div>
         
         <!-- Масштаб Партий -->
         <div class="control-item">
             <span class="control-label" style="color:#a855f7;" data-i18n="partyScaleLabel">📋 PARTIES:</span>
-            <select id="partyScaleSelector">
-                <option value="2">2x</option>
-                <option value="2.5">2.5x</option>
-                <option value="3" selected>3x</option>
-                <option value="4">4x</option>
-                <option value="5">5x</option>
-            </select>
+            <input type="number" id="partyScaleInput" value="3" min="1" max="10" step="0.1" style="
+                background: #374151;
+                color: #fff;
+                border: 1px solid #4b5563;
+                border-radius: 6px;
+                padding: 3px 6px;
+                font-size: 10px;
+                font-weight: 600;
+                width: 50px;
+                text-align: center;
+            ">
         </div>
         
         <!-- Режим PRO: Авто-смещение -->
@@ -1938,8 +1960,9 @@ const modeIndicator     = document.getElementById('modeIndicator');
 const quickMultiToggle  = document.getElementById('quickMultiToggle');
 const quickModeStatus   = document.getElementById('quickModeStatus');
 const overlayModeToggle = document.getElementById('overlayModeToggle');
-const scaleSelector      = document.getElementById('scaleSelector');
-const partyScaleSelector = document.getElementById('partyScaleSelector');
+const singleScaleInput   = document.getElementById('singleScaleInput');
+const multiScaleInput    = document.getElementById('multiScaleInput');
+const partyScaleInput    = document.getElementById('partyScaleInput');
 const cyanBgToggle        = document.getElementById('cyanBgToggle');
 const cyanBgStatus        = document.getElementById('cyanBgStatus');
 const startBtn            = document.getElementById('startBtn');
@@ -1951,8 +1974,11 @@ let isCyanBackgroundEnabled = false;
 // Цвет cyan фона для OCR (яркий бирюзовый)
 const CYAN_BG_COLOR = { r: 139, g: 255, b: 250 }; // #8bfffa
 
-// Глобальная переменная для масштаба QR (изначально 4x)
-let currentScaleFactor = 4;
+// Глобальная переменная для масштаба SINGLE (изначально 4x)
+let singleScaleFactor = 1.6;
+
+// Глобальная переменная для масштаба MULTI (изначально 1.46x - оптимально)
+let multiScaleFactor = 1.46;
 
 // Глобальная переменная для масштаба ПАРТИЙ (изначально 3x)
 let currentPartyScaleFactor = 3;
@@ -2576,35 +2602,56 @@ function initTheme() {
             setTimeout(() => { window.manualModeSwitch = false; }, 1000);
         });
     
-    // Добавляем обработчик для изменения масштаба
-    if (scaleSelector) {
-        console.log('🔍 Селектор масштаба найден, добавляю обработчик...');
-        scaleSelector.addEventListener('change', () => {
-            currentScaleFactor = parseFloat(scaleSelector.value);
-            console.log(`🔍 Масштаб изменен на ${currentScaleFactor}x`);
-            localStorage.setItem('maxqr_scaleFactor', currentScaleFactor);
+    // Добавляем обработчик для изменения масштаба SINGLE
+    if (singleScaleInput) {
+        console.log('🔍 Input масштаба SINGLE найден, добавляю обработчик...');
+        singleScaleInput.addEventListener('change', () => {
+            singleScaleFactor = parseFloat(singleScaleInput.value) || 1.6;
+            console.log(`🔍 Масштаб SINGLE изменен на ${singleScaleFactor}x`);
+            localStorage.setItem('maxqr_singleScaleFactor', singleScaleFactor);
             
             // Обновляем контрастность для weight OCR
             updateContrastFactor();
             
             // Показываем уведомление об изменении
-            showScaleNotification(currentScaleFactor);
+            showScaleNotification(singleScaleFactor);
         });
         
-        // Загружаем сохраненный масштаб
-        const savedScale = localStorage.getItem('maxqr_scaleFactor');
-        if (savedScale) {
-            currentScaleFactor = parseFloat(savedScale);
-            scaleSelector.value = currentScaleFactor;
-            console.log(`🔍 Загружен сохраненный масштаб: ${currentScaleFactor}x`);
+        // Загружаем сохраненный масштаб SINGLE
+        const savedSingleScale = localStorage.getItem('maxqr_singleScaleFactor');
+        if (savedSingleScale) {
+            singleScaleFactor = parseFloat(savedSingleScale);
+            singleScaleInput.value = singleScaleFactor;
+            console.log(`🔍 SINGLE: ${singleScaleFactor}x`);
+        }
+    }
+    
+    // Добавляем обработчик для изменения масштаба MULTI
+    if (multiScaleInput) {
+        console.log('📊 Input масштаба MULTI найден, добавляю обработчик...');
+        multiScaleInput.addEventListener('change', () => {
+            multiScaleFactor = parseFloat(multiScaleInput.value) || 1.46;
+            console.log(`📊 Масштаб MULTI изменен на ${multiScaleFactor}x`);
+            localStorage.setItem('maxqr_multiScaleFactor', multiScaleFactor);
+            
+            // Показываем уведомление об изменении
+            showPartyScaleNotification(multiScaleFactor);
+        });
+        
+        // Загружаем сохраненный масштаб MULTI
+        const savedMultiScale = localStorage.getItem('maxqr_multiScaleFactor');
+        if (savedMultiScale) {
+            multiScaleFactor = parseFloat(savedMultiScale);
+            multiScaleInput.value = multiScaleFactor;
+            console.log(`📊 MULTI: ${multiScaleFactor}x`);
         }
     }
     
     // Добавляем обработчик для изменения масштаба ПАРТИЙ
-    if (partyScaleSelector) {
-        console.log('📋 Селектор масштаба партий найден, добавляю обработчик...');
-        partyScaleSelector.addEventListener('change', () => {
-            currentPartyScaleFactor = parseFloat(partyScaleSelector.value);
+    if (partyScaleInput) {
+        console.log('📋 Input масштаба партий найден, добавляю обработчик...');
+        partyScaleInput.addEventListener('change', () => {
+            currentPartyScaleFactor = parseFloat(partyScaleInput.value) || 3;
             console.log(`📋 Масштаб партий изменен на ${currentPartyScaleFactor}x`);
             localStorage.setItem('maxqr_partyScaleFactor', currentPartyScaleFactor);
             
@@ -2616,8 +2663,8 @@ function initTheme() {
         const savedPartyScale = localStorage.getItem('maxqr_partyScaleFactor');
         if (savedPartyScale) {
             currentPartyScaleFactor = parseFloat(savedPartyScale);
-            partyScaleSelector.value = currentPartyScaleFactor;
-            console.log(`📋 Загружен сохраненный масштаб партий: ${currentPartyScaleFactor}x`);
+            partyScaleInput.value = currentPartyScaleFactor;
+            console.log(`📋 Партии: ${currentPartyScaleFactor}x`);
         }
     }
     
@@ -2735,7 +2782,8 @@ function initTheme() {
                 return;
             }
             
-            console.log(`▶️ ЗАПУСК РАСПОЗНАВАНИЯ: Режим=${isMultiMode ? 'MULTI' : 'SINGLE'}, QR=${currentScaleFactor}x, Партии=${currentPartyScaleFactor}x, Фон=${isCyanBackgroundEnabled ? 'ON' : 'OFF'}`);
+            const scaleForLog = isMultiMode ? multiScaleFactor : singleScaleFactor;
+            console.log(`▶️ ЗАПУСК РАСПОЗНАВАНИЯ: Режим=${isMultiMode ? 'MULTI' : 'SINGLE'}, Масштаб=${scaleForLog}x, Партии=${currentPartyScaleFactor}x, Фон=${isCyanBackgroundEnabled ? 'ON' : 'OFF'}`);
             
             // Показываем визуальный feedback
             startBtn.disabled = true;
@@ -3545,13 +3593,13 @@ async function processWeightArea(region) {
         
         // Увеличиваем изображение для лучшего OCR
         const scaledCanvas = document.createElement('canvas');
-        scaledCanvas.width = Math.floor(region.w * currentScaleFactor);
-        scaledCanvas.height = Math.floor(region.h * currentScaleFactor);
+        scaledCanvas.width = Math.floor(region.w * singleScaleFactor);
+        scaledCanvas.height = Math.floor(region.h * singleScaleFactor);
         const scaledCtx = scaledCanvas.getContext('2d');
         scaledCtx.imageSmoothingEnabled = false;
         scaledCtx.drawImage(weightCanvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
         
-        console.log('⚖️ Увеличил WEIGHT область в', currentScaleFactor, 'раз для OCR');
+        console.log('⚖️ Увеличил WEIGHT область в', singleScaleFactor, 'раз для OCR');
         
         // Выполняем OCR только для цифр
         if (typeof Tesseract === 'undefined') {
@@ -3578,7 +3626,7 @@ async function processWeightArea(region) {
             const weight = lineText.replace(/[^0-9.,]/g, '').trim();
             if (weight && /\d/.test(weight) && weight.length <= 10) {
                 // Используем универсальную функцию для координат
-                const yReal = getYCoordinateFromLineData(lineObj, region, currentScaleFactor, 'Вес');
+                const yReal = getYCoordinateFromLineData(lineObj, region, singleScaleFactor, 'Вес');
                 
                 if (yReal !== null) {
                     partyWeights.push({ value: weight, y: yReal });
@@ -4936,11 +4984,11 @@ async function processMultiRegionAsLines(region) {
         }
 
         // Автоматически увеличиваем изображение для лучшего распознавания
-        console.log(`📏 Создаю canvas с масштабом ${currentScaleFactor}x`);
+        console.log(`📏 Создаю canvas с масштабом ${multiScaleFactor}x`);
         
         const multiCanvas = document.createElement('canvas');
-        multiCanvas.width = Math.floor(region.w * currentScaleFactor);
-        multiCanvas.height = Math.floor(region.h * currentScaleFactor);
+        multiCanvas.width = Math.floor(region.w * multiScaleFactor);
+        multiCanvas.height = Math.floor(region.h * multiScaleFactor);
         const multiCtx = multiCanvas.getContext('2d');
         
         // Сначала копируем оригинальную область во временный canvas
@@ -4956,7 +5004,7 @@ async function processMultiRegionAsLines(region) {
         multiCtx.imageSmoothingEnabled = false;
         multiCtx.drawImage(tempCanvas, 0, 0, multiCanvas.width, multiCanvas.height);
         
-        console.log(`🔍 MULTI: Автоматически увеличил изображение в ${currentScaleFactor}x: ${multiCanvas.width} x ${multiCanvas.height}`);
+        console.log(`🔍 MULTI: Автоматически увеличил изображение в ${multiScaleFactor}x: ${multiCanvas.width} x ${multiCanvas.height}`);
         
         let imageData = multiCtx.getImageData(0, 0, multiCanvas.width, multiCanvas.height);
         
@@ -5048,11 +5096,11 @@ async function processMultiRegionAsLines(region) {
                 
                 // Приоритет: используем точные координаты из OCR line data (универсальный метод)
                 if (ocrLineData[index]) {
-                    realY = getYCoordinateFromLineData(ocrLineData[index], region, currentScaleFactor, 'QR код');
+                    realY = getYCoordinateFromLineData(ocrLineData[index], region, multiScaleFactor, 'QR код');
                 } else if (lines[index]) {
                     // Fallback: используем центры строк из findVerticalLines
                     const lineCenter = lines[index].centerY;
-                    realY = region.y + (lineCenter / currentScaleFactor);
+                    realY = region.y + (lineCenter / multiScaleFactor);
                     console.log(`📐 QR код fallback: line center=${lineCenter}, Y=${realY.toFixed(2)}`);
                 } else {
                     // Last fallback: равномерное распределение
@@ -7821,9 +7869,9 @@ async function processRegion(r) {
     }
     
     // Автоматически увеличиваем изображение для лучшего распознавания
-    const scaleFactor = 4; // Увеличиваем для ускорения OCR
-    previewCanvas.width = Math.floor(r.w * scaleFactor);
-    previewCanvas.height = Math.floor(r.h * scaleFactor);
+    // Используем настраиваемый масштаб SINGLE
+    previewCanvas.width = Math.floor(r.w * singleScaleFactor);
+    previewCanvas.height = Math.floor(r.h * singleScaleFactor);
     
     // Сначала копируем оригинальную область во временный canvas
     const tempCanvas = document.createElement('canvas');
@@ -7838,7 +7886,7 @@ async function processRegion(r) {
     
     const raw = pCtx.getImageData(0, 0, previewCanvas.width, previewCanvas.height);
     
-    console.log(`🔍 Автоматически увеличил изображение в ${scaleFactor}x: ${previewCanvas.width} x ${previewCanvas.height}`);
+    console.log(`🔍 Автоматически увеличил изображение в ${singleScaleFactor}x: ${previewCanvas.width} x ${previewCanvas.height}`);
     
     // Создаем несколько вариантов изображения для лучшего распознавания
     const variants = createImageVariants(raw);
