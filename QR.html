@@ -9363,43 +9363,123 @@ async function checkPassword() {
 }
 
 // NFL.xlsm Direct Download Function
-function downloadNFLFile() {
+async function downloadNFLFile() {
     console.log('🔄 Starting NFL.xlsm download...');
     
-    // Create a temporary link to download the file
-    const link = document.createElement('a');
-    link.href = 'https://pub-6f797b2842b7491297940c7f3f51e92f.r2.dev/NFL.xlsm';
-    link.download = 'NFL.xlsm';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    console.log('✅ NFL.xlsm download completed');
-    
-    // Close modal after successful download
-    setTimeout(() => {
-        closeDownloadOptionsModal();
-    }, 1000);
+    try {
+        await downloadFileWithFallback('NFL.xlsm', 'https://pub-6f797b2842b7491297940c7f3f51e92f.r2.dev/NFL.xlsm');
+        console.log('✅ NFL.xlsm download completed');
+        
+        // Close modal after successful download
+        setTimeout(() => {
+            closeDownloadOptionsModal();
+        }, 1000);
+    } catch (error) {
+        console.error('❌ NFL.xlsm download failed:', error);
+        showNotification('❌ Błąd pobierania pliku NFL.xlsm', 'error');
+    }
 }
 
 // SZTUKI.xlsm Direct Download Function
-function downloadSztukiFile() {
+async function downloadSztukiFile() {
     console.log('🔄 Starting SZTUKI.xlsm download...');
     
-    // Create a temporary link to download the file
-    const link = document.createElement('a');
-    link.href = 'https://pub-6f797b2842b7491297940c7f3f51e92f.r2.dev/SZTUKI.xlsm';
-    link.download = 'SZTUKI.xlsm';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+        await downloadFileWithFallback('SZTUKI.xlsm', 'https://pub-6f797b2842b7491297940c7f3f51e92f.r2.dev/SZTUKI.xlsm');
+        console.log('✅ SZTUKI.xlsm download completed');
+        
+        // Close modal after successful download
+        setTimeout(() => {
+            closeDownloadOptionsModal();
+        }, 1000);
+    } catch (error) {
+        console.error('❌ SZTUKI.xlsm download failed:', error);
+        showNotification('❌ Błąd pobierania pliku SZTUKI.xlsm', 'error');
+    }
+}
+
+// Universal download function with fallback methods
+async function downloadFileWithFallback(fileName, fileUrl) {
+    console.log(`🔄 Starting download for ${fileName}...`);
     
-    console.log('✅ SZTUKI.xlsm download completed');
+    let downloadSuccess = false;
     
-    // Close modal after successful download
-    setTimeout(() => {
-        closeDownloadOptionsModal();
-    }, 1000);
+    // Method 1: Try direct download first
+    try {
+        console.log('🔄 Trying direct download...');
+        const link = document.createElement('a');
+        link.href = fileUrl;
+        link.download = fileName;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Wait a moment to see if download starts
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        downloadSuccess = true;
+        console.log(`✅ Direct download successful: ${fileName}`);
+    } catch (directError) {
+        console.warn('⚠️ Direct download failed, trying proxy method...', directError);
+    }
+    
+    // Method 2: Proxy download via Cloudflare Worker
+    if (!downloadSuccess) {
+        try {
+            console.log('🔄 Trying proxy download...');
+            
+            // Create proxy download URL
+            const proxyUrl = `https://r2-upload-proxy.nikolfar91.workers.dev/download?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName)}`;
+            
+            // Fetch file through proxy
+            const response = await fetch(proxyUrl);
+            if (!response.ok) {
+                throw new Error(`Proxy download failed: ${response.status}`);
+            }
+            
+            // Get file blob
+            const blob = await response.blob();
+            
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Clean up object URL
+            window.URL.revokeObjectURL(url);
+            
+            downloadSuccess = true;
+            console.log(`✅ Proxy download successful: ${fileName}`);
+            
+        } catch (proxyError) {
+            console.error('❌ Proxy download failed:', proxyError);
+        }
+    }
+    
+    // Method 3: Force download via window.open (last resort)
+    if (!downloadSuccess) {
+        try {
+            console.log('🔄 Trying force download via window.open...');
+            window.open(fileUrl, '_blank');
+            downloadSuccess = true;
+            console.log(`✅ Force download initiated: ${fileName}`);
+        } catch (forceError) {
+            console.error('❌ Force download failed:', forceError);
+        }
+    }
+    
+    if (downloadSuccess) {
+        showNotification(`✅ Plik "${fileName}" pobrany pomyślnie`, 'success');
+    } else {
+        throw new Error('All download methods failed');
+    }
+    
+    return downloadSuccess;
 }
 
 // Custom Button Management Functions
@@ -10273,15 +10353,22 @@ function displayFileList(files) {
 // Download Uploaded File Function
 async function downloadUploadedFile(fileId) {
     try {
+        console.log('🔄 Starting download for file:', fileId);
+        
         // Get file metadata from Firebase
         const db = firebase.firestore();
         const doc = await db.collection('uploaded_files').doc(fileId).get();
         
         if (doc.exists) {
             const fileData = doc.data();
+            console.log('📁 File data:', fileData.originalName);
             
-            // Direct download file
+            // Try multiple download methods
+            let downloadSuccess = false;
+            
+            // Method 1: Try direct download first (for simple files)
             try {
+                console.log('🔄 Trying direct download...');
                 const link = document.createElement('a');
                 link.href = fileData.url;
                 link.download = fileData.originalName;
@@ -10290,17 +10377,94 @@ async function downloadUploadedFile(fileId) {
                 link.click();
                 document.body.removeChild(link);
                 
-                console.log('✅ File downloaded successfully:', fileData.originalName);
-            } catch (downloadError) {
-                console.error('❌ Download error:', downloadError);
-                alert('❌ Błąd pobierania pliku. Spróbuj ponownie.');
+                // Wait a moment to see if download starts
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                downloadSuccess = true;
+                console.log('✅ Direct download successful:', fileData.originalName);
+            } catch (directError) {
+                console.warn('⚠️ Direct download failed, trying proxy method...', directError);
             }
+            
+            // Method 2: Proxy download via Cloudflare Worker (for blocked files)
+            if (!downloadSuccess) {
+                try {
+                    console.log('🔄 Trying proxy download...');
+                    
+                    // Create proxy download URL
+                    const proxyUrl = `https://r2-upload-proxy.nikolfar91.workers.dev/download?url=${encodeURIComponent(fileData.url)}&name=${encodeURIComponent(fileData.originalName)}`;
+                    
+                    // Fetch file through proxy
+                    const response = await fetch(proxyUrl);
+                    if (!response.ok) {
+                        throw new Error(`Proxy download failed: ${response.status}`);
+                    }
+                    
+                    // Get file blob
+                    const blob = await response.blob();
+                    
+                    // Create download link
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = fileData.originalName;
+                    link.target = '_blank';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    // Clean up object URL
+                    window.URL.revokeObjectURL(url);
+                    
+                    downloadSuccess = true;
+                    console.log('✅ Proxy download successful:', fileData.originalName);
+                    
+                } catch (proxyError) {
+                    console.error('❌ Proxy download failed:', proxyError);
+                }
+            }
+            
+            // Method 3: Force download via window.open (last resort)
+            if (!downloadSuccess) {
+                try {
+                    console.log('🔄 Trying force download via window.open...');
+                    window.open(fileData.url, '_blank');
+                    downloadSuccess = true;
+                    console.log('✅ Force download initiated:', fileData.originalName);
+                } catch (forceError) {
+                    console.error('❌ Force download failed:', forceError);
+                }
+            }
+            
+            if (downloadSuccess) {
+                showNotification(`✅ Plik "${fileData.originalName}" pobrany pomyślnie`, 'success');
+            } else {
+                throw new Error('All download methods failed');
+            }
+            
         } else {
-            alert('❌ Plik nie znaleziony!');
+            throw new Error('File not found in database');
         }
     } catch (error) {
         console.error('❌ Download error:', error);
-        alert('❌ Błąd pobierania pliku. Spróbuj ponownie.');
+        
+        // Show user-friendly error message
+        const errorMessage = `❌ Błąd pobierania pliku: ${error.message}`;
+        showNotification(errorMessage, 'error');
+        
+        // Offer alternative download method
+        setTimeout(() => {
+            const userChoice = confirm('❌ Nie udało się pobrać pliku automatycznie. Czy chcesz otworzyć plik w nowej karcie?');
+            if (userChoice) {
+                // Get file data again for manual opening
+                const db = firebase.firestore();
+                db.collection('uploaded_files').doc(fileId).get().then(doc => {
+                    if (doc.exists) {
+                        const fileData = doc.data();
+                        window.open(fileData.url, '_blank');
+                    }
+                });
+            }
+        }, 1000);
     }
 }
 
