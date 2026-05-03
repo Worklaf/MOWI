@@ -1,0 +1,2411 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Визуальный редактор этикеток Zebra</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .main-content {
+            display: flex;
+            height: calc(100vh - 200px);
+            min-height: 600px;
+        }
+
+        .sidebar {
+            width: 350px;
+            background: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .label-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+        }
+
+        .toolbar {
+            background: #e9ecef;
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .canvas-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f8f9fa;
+            background-image: 
+                linear-gradient(45deg, #e9ecef 25%, transparent 25%),
+                linear-gradient(-45deg, #e9ecef 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #e9ecef 75%),
+                linear-gradient(-45deg, transparent 75%, #e9ecef 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .label-preview {
+            background: white;
+            border: 2px solid #333;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            position: relative;
+            cursor: crosshair;
+            overflow: hidden;
+        }
+
+        /* Убираем фоновую клетку с лейбла - мешает читаемости */
+
+        .text-field {
+            position: absolute;
+            border: 2px dashed #007bff;
+            background: rgba(0, 123, 255, 0.08);
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="black" d="M13 6v5h5v-5h-5zm-2 0v5H6v-5h5zm2 7v5h5v-5h-5zm-2 0v5H6v-5h5z"/></svg>') 12 12, move;
+            padding: 3px 5px;
+            min-width: 20px;
+            min-height: 16px;
+            font-family: Arial, sans-serif;
+            white-space: nowrap;
+            user-select: none;
+            /* transform-origin задаётся динамически в JS */
+        }
+
+        .text-field.selected {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.12);
+            box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.3);
+        }
+
+        .text-field:hover {
+            border-color: #0056b3;
+            background: rgba(0, 123, 255, 0.15);
+        }
+
+        .text-field .field-number {
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            background: #dc3545;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 4px;
+            border-radius: 50%;
+            min-width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            /* Компенсируем поворот родителя чтоб номер всегда читался */
+        }
+
+        .text-field .resize-handle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #007bff;
+            border: 1px solid white;
+            border-radius: 50%;
+            cursor: se-resize;
+            bottom: 2px;
+            right: 2px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .text-field:hover .resize-handle,
+        .text-field.selected .resize-handle {
+            opacity: 1;
+        }
+
+        .text-field .rotate-handle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #28a745;
+            border: 1px solid white;
+            border-radius: 50%;
+            cursor: crosshair;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .text-field:hover .rotate-handle,
+        .text-field.selected .rotate-handle {
+            opacity: 1;
+        }
+
+        .text-field.ctrl-mode {
+            border-color: #ffc107;
+            background: rgba(255, 193, 7, 0.1);
+            box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.3);
+        }
+
+        .text-field.editing {
+            border-color: #ffc107;
+            background: rgba(255, 193, 7, 0.2);
+            cursor: text;
+        }
+
+        .text-field-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            font-family: inherit;
+            font-size: inherit;
+            color: inherit;
+            width: 100%;
+            min-width: 50px;
+        }
+
+        .ctrl-hint {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 193, 7, 0.9);
+            color: #212529;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 1002;
+            display: none;
+            pointer-events: none;
+        }
+
+        .ctrl-hint.show {
+            display: block;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .control-group h3 {
+            margin-bottom: 15px;
+            color: #495057;
+            font-size: 16px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.15s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary:hover { background: #545b62; transform: translateY(-1px); }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-primary:hover { background: #0056b3; transform: translateY(-1px); }
+        .btn-success { background: #28a745; color: white; }
+        .btn-success:hover { background: #1e7e34; transform: translateY(-1px); }
+        .btn-info { background: #17a2b8; color: white; }
+        .btn-info:hover { background: #138496; transform: translateY(-1px); }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-danger:hover { background: #c82333; transform: translateY(-1px); }
+        .btn-warning { background: #ffc107; color: #212529; }
+        .btn-warning:hover { background: #e0a800; transform: translateY(-1px); }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+        }
+
+        .field-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            background: #f8f9fa;
+        }
+
+        .field-item {
+            padding: 10px;
+            border-bottom: 1px solid #dee2e6;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .field-item:hover { background: #e9ecef; }
+        .field-item.selected { background: #007bff; color: white; }
+        .field-item .field-name { font-weight: 500; }
+        .field-item .field-preview { font-size: 12px; opacity: 0.7; }
+
+        .zpl-output {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 150px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .orientation-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .orientation-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .orientation-btn.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .size-presets {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .preset-btn {
+            padding: 8px;
+            border: 1px solid #dee2e6;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .preset-btn:hover {
+            background: #e9ecef;
+            border-color: #007bff;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: #28a745;
+            color: white;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+        }
+
+        .notification.show { opacity: 1; transform: translateY(0); }
+        .notification.error { background: #dc3545; }
+        .notification.warning { background: #ffc107; color: #212529; }
+
+        .quick-paste-hint {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            font-size: 18px;
+            z-index: 1001;
+            display: none;
+            pointer-events: none;
+        }
+
+        .quick-paste-hint.show {
+            display: block;
+            animation: fadeInOut 2s ease-in-out;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+        }
+
+        /* Индикатор поворота поля */
+        .rotation-badge {
+            position: absolute;
+            bottom: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #6f42c1;
+            color: white;
+            font-size: 9px;
+            padding: 1px 5px;
+            border-radius: 3px;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        /* Новые стили для линий и рамок */
+        .line-element {
+            position: absolute;
+            background: #000;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="black" d="M13 6v5h5v-5h-5zm-2 0v5H6v-5h5zm2 7v5h5v-5h-5zm-2 0v5H6v-5h5z"/></svg>') 12 12, move;
+            pointer-events: all;
+            transform-origin: center;
+        }
+
+        .line-element.horizontal {
+            height: 2px;
+            min-width: 10px;
+        }
+
+        .line-element.vertical {
+            width: 2px;
+            min-height: 10px;
+        }
+
+        .line-element.selected {
+            background: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.3);
+        }
+
+        .line-element:hover {
+            background: #0056b3;
+        }
+
+        .frame-element {
+            position: absolute;
+            border: 2px solid #000;
+            background: transparent;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="black" d="M13 6v5h5v-5h-5zm-2 0v5H6v-5h5zm2 7v5h5v-5h-5zm-2 0v5H6v-5h5z"/></svg>') 12 12, move;
+            pointer-events: all;
+            transform-origin: center;
+        }
+
+        .frame-element.selected {
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.3);
+        }
+
+        .frame-element:hover {
+            border-color: #0056b3;
+        }
+
+        .underline-element {
+            position: absolute;
+            height: 1px;
+            background: #000;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="black" d="M13 6v5h5v-5h-5zm-2 0v5H6v-5h5zm2 7v5h5v-5h-5zm-2 0v5H6v-5h5z"/></svg>') 12 12, move;
+            pointer-events: all;
+            transform-origin: center;
+        }
+
+        .underline-element.selected {
+            background: #007bff;
+            box-shadow: 0 0 0 1px rgba(0, 123, 255, 0.3);
+        }
+
+        .underline-element:hover {
+            background: #0056b3;
+        }
+
+        .element-number {
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            background: #dc3545;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 4px;
+            border-radius: 50%;
+            min-width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .resize-handle-line {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #007bff;
+            border: 1px solid white;
+            border-radius: 50%;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="black" d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg>') 12 12, ew-resize;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .line-element:hover .resize-handle-line,
+        .line-element.selected .resize-handle-line {
+            opacity: 1;
+        }
+
+        .resize-handle-vertical {
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="black" d="M11 9h2V7h-2v2zm0 4h2v-2h-2v2zm0 4h2v-2h-2v2z"/></svg>') 12 12, ns-resize;
+        }
+
+        .resize-handle-frame {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #007bff;
+            border: 1px solid white;
+            border-radius: 50%;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="black" d="M21 11h-2V9h2v2zm-8 0h-2V9h2v2zm8 8h-2v-2h2v2zm-8 0h-2v-2h2v2z"/></svg>') 12 12, nwse-resize;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .frame-element:hover .resize-handle-frame,
+        .frame-element.selected .resize-handle-frame {
+            opacity: 1;
+        }
+
+        .resize-handle-frame.corner-tl {
+            top: -4px;
+            left: -4px;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="black" d="M21 11h-2V9h2v2zm-8 0h-2V9h2v2zm8 8h-2v-2h2v2zm-8 0h-2v-2h2v2z"/></svg>') 12 12, nwse-resize;
+        }
+
+        .resize-handle-frame.corner-tr {
+            top: -4px;
+            right: -4px;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="black" d="M21 21h-2v-2h2v2zm-8 0h-2v-2h2v2zm8-8h-2v-2h2v2zm-8 0h-2v-2h2v2z"/></svg>') 12 12, nesw-resize;
+        }
+
+        .resize-handle-frame.corner-bl {
+            bottom: -4px;
+            left: -4px;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="black" d="M21 21h-2v-2h2v2zm-8 0h-2v-2h2v2zm8-8h-2v-2h2v2zm-8 0h-2v-2h2v2z"/></svg>') 12 12, nesw-resize;
+        }
+
+        .resize-handle-frame.corner-br {
+            bottom: -4px;
+            right: -4px;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="black" d="M21 11h-2V9h2v2zm-8 0h-2V9h2v2zm8 8h-2v-2h2v2zm-8 0h-2v-2h2v2z"/></svg>') 12 12, nwse-resize;
+        }
+
+        /* Улучшенная панель инструментов */
+        .enhanced-toolbar {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 15px;
+            border-bottom: 2px solid #dee2e6;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .tool-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            padding: 0 10px;
+            border-right: 1px solid #dee2e6;
+        }
+
+        .tool-group:last-child {
+            border-right: none;
+        }
+
+        .tool-btn {
+            padding: 8px 12px;
+            border: 1px solid #dee2e6;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tool-btn:hover {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+            transform: translateY(-1px);
+        }
+
+        .tool-btn.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .tool-separator {
+            width: 1px;
+            height: 30px;
+            background: #dee2e6;
+            margin: 0 5px;
+        }
+
+        /* Стили языкового селектора как в QR.html */
+        #languageSwitcher {
+            position: absolute; top: 20px; right: 20px;
+            background: rgba(31,31,31,0.9); padding: 10px 14px;
+            border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            display: flex; align-items: center; gap: 8px; z-index: 99999 !important; font-size: 14px;
+        }
+        #languageSwitcher .flag-icon { font-size: 22px; line-height: 1; }
+        #languageSwitcher select {
+            background: #2563eb; color: white; border: none; border-radius: 8px;
+            padding: 6px 10px; font-size: 14px; font-weight: 600; cursor: pointer; outline: none;
+        }
+        #languageSwitcher select:hover { background: #1d4ed8; }
+
+        /* Стили для навигационных кнопок */
+        .nav-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        
+        .nav-btn:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+
+        /* Улучшенные стили для кнопок как в QR.html */
+        .tool-btn {
+            background: linear-gradient(135deg, #1e40af 0%, #3730a3 100%);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tool-btn:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #312e81 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(30, 64, 175, 0.4);
+        }
+        
+        .tool-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(30, 64, 175, 0.3);
+        }
+
+        /* Особая кнопка для вставки данных */
+        .insert-data-btn {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
+            position: relative;
+            overflow: hidden;
+            animation: pulse 2s infinite;
+        }
+        
+        .insert-data-btn:hover {
+            background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(5, 150, 105, 0.5);
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4); }
+            50% { box-shadow: 0 6px 25px rgba(5, 150, 105, 0.6); }
+            100% { box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4); }
+        }
+
+        /* Улучшенная панель инструментов */
+        .enhanced-toolbar {
+            background: linear-gradient(135deg, rgba(31,31,31,0.95) 0%, rgba(41,41,41,0.95) 100%);
+            padding: 15px;
+            border-bottom: 2px solid #2563eb;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        @media (max-width: 768px) {
+            .main-content { flex-direction: column; height: auto; }
+            .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #dee2e6; }
+            #languageSwitcher { top: 10px; right: 10px; }
+        }
+    </style>
+<script>
+        // Мультиязычность
+        const translations = {
+            'pl': {
+                title: '🏷️ Wizualny edytor etykiet Zebra',
+                subtitle: 'Twórz profesjonalne etykiety z podglądem w czasie rzeczywistym',
+                textSize: 'Rozmiar etykiety',
+                width: 'Szerokość (mm)',
+                height: 'Wysokość (mm)',
+                printerSettings: 'Ustawienia drukarki',
+                printerModel: 'Model drukarki',
+                printDensity: 'Gęstość druku',
+                textField: '📝 Pole tekstowe',
+                text: 'Tekst',
+                font: 'Czcionka ZPL',
+                fontSize: 'Rozmiar czcionki (pt)',
+                textStyle: 'Styl tekstu',
+                normal: 'Normalny',
+                outline: 'Konturowy (bez wypełnienia)',
+                bold: 'Pogrubiony',
+                italic: 'Kursywa',
+                outlineThickness: 'Grubość konturu (px)',
+                outlineHint: '💡 Dla małego tekstu użyj 0.5-1px, dla dużego 2-3px',
+                position: 'Pozycja',
+                rotation: 'Obrót tekstu',
+                rotation0: '0° — poziomo →',
+                rotation90: '90° — z dołu do góry ↑',
+                rotation180: '180° — odwrócone ↓',
+                rotation270: '270° — z góry na dół ↓',
+                add: '➕ Dodaj',
+                update: '✏️ Zaktualizuj',
+                delete: '🗑️ Usuń',
+                fieldList: '📋 Lista pól',
+                noFields: 'Brak dodanych pól',
+                print: '⚙️ Druk',
+                copies: 'Liczba kopii',
+                printerName: 'Nazwa drukarki',
+                printBtn: '🖨️ Druk (Ctrl+P)',
+                createZPL: '🔧 Utwórz ZPL',
+                downloadZPL: '💾 Pobierz ZPL',
+                clearTemplate: '🗑️ Wyczyść szablon',
+                zplCode: '📄 Kod ZPL',
+                zplPlaceholder: 'Kod ZPL pojawi się tutaj...',
+                textBtn: '📝 Tekst',
+                horizLine: '➖ Linia pozioma',
+                vertLine: '| Linia pionowa',
+                frame: '⬜ Ramka',
+                underline: '_ Podkreślenie',
+                textBox: '📦 Tekst w ramce',
+                insertData: '📊 Wstaw dane',
+                clearAll: '🗑️ Wyczyść wszystko',
+                saveTemplate: '💾 Zapisz szablon',
+                loadTemplate: '📁 Załaduj szablon',
+                hint: 'Ctrl+klik = obrót 90° | Podwójny klik = edycja | Linie/Ramki = przeciągnij i zmień rozmiar',
+                language: 'Języк',
+                orientation: '🔄 Orientacja druku',
+                normal: '📄 Normalna',
+                rotated: '🔄 Obrócona',
+                normalDesc: 'tekst drukowany jak na ekranie',
+                rotatedDesc: 'cała etykieta odwrócona (lustro)',
+                fontWarning: '⚠️ Tylko te czcionki są wspierane przez drukarki Zebra. Inne czcionki zostaną automatycznie zastąpione przez Arial.',
+                noElements: 'Brak dodanych elementów',
+                fieldAdded: 'Pole dodane',
+                fieldUpdated: 'Pole zaktualizowane',
+                fieldDeleted: 'Pole usunięte',
+                templateSaved: 'Szablon zapisany',
+                templateLoaded: 'Szablon załadowany',
+                zplGenerated: 'Kod ZPL wygenerowany',
+                labelPrinted: 'Etykieta wysłana do druku',
+                selectField: 'Wybierz pole',
+                cleared: 'Wyczyszczone',
+                textInFrame: '📦 Tekst w ramce',
+                noGraphicElements: 'Brak elementów graficznych',
+                elementAdded: 'Element dodany',
+                elementDeleted: 'Element usunięty',
+                elementUpdated: 'Element zaktualizowany',
+                backToQR: '← MAX QR READER'
+            },
+            'en': {
+                title: '🏷️ Zebra Label Visual Editor',
+                subtitle: 'Create professional labels with real-time preview',
+                textSize: 'Label Size',
+                width: 'Width (mm)',
+                height: 'Height (mm)',
+                printerSettings: 'Printer Settings',
+                printerModel: 'Printer Model',
+                printDensity: 'Print Density',
+                textField: '📝 Text Field',
+                text: 'Text',
+                font: 'ZPL Font',
+                fontSize: 'Font Size (pt)',
+                textStyle: 'Text Style',
+                normal: 'Normal',
+                outline: 'Outline (no fill)',
+                bold: 'Bold',
+                italic: 'Italic',
+                outlineThickness: 'Outline Thickness (px)',
+                outlineHint: '💡 For small text use 0.5-1px, for large text 2-3px',
+                position: 'Position',
+                rotation: 'Text Rotation',
+                rotation0: '0° — horizontal →',
+                rotation90: '90° — bottom to top ↑',
+                rotation180: '180° — inverted ↓',
+                rotation270: '270° — top to bottom ↓',
+                add: '➕ Add',
+                update: '✏️ Update',
+                delete: '🗑️ Delete',
+                fieldList: '📋 Field List',
+                noFields: 'No fields added',
+                print: '⚙️ Print',
+                copies: 'Number of Copies',
+                printerName: 'Printer Name',
+                printBtn: '🖨️ Print (Ctrl+P)',
+                createZPL: '🔧 Create ZPL',
+                downloadZPL: '💾 Download ZPL',
+                clearTemplate: '🗑️ Clear Template',
+                zplCode: '📄 ZPL Code',
+                zplPlaceholder: 'ZPL code will appear here...',
+                textBtn: '📝 Text',
+                horizLine: '➖ Horizontal Line',
+                vertLine: '| Vertical Line',
+                frame: '⬜ Frame',
+                underline: '_ Underline',
+                textBox: '📦 Text in Frame',
+                insertData: '📊 Insert Data',
+                clearAll: '🗑️ Clear All',
+                saveTemplate: '💾 Save Template',
+                loadTemplate: '📁 Load Template',
+                hint: 'Ctrl+click = rotate 90° | Double click = edit | Lines/Frames = drag and resize',
+                language: 'Language',
+                orientation: '🔄 Print Orientation',
+                normal: '📄 Normal',
+                rotated: '🔄 Rotated',
+                normalDesc: 'text prints as on screen',
+                rotatedDesc: 'entire label flipped (mirrored)',
+                fontWarning: '⚠️ Only these fonts are supported by Zebra printers. Other fonts will be automatically replaced with Arial.',
+                noElements: 'No elements added',
+                fieldAdded: 'Field added',
+                fieldUpdated: 'Field updated',
+                fieldDeleted: 'Field deleted',
+                templateSaved: 'Template saved',
+                templateLoaded: 'Template loaded',
+                zplGenerated: 'ZPL code generated',
+                labelPrinted: 'Label sent to printer',
+                selectField: 'Select field',
+                cleared: 'Cleared',
+                textInFrame: '📦 Text in Frame',
+                noGraphicElements: 'No graphic elements',
+                elementAdded: 'Element added',
+                elementDeleted: 'Element deleted',
+                elementUpdated: 'Element updated',
+                backToQR: '← MAX QR READER'
+            },
+            'uk': {
+                title: '🏷️ Візуальний редактор етикеток Zebra',
+                subtitle: 'Створюйте професійні етикетки з попереднім переглядом в реальному часі',
+                textSize: 'Розмір етикетки',
+                width: 'Ширина (мм)',
+                height: 'Висота (мм)',
+                printerSettings: 'Налаштування принтера',
+                printerModel: 'Модель принтера',
+                printDensity: 'Щільність друку',
+                textField: '📝 Текстове поле',
+                text: 'Текст',
+                font: 'Шрифт ZPL',
+                fontSize: 'Розмір шрифту (pt)',
+                textStyle: 'Стиль тексту',
+                normal: 'Звичайний',
+                outline: 'Контурний (без заливки)',
+                bold: 'Жирний',
+                italic: 'Курсив',
+                outlineThickness: 'Товщина контуру (px)',
+                outlineHint: '💡 Для маленького тексту використовуйте 0.5-1px, для великого 2-3px',
+                position: 'Позиція',
+                rotation: 'Поворот тексту',
+                rotation0: '0° — горизонтально →',
+                rotation90: '90° — знизу вгору ↑',
+                rotation180: '180° — перевернуто ↓',
+                rotation270: '270° — згори вниз ↓',
+                add: '➕ Додати',
+                update: '✏️ Оновити',
+                delete: '🗑️ Видалити',
+                fieldList: '📋 Список полів',
+                noFields: 'Немає доданих полів',
+                print: '⚙️ Друк',
+                copies: 'Кількість копій',
+                printerName: 'Назва принтера',
+                printBtn: '🖨️ Друк (Ctrl+P)',
+                createZPL: '🔧 Створити ZPL',
+                downloadZPL: '💾 Завантажити ZPL',
+                clearTemplate: '🗑️ Очистити шаблон',
+                zplCode: '📄 Код ZPL',
+                zplPlaceholder: 'Код ZPL з\'явиться тут...',
+                textBtn: '📝 Текст',
+                horizLine: '➖ Горизонтальна лінія',
+                vertLine: '| Вертикальна лінія',
+                frame: '⬜ Рамка',
+                underline: '_ Підкреслення',
+                textBox: '📦 Текст в рамці',
+                insertData: '📊 Вставити дані',
+                clearAll: '🗑️ Очистити все',
+                saveTemplate: '💾 Зберегти шаблон',
+                loadTemplate: '📁 Завантажити шаблон',
+                hint: 'Ctrl+клік = поворот 90° | Подвійний клік = редагувати | Лінії/Рамки = перетягувати і змінювати розмір',
+                language: 'Мова',
+                orientation: '🔄 Орієнтація друку',
+                normal: '📄 Нормальна',
+                rotated: '🔄 Повернута',
+                normalDesc: 'текст друкується як на екрані',
+                rotatedDesc: 'вся етикетка перевернута (дзеркально)',
+                fontWarning: '⚠️ Тільки ці шрифти підтримуються принтерами Zebra. Інші шрифти будуть автоматично замінені на Arial.',
+                noElements: 'Немає доданих елементів',
+                fieldAdded: 'Поле додано',
+                fieldUpdated: 'Поле оновлено',
+                fieldDeleted: 'Поле видалено',
+                templateSaved: 'Шаблон збережено',
+                templateLoaded: 'Шаблон завантажено',
+                zplGenerated: 'Код ZPL згенеровано',
+                labelPrinted: 'Етикетка відправлена на друк',
+                selectField: 'Виберіть поле',
+                cleared: 'Очищено',
+                textInFrame: '📦 Текст в рамці',
+                noGraphicElements: 'Немає графічних елементів',
+                elementAdded: 'Элемент добавлен',
+                elementDeleted: 'Элемент удален',
+                elementUpdated: 'Элемент обновлен',
+                backToQR: '← MAX QR READER'
+            }
+        };
+
+        let currentLang = 'pl'; // язык по умолчанию
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            updateAllTexts();
+            updateFlag(lang);
+            localStorage.setItem('preferredLanguage', lang);
+        }
+
+        function updateFlag(lang) {
+            const flagElement = document.getElementById('currentFlag');
+            const langSelector = document.getElementById('languageSelector');
+            
+            // Обновляем флаг
+            const flagMap = {
+                'pl': 'fi fi-pl', 
+                'en': 'fi fi-gb',
+                'uk': 'fi fi-ua'
+            };
+            
+            if (flagElement) {
+                flagElement.className = flagMap[lang] || 'fi fi-pl';
+            }
+            
+            // Обновляем селектор
+            if (langSelector) {
+                langSelector.value = lang;
+            }
+        }
+
+        function t(key) {
+            return translations[currentLang][key] || translations['pl'][key] || key;
+        }
+
+        function updateAllTexts() {
+            // Обновляем все текстовые элементы
+            document.querySelectorAll('[data-translate]').forEach(element => {
+                const key = element.getAttribute('data-translate');
+                if (element.tagName === 'OPTION') {
+                    element.textContent = t(key);
+                } else if (element.tagName === 'DIV' && element.id === 'zplOutput') {
+                    element.textContent = t(key);
+                } else {
+                    element.textContent = t(key);
+                }
+            });
+
+            // Обновляем placeholder'ы
+            document.querySelectorAll('[data-placeholder]').forEach(element => {
+                const key = element.getAttribute('data-placeholder');
+                element.placeholder = t(key);
+            });
+
+            // Обновляем label'ы
+            document.querySelectorAll('[data-label]').forEach(element => {
+                const key = element.getAttribute('data-label');
+                element.textContent = t(key);
+            });
+
+            // Обновляем заголовки
+            document.querySelector('h1').textContent = t('title');
+            document.querySelector('.header p').textContent = t('subtitle');
+            
+            // Обновляем селектор языка
+            const langSelector = document.getElementById('languageSelector');
+            if (langSelector) {
+                langSelector.value = currentLang;
+            }
+        }
+
+        // Загружаем сохраненный язык
+        window.addEventListener('DOMContentLoaded', function() {
+            const savedLang = localStorage.getItem('preferredLanguage') || 'pl';
+            setLanguage(savedLang);
+        });
+    </script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 data-translate="title">🏷️ Визуальный редактор этикеток Zebra</h1>
+            <p data-translate="subtitle">Создавайте профессиональные этикетки с предпросмотром в реальном времени</p>
+            <div style="position: absolute; top: 10px; left: 10px;">
+                <a href="https://worklaf.github.io/MOWI/QR.html" class="nav-btn" data-translate="backToQR">← QR</a>
+            </div>
+            <div id="languageSwitcher">
+                <span id="currentFlag" class="fi fi-pl"></span>
+                <select id="languageSelector" onchange="setLanguage(this.value)">
+                    <option value="pl" data-flag="fi fi-pl">Polski</option>
+                    <option value="en" data-flag="fi fi-gb">English</option>
+                    <option value="uk" data-flag="fi fi-ua">Українська</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="control-group">
+                    <h3 data-translate="textSize">📏 Размер этикетки</h3>
+                    <div class="form-group">
+                        <label data-translate="width">Ширина (мм):</label>
+                        <input type="number" id="labelWidth" class="form-control" value="40" min="20" max="500">
+                    </div>
+                    <div class="form-group">
+                        <label data-translate="height">Высота (мм):</label>
+                        <input type="number" id="labelHeight" class="form-control" value="30" min="20" max="500">
+                    </div>
+                    <div class="size-presets">
+                        <button class="preset-btn" onclick="setLabelSize(40,30)">40×30 мм</button>
+                        <button class="preset-btn" onclick="setLabelSize(50,30)">50×30 мм</button>
+                        <button class="preset-btn" onclick="setLabelSize(70,40)">70×40 мм</button>
+                        <button class="preset-btn" onclick="setLabelSize(100,60)">100×60 мм</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3 data-translate="printerSettings">🖨️ Настройки принтера</h3>
+                    <div class="form-group">
+                        <label data-translate="printerModel">Модель принтера:</label>
+                        <input type="text" class="form-control" value="ZDesigner ZD421-203dpi" readonly style="background: #f8f9fa;">
+                    </div>
+                    <div class="form-group">
+                        <label data-translate="printDensity">Плотность печати:</label>
+                        <select id="printDensity" class="form-control">
+                            <option value="6">6 dpmm (152 dpi)</option>
+                            <option value="8" selected>8 dpmm (203 dpi)</option>
+                            <option value="12">12 dpmm (300 dpi)</option>
+                            <option value="24">24 dpmm (600 dpi)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3 data-translate="orientation">🔄 Ориентация печати</h3>
+                    <div class="orientation-toggle">
+                        <button class="orientation-btn active" data-orientation="normal" data-translate="normal">📄 Нормальная</button>
+                        <button class="orientation-btn" data-orientation="rotated" data-translate="rotated">🔄 Повернутая</button>
+                    </div>
+                    <small style="color: #6c757d;">
+                        <strong data-translate="normal">Нормальная:</strong> <span data-translate="normalDesc">текст печатается как на экране</span><br>
+                        <strong data-translate="rotated">Повернутая:</strong> <span data-translate="rotatedDesc">весь лейбл перевёрнут (зеркально)</span>
+                    </small>
+                </div>
+
+                <div class="control-group">
+                    <h3 data-translate="textField">📝 Текстовое поле</h3>
+                    <div class="form-group">
+                        <label data-translate="text">Текст:</label>
+                        <input type="text" id="fieldText" class="form-control" data-placeholder="text" placeholder="Введите текст...">
+                    </div>
+                    <div class="form-group">
+                        <label data-translate="font">Шрифт ZPL:</label>
+                        <select id="fieldFont" class="form-control">
+                            <option value="Arial">Arial (ZPL: 0)</option>
+                            <option value="Times New Roman">Times New Roman (ZPL: T)</option>
+                            <option value="Courier New">Courier New (ZPL: C)</option>
+                        </select>
+                        <small style="color: #6c757d; font-size: 11px;" data-translate="fontWarning">
+                            ⚠️ Только эти шрифты поддерживаются принтерами Zebra. Другие шрифты будут автоматически заменены на Arial.
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label data-translate="fontSize">Размер шрифта (pt):</label>
+                        <input type="number" id="fontSize" class="form-control" value="20" min="8" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label data-translate="textStyle">Стиль текста:</label>
+                        <select id="fieldStyle" class="form-control">
+                            <option value="normal" data-translate="normal">Обычный</option>
+                            <option value="outline" data-translate="outline">Контурный (без заливки)</option>
+                            <option value="bold" data-translate="bold">Жирный</option>
+                            <option value="italic" data-translate="italic">Курсив</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="outlineThicknessGroup" style="display: none;">
+                        <label data-translate="outlineThickness">Толщина контура (px):</label>
+                        <input type="number" id="outlineThickness" class="form-control" value="2" min="0.5" max="5" step="0.5">
+                        <small style="color: #6c757d; font-size: 11px;" data-translate="outlineHint">
+                            💡 Для мелкого текста используйте 0.5-1px, для крупного 2-3px
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label data-translate="position">Позиция X (мм):</label>
+                        <input type="number" id="fieldX" class="form-control" value="5" min="0" step="0.5">
+                    </div>
+                    <div class="form-group">
+                        <label data-translate="position">Позиция Y (мм):</label>
+                        <input type="number" id="fieldY" class="form-control" value="5" min="0" step="0.5">
+                    </div>
+                    <div class="form-group">
+                        <label data-translate="rotation">Поворот текста:</label>
+                        <select id="fieldRotation" class="form-control">
+                            <option value="0" data-translate="rotation0">0° — горизонтально →</option>
+                            <option value="90" data-translate="rotation90">90° — снизу вверх ↑</option>
+                            <option value="180" data-translate="rotation180">180° — перевёрнуто ↓</option>
+                            <option value="270" data-translate="rotation270">270° — сверху вниз ↓</option>
+                        </select>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="addTextField()" data-translate="add">➕ Добавить</button>
+                        <button class="btn btn-success" onclick="updateSelectedField()" data-translate="update">✏️ Обновить</button>
+                        <button class="btn btn-danger" onclick="deleteSelectedField()" data-translate="delete">🗑️ Удалить</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3 data-translate="fieldList">📋 Список полей</h3>
+                    <div class="field-list" id="fieldList">
+                        <div style="padding: 20px; text-align: center; color: #6c757d;" data-translate="noFields">Нет добавленных полей</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3 data-translate="print">⚙️ Печать</h3>
+                    <div class="form-group">
+                        <label data-translate="copies">Количество копий:</label>
+                        <input type="number" id="copies" class="form-control" value="1" min="1" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label data-translate="printerName">Имя принтера:</label>
+                        <input type="text" id="printerName" class="form-control" value="ZDesigner ZD421-203dpi ZPL (Kopia 12)">
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-success" onclick="printLabel()" data-translate="printBtn">🖨️ Печать (Ctrl+P)</button>
+                        <button class="btn btn-primary" onclick="generateZPL()" data-translate="createZPL">🔧 Создать ZPL</button>
+                        <button class="btn btn-warning" onclick="downloadZPL()" data-translate="downloadZPL">💾 Скачать ZPL</button>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-secondary" onclick="clearAllFields()" data-translate="clearTemplate">🗑️ Очистить шаблон</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3 data-translate="zplCode">📄 ZPL код</h3>
+                    <div class="zpl-output" id="zplOutput" data-translate="zplPlaceholder">ZPL код появится здесь...</div>
+                </div>
+            </div>
+
+            <div class="label-area">
+                <div class="enhanced-toolbar">
+                    <div class="tool-group">
+                        <button class="tool-btn" onclick="addHorizontalLine()" data-translate="horizLine">➖ Гориз. линия</button>
+                        <button class="tool-btn" onclick="addVerticalLine()" data-translate="vertLine">| Верт. линия</button>
+                        <button class="tool-btn" onclick="addFrame()" data-translate="frame">⬜ Рамка</button>
+                        <button class="tool-btn" onclick="addUnderline()" data-translate="underline">_ Подчеркивание</button>
+                        <button class="tool-btn" onclick="addTextBox()" data-translate="textBox">📦 Текст в рамке</button>
+                    </div>
+                    <div class="tool-group">
+                        <button class="btn btn-success" onclick="saveTemplate()" data-translate="saveTemplate">💾 Сохранить шаблон</button>
+                        <button class="btn btn-primary" onclick="loadTemplate()" data-translate="loadTemplate">📁 Загрузить шаблон</button>
+                        <button class="insert-data-btn" onclick="pasteFromExcel()" data-translate="insertData">📊 Вставка данных</button>
+                    </div>
+                    <div class="tool-group">
+                        <button class="tool-btn" onclick="addTextField()" data-translate="textBtn">� Текст</button>
+                        <button class="btn btn-warning" onclick="clearAllFields()" data-translate="clearAll">�️ Очистить все</button>
+                    </div>
+                    <div style="margin-left: auto; color: #6c757d; font-size: 12px; white-space: nowrap;" data-translate="hint">
+                        Ctrl+клик = поворот 90° | Двойной клик = редактировать | Линии/Рамки = перетаскивать и изменять размер
+                    </div>
+                </div>
+                <div class="canvas-container">
+                    <div class="label-preview" id="labelPreview"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+    <div class="quick-paste-hint" id="quickPasteHint">📋 Текст вставлен по центру!</div>
+    <div class="ctrl-hint" id="ctrlHint">🔄 Ctrl+клик по полю = поворот на 90°</div>
+
+    <script>
+        let textFields = [];
+        let graphicElements = []; // Для линий, рамок и других графических элементов
+        let selectedField = null;
+        let selectedElement = null; // Для графических элементов
+        let isDragging = false;
+        let dragOffset = { x: 0, y: 0 };
+        let currentOrientation = 'normal';
+        let isCtrlPressed = false;
+        let isResizing = false;
+
+        const MM_TO_PX = 8; // 203 dpi = 8 px/mm
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateLabelSize();
+            setupEventListeners();
+            updateFieldList();
+            setupKeyboardShortcuts();
+        });
+
+        function setupEventListeners() {
+            document.getElementById('labelWidth').addEventListener('input', updateLabelSize);
+            document.getElementById('labelHeight').addEventListener('input', updateLabelSize);
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Control') { isCtrlPressed = true; showCtrlHint(); updateCtrlMode(); }
+                if (e.key === 'Delete' && selectedField) deleteSelectedField();
+            });
+            document.addEventListener('keyup', function(e) {
+                if (e.key === 'Control') { isCtrlPressed = false; hideCtrlHint(); updateCtrlMode(); }
+            });
+
+            document.querySelectorAll('.orientation-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const newOrientation = this.dataset.orientation;
+                    if (newOrientation === currentOrientation) return;
+
+                    document.querySelectorAll('.orientation-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Читаем текущие размеры этикетки
+                    const oldW = parseInt(document.getElementById('labelWidth').value);
+                    const oldH = parseInt(document.getElementById('labelHeight').value);
+
+                    // Меняем ориентацию: переворачиваем ширину и высоту
+                    document.getElementById('labelWidth').value  = oldH;
+                    document.getElementById('labelHeight').value = oldW;
+
+                    // Пересчитываем координаты всех полей:
+                    // при повороте 90° по часовой: новый X = oldY, новый Y = (oldW - oldX)
+                    // при повороте обратно:        новый X = (oldH - oldY), новый Y = oldX
+                    textFields.forEach(field => {
+                        const ox = field.x;
+                        const oy = field.y;
+                        if (newOrientation === 'rotated') {
+                            // normal → rotated: поворот 90° по часовой
+                            field.x = oy;
+                            field.y = Math.max(0, oldW - ox);
+                        } else {
+                            // rotated → normal: поворот 90° против часовой
+                            field.x = Math.max(0, oldH - oy);
+                            field.y = ox;
+                        }
+                    });
+
+                    currentOrientation = newOrientation;
+                    updateLabelSize(); // обновит размер превью и вызовет updateLabelPreview
+                    showNotification('Ориентация изменена — поля пересчитаны');
+                });
+            });
+
+            // Синхронизация полей ввода с выбранным полем
+            ['fieldText','fieldFont','fontSize','fieldStyle','outlineThickness','fieldX','fieldY','fieldRotation'].forEach(id => {
+                document.getElementById(id).addEventListener('input', function() {
+                    if (!selectedField) return;
+                    if (id === 'fieldText') selectedField.text = this.value;
+                    if (id === 'fieldFont') selectedField.font = this.value;
+                    if (id === 'fontSize') selectedField.fontSize = parseInt(this.value);
+                    if (id === 'fieldStyle') {
+                        selectedField.style = this.value;
+                        // Показываем/скрываем поле толщины контура
+                        const outlineGroup = document.getElementById('outlineThicknessGroup');
+                        if (this.value === 'outline') {
+                            outlineGroup.style.display = 'block';
+                        } else {
+                            outlineGroup.style.display = 'none';
+                        }
+                    }
+                    if (id === 'outlineThickness') selectedField.outlineThickness = parseFloat(this.value);
+                    if (id === 'fieldX') selectedField.x = parseFloat(this.value);
+                    if (id === 'fieldY') selectedField.y = parseFloat(this.value);
+                    if (id === 'fieldRotation') selectedField.rotation = parseInt(this.value);
+                    updateLabelPreview();
+                });
+            });
+
+            // Показываем/скрываем поле толщины контура при изменении стиля
+            document.getElementById('fieldStyle').addEventListener('change', function() {
+                const outlineGroup = document.getElementById('outlineThicknessGroup');
+                if (this.value === 'outline') {
+                    outlineGroup.style.display = 'block';
+                } else {
+                    outlineGroup.style.display = 'none';
+                }
+            });
+
+            const labelPreview = document.getElementById('labelPreview');
+
+            labelPreview.addEventListener('mousedown', function(e) {
+                const fieldElement = e.target.closest('.text-field');
+                const graphicElement = e.target.closest('.line-element, .frame-element, .underline-element');
+
+                if (fieldElement) {
+                    selectField(fieldElement);
+
+                    // Ctrl+клик = поворот на 90°
+                    if (isCtrlPressed && !e.target.classList.contains('resize-handle')) {
+                        rotateField90Degrees();
+                        e.preventDefault();
+                        return;
+                    }
+
+                    // Resize handle
+                    if (e.target.classList.contains('resize-handle') && isCtrlPressed) {
+                        isResizing = true;
+                        e.preventDefault();
+                        return;
+                    }
+
+                    // Обычное перетаскивание
+                    // offset считаем в координатах labelPreview (не экрана),
+                    // иначе при повёрнутой ориентации поле прыгает при захвате
+                    isDragging = true;
+                    const rect = labelPreview.getBoundingClientRect();
+                    const cursorInLabel_x = e.clientX - rect.left;
+                    const cursorInLabel_y = e.clientY - rect.top;
+                    dragOffset.x = cursorInLabel_x - (selectedField.x * MM_TO_PX);
+                    dragOffset.y = cursorInLabel_y - (selectedField.y * MM_TO_PX);
+                    e.preventDefault();
+                } else if (graphicElement) {
+                    // Выбор графического элемента
+                    const elementId = parseInt(graphicElement.dataset.elementId);
+                    const element = graphicElements.find(el => el.id === elementId);
+                    if (element) {
+                        selectGraphicElement(graphicElement, element);
+
+                        // Resize handle для линий и рамок
+                        const target = e.target;
+                        if (target.classList.contains('resize-handle-line') || 
+                            target.classList.contains('resize-handle-frame') ||
+                            target.parentElement && target.parentElement.classList.contains('resize-handle-frame')) {
+                            isResizing = true;
+                            e.preventDefault();
+                            return;
+                        }
+
+                        // Перетаскивание графического элемента
+                        isDragging = true;
+                        const rect = labelPreview.getBoundingClientRect();
+                        const cursorInLabel_x = e.clientX - rect.left;
+                        const cursorInLabel_y = e.clientY - rect.top;
+                        const scale = window.currentScale || 1;
+                        dragOffset.x = cursorInLabel_x - (selectedElement.x * MM_TO_PX * scale);
+                        dragOffset.y = cursorInLabel_y - (selectedElement.y * MM_TO_PX * scale);
+                        e.preventDefault();
+                    }
+                } else if (e.target === labelPreview) {
+                    // Клик по пустому месту — обновляем X/Y в форме
+                    const rect = labelPreview.getBoundingClientRect();
+                    const scale = window.currentScale || 1;
+                    document.getElementById('fieldX').value = ((e.clientX - rect.left) / (MM_TO_PX * scale)).toFixed(1);
+                    document.getElementById('fieldY').value = ((e.clientY - rect.top) / (MM_TO_PX * scale)).toFixed(1);
+                }
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                // Перетаскивание текстовых полей
+                if (isDragging && selectedField) {
+                    const rect = document.getElementById('labelPreview').getBoundingClientRect();
+                    const scale = window.currentScale || 1;
+                    const newX = Math.max(0, (e.clientX - rect.left - dragOffset.x) / (MM_TO_PX * scale));
+                    const newY = Math.max(0, (e.clientY - rect.top - dragOffset.y) / (MM_TO_PX * scale));
+                    selectedField.x = newX;
+                    selectedField.y = newY;
+                    document.getElementById('fieldX').value = newX.toFixed(1);
+                    document.getElementById('fieldY').value = newY.toFixed(1);
+                    updateLabelPreview();
+                    updateFieldList();
+                }
+
+                // Перетаскивание графических элементов
+                if (isDragging && selectedElement) {
+                    const rect = document.getElementById('labelPreview').getBoundingClientRect();
+                    const scale = window.currentScale || 1;
+                    const newX = Math.max(0, (e.clientX - rect.left - dragOffset.x) / (MM_TO_PX * scale));
+                    const newY = Math.max(0, (e.clientY - rect.top - dragOffset.y) / (MM_TO_PX * scale));
+                    selectedElement.x = newX;
+                    selectedElement.y = newY;
+                    updateLabelPreview();
+                    updateFieldList();
+                }
+
+                // Изменение размера текстовых полей
+                if (isResizing && selectedField && isCtrlPressed) {
+                    const el = document.querySelector(`[data-field-id="${selectedField.id}"]`);
+                    if (el) {
+                        const fieldRect = el.getBoundingClientRect();
+                        const delta = e.clientX - fieldRect.right;
+                        selectedField.fontSize = Math.max(8, Math.min(100, selectedField.fontSize + delta * 0.1));
+                        document.getElementById('fontSize').value = Math.round(selectedField.fontSize);
+                        updateLabelPreview();
+                    }
+                }
+
+                // Изменение размера графических элементов (линий)
+                if (isResizing && selectedElement && !isCtrlPressed) {
+                    const el = document.querySelector(`[data-element-id="${selectedElement.id}"]`);
+                    if (el) {
+                        const elementRect = el.getBoundingClientRect();
+                        
+                        switch(selectedElement.type) {
+                            case 'horizontal-line':
+                            case 'underline':
+                                // Изменяем ширину горизонтальной линии
+                                const lineWidth = Math.max(5, (e.clientX - elementRect.left) / MM_TO_PX);
+                                selectedElement.width = lineWidth;
+                                break;
+                                
+                            case 'vertical-line':
+                                // Изменяем высоту вертикальной линии
+                                const lineHeight = Math.max(5, (e.clientY - elementRect.top) / MM_TO_PX);
+                                selectedElement.height = lineHeight;
+                                break;
+                                
+                            case 'frame':
+                                // Изменение размера рамки - упрощенная логика
+                                console.log('Resizing frame:', selectedElement);
+                                
+                                const currentX = selectedElement.x * MM_TO_PX;
+                                const currentY = selectedElement.y * MM_TO_PX;
+                                const currentWidth = selectedElement.width * MM_TO_PX;
+                                const currentHeight = selectedElement.height * MM_TO_PX;
+                                
+                                // Определяем какой угол тащим
+                                const mouseX = e.clientX - elementRect.left;
+                                const mouseY = e.clientY - elementRect.top;
+                                
+                                console.log('Mouse position:', mouseX, mouseY, 'Frame size:', currentWidth, currentHeight);
+                                
+                                // Простое изменение размера от левого верхнего угла
+                                const frameWidth = Math.max(10, mouseX);
+                                const frameHeight = Math.max(10, mouseY);
+                                
+                                selectedElement.width = frameWidth / MM_TO_PX;
+                                selectedElement.height = frameHeight / MM_TO_PX;
+                                
+                                console.log('New frame size:', selectedElement.width, selectedElement.height);
+                                break;
+                        }
+                        
+                        updateLabelPreview();
+                        updateFieldList();
+                    }
+                }
+            });
+
+            document.addEventListener('mouseup', function() {
+                isDragging = false;
+                isResizing = false;
+            });
+        }
+
+        function updateLabelSize() {
+            const w = parseInt(document.getElementById('labelWidth').value);
+            const h = parseInt(document.getElementById('labelHeight').value);
+            const lp = document.getElementById('labelPreview');
+            const container = document.querySelector('.canvas-container');
+            
+            // Получаем размеры контейнера
+            const containerWidth = container.clientWidth - 40; // отступы
+            const containerHeight = container.clientHeight - 40;
+            
+            // Вычисляем масштаб чтобы этикетка поместилась в контейнер
+            const naturalWidth = w * MM_TO_PX;
+            const naturalHeight = h * MM_TO_PX;
+            
+            const scaleX = containerWidth / naturalWidth;
+            const scaleY = containerHeight / naturalHeight;
+            const scale = Math.min(scaleX, scaleY, 1); // не увеличиваем, только уменьшаем
+            
+            // Применяем масштаб
+            const finalWidth = naturalWidth * scale;
+            const finalHeight = naturalHeight * scale;
+            
+            lp.style.width = finalWidth + 'px';
+            lp.style.height = finalHeight + 'px';
+            lp.style.transform = `scale(${1})`; // сохраняем координаты для правильного позиционирования
+            lp.style.transformOrigin = 'top left';
+            
+            // Сохраняем масштаб для других функций
+            window.currentScale = scale;
+            
+            updateLabelPreview();
+        }
+
+        function setLabelSize(w, h) {
+            document.getElementById('labelWidth').value = w;
+            document.getElementById('labelHeight').value = h;
+            updateLabelSize();
+        }
+
+        function addTextField() {
+            const field = {
+                id: Date.now(),
+                text: document.getElementById('fieldText').value || 'Новый текст',
+                font: document.getElementById('fieldFont').value || 'Arial',
+                fontSize: parseInt(document.getElementById('fontSize').value) || 20,
+                style: document.getElementById('fieldStyle').value || 'normal',
+                outlineThickness: parseFloat(document.getElementById('outlineThickness').value) || 2,
+                x: parseFloat(document.getElementById('fieldX').value) || 5,
+                y: parseFloat(document.getElementById('fieldY').value) || 5,
+                rotation: parseInt(document.getElementById('fieldRotation').value) || 0,
+                number: textFields.length + 1
+            };
+            textFields.push(field);
+            updateLabelPreview();
+            updateFieldList();
+            selectFieldById(field.id);
+            showNotification(`Поле ${field.number} добавлено`);
+        }
+
+        // Функции для добавления графических элементов
+        function addHorizontalLine() {
+            const element = {
+                id: Date.now(),
+                type: 'horizontal-line',
+                x: 5,
+                y: 15,
+                width: 30,
+                height: 2,
+                thickness: 2,
+                number: graphicElements.length + 1
+            };
+            graphicElements.push(element);
+            updateLabelPreview();
+            updateElementList();
+            showNotification(`Горизонтальная линия ${element.number} добавлена`);
+        }
+
+        function addVerticalLine() {
+            const element = {
+                id: Date.now(),
+                type: 'vertical-line',
+                x: 15,
+                y: 5,
+                width: 2,
+                height: 20,
+                thickness: 2,
+                number: graphicElements.length + 1
+            };
+            graphicElements.push(element);
+            updateLabelPreview();
+            updateElementList();
+            showNotification(`Вертикальная линия ${element.number} добавлена`);
+        }
+
+        function addFrame() {
+            const element = {
+                id: Date.now(),
+                type: 'frame',
+                x: 5,
+                y: 5,
+                width: 30,
+                height: 20,
+                borderWidth: 2,
+                number: graphicElements.length + 1
+            };
+            graphicElements.push(element);
+            updateLabelPreview();
+            updateElementList();
+            showNotification(`Рамка ${element.number} добавлена`);
+        }
+
+        function addUnderline() {
+            const element = {
+                id: Date.now(),
+                type: 'underline',
+                x: 5,
+                y: 15,
+                width: 30,
+                height: 1,
+                thickness: 1,
+                number: graphicElements.length + 1
+            };
+            graphicElements.push(element);
+            updateLabelPreview();
+            updateElementList();
+            showNotification(`Подчеркивание ${element.number} добавлено`);
+        }
+
+        function addTextBox() {
+            // Добавляем текстовое поле и рамку вокруг него
+            const textField = {
+                id: Date.now(),
+                text: document.getElementById('fieldText').value || 'Текст в рамке',
+                fontSize: parseInt(document.getElementById('fontSize').value) || 16,
+                x: parseFloat(document.getElementById('fieldX').value) || 5,
+                y: parseFloat(document.getElementById('fieldY').value) || 5,
+                rotation: parseInt(document.getElementById('fieldRotation').value) || 0,
+                number: textFields.length + 1
+            };
+            textFields.push(textField);
+
+            const frame = {
+                id: Date.now() + 1,
+                type: 'frame',
+                x: textField.x - 2,
+                y: textField.y - 2,
+                width: 40,
+                height: 12,
+                borderWidth: 2,
+                linkedTextField: textField.id,
+                number: graphicElements.length + 1
+            };
+            graphicElements.push(frame);
+
+            updateLabelPreview();
+            updateFieldList();
+            updateElementList();
+            selectFieldById(textField.id);
+            showNotification(`Текст в рамке ${textField.number} добавлен`);
+        }
+
+        function updateSelectedField() {
+            if (!selectedField) { showNotification('Выберите поле', 'warning'); return; }
+            selectedField.text = document.getElementById('fieldText').value;
+            selectedField.font = document.getElementById('fieldFont').value;
+            selectedField.fontSize = parseInt(document.getElementById('fontSize').value);
+            selectedField.style = document.getElementById('fieldStyle').value;
+            selectedField.outlineThickness = parseFloat(document.getElementById('outlineThickness').value) || 2;
+            selectedField.x = parseFloat(document.getElementById('fieldX').value);
+            selectedField.y = parseFloat(document.getElementById('fieldY').value);
+            selectedField.rotation = parseInt(document.getElementById('fieldRotation').value);
+            updateLabelPreview();
+            updateFieldList();
+            showNotification('Поле обновлено');
+        }
+
+        function deleteSelectedField() {
+            if (!selectedField) { showNotification('Выберите поле', 'warning'); return; }
+            textFields = textFields.filter(f => f.id !== selectedField.id);
+            selectedField = null;
+            updateLabelPreview();
+            updateFieldList();
+            clearFieldInputs();
+            showNotification('Поле удалено');
+        }
+
+        function deleteFieldById(fieldId) {
+            textFields = textFields.filter(f => f.id !== fieldId);
+            if (selectedField && selectedField.id === fieldId) { selectedField = null; clearFieldInputs(); }
+            updateLabelPreview();
+            updateFieldList();
+            showNotification('Поле удалено');
+        }
+
+        function clearAllFields() {
+            if (textFields.length === 0 && graphicElements.length === 0) { 
+                showNotification('Нет элементов для удаления', 'warning'); 
+                return; 
+            }
+            if (confirm('Удалить все текстовые поля и графические элементы?')) {
+                textFields = []; 
+                graphicElements = []; 
+                selectedField = null;
+                selectedElement = null;
+                updateLabelPreview(); 
+                updateFieldList(); 
+                clearFieldInputs();
+                showNotification('Все элементы удалены');
+            }
+        }
+
+        function selectField(element) {
+            selectFieldById(parseInt(element.dataset.fieldId));
+        }
+
+        function selectFieldById(fieldId) {
+            selectedField = textFields.find(f => f.id === fieldId) || null;
+            document.querySelectorAll('.text-field').forEach(el => el.classList.remove('selected'));
+            if (selectedField) {
+                const el = document.querySelector(`[data-field-id="${fieldId}"]`);
+                if (el) el.classList.add('selected');
+                document.getElementById('fieldText').value     = selectedField.text;
+                document.getElementById('fieldFont').value     = selectedField.font || 'Arial';
+                document.getElementById('fontSize').value    = selectedField.fontSize;
+                document.getElementById('fieldStyle').value   = selectedField.style || 'normal';
+                document.getElementById('outlineThickness').value = selectedField.outlineThickness || 2;
+                document.getElementById('fieldX').value       = selectedField.x;
+                document.getElementById('fieldY').value       = selectedField.y;
+                document.getElementById('fieldRotation').value = selectedField.rotation || 0;
+                
+                // Показываем/скрываем поле толщины контура
+                const outlineGroup = document.getElementById('outlineThicknessGroup');
+                if (selectedField.style === 'outline') {
+                    outlineGroup.style.display = 'block';
+                } else {
+                    outlineGroup.style.display = 'none';
+                }
+            }
+            updateFieldList();
+        }
+
+        function clearFieldInputs() {
+            document.getElementById('fieldText').value     = '';
+            document.getElementById('fieldFont').value     = 'Arial';
+            document.getElementById('fontSize').value      = '20';
+            document.getElementById('fieldStyle').value   = 'normal';
+            document.getElementById('outlineThickness').value = '2';
+            document.getElementById('fieldX').value        = '5';
+            document.getElementById('fieldY').value        = '5';
+            document.getElementById('fieldRotation').value = '0';
+            
+            // Скрываем поле толщины контура
+            document.getElementById('outlineThicknessGroup').style.display = 'none';
+        }
+
+        // ─── КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: правильный поворот в превью ───────────────
+        //
+        // Проблема была в том, что CSS transform:rotate() крутит элемент
+        // вокруг его центра, но left/top остаются без изменений.
+        // Для ZPL координаты X,Y — это левый верхний угол текстового поля
+        // ДО поворота (т.е. начало строки текста).
+        //
+        // Решение: используем transform-origin: 0 0 (левый верхний угол),
+        // тогда элемент поворачивается вокруг точки (x,y) и визуально
+        // совпадает с тем, что ZPL нарисует на принтере.
+        //
+        // ZPL ^FO x,y задаёт точку начала рисования, а поворот (N/R/I/B)
+        // определяет направление «вправо» от этой точки:
+        //   N = нормально (→)
+        //   R = 90° по часовой (↓), т.е. текст идёт сверху вниз
+        //   I = 180° (←)
+        //   B = 270° по часовой / 90° против часовой (↑), снизу вверх
+        // ─────────────────────────────────────────────────────────────────────
+
+        function updateLabelPreview() {
+            const lp = document.getElementById('labelPreview');
+            lp.innerHTML = '';
+            
+            // Получаем текущий масштаб
+            const scale = window.currentScale || 1;
+            const scaledMM = MM_TO_PX * scale;
+
+            // Сначала отображаем графические элементы (линии, рамки)
+            graphicElements.forEach(element => {
+                let el;
+                
+                switch(element.type) {
+                    case 'horizontal-line':
+                        el = document.createElement('div');
+                        el.className = 'line-element horizontal';
+                        el.dataset.elementId = element.id;
+                        el.style.left = (element.x * scaledMM) + 'px';
+                        el.style.top = (element.y * scaledMM) + 'px';
+                        el.style.width = (element.width * scaledMM) + 'px';
+                        el.style.height = element.thickness + 'px';
+                        break;
+                        
+                    case 'vertical-line':
+                        el = document.createElement('div');
+                        el.className = 'line-element vertical';
+                        el.dataset.elementId = element.id;
+                        el.style.left = (element.x * scaledMM) + 'px';
+                        el.style.top = (element.y * scaledMM) + 'px';
+                        el.style.width = element.thickness + 'px';
+                        el.style.height = (element.height * scaledMM) + 'px';
+                        break;
+                        
+                    case 'frame':
+                        el = document.createElement('div');
+                        el.className = 'frame-element';
+                        el.dataset.elementId = element.id;
+                        el.style.left = (element.x * scaledMM) + 'px';
+                        el.style.top = (element.y * scaledMM) + 'px';
+                        el.style.width = (element.width * scaledMM) + 'px';
+                        el.style.height = (element.height * scaledMM) + 'px';
+                        el.style.borderWidth = element.borderWidth + 'px';
+                        break;
+                        
+                    case 'underline':
+                        el = document.createElement('div');
+                        el.className = 'underline-element';
+                        el.dataset.elementId = element.id;
+                        el.style.left = (element.x * scaledMM) + 'px';
+                        el.style.top = (element.y * scaledMM) + 'px';
+                        el.style.width = (element.width * scaledMM) + 'px';
+                        el.style.height = element.thickness + 'px';
+                        break;
+                }
+
+                if (el) {
+                    if (selectedElement && selectedElement.id === element.id) el.classList.add('selected');
+                    
+                    // Номер элемента
+                    const num = document.createElement('div');
+                    num.className = 'element-number';
+                    num.textContent = element.number;
+                    el.appendChild(num);
+
+                    // Resize handles для линий
+                    if (element.type === 'horizontal-line' || element.type === 'vertical-line') {
+                        const resizeHandle = document.createElement('div');
+                        resizeHandle.className = 'resize-handle-line' + (element.type === 'vertical-line' ? ' resize-handle-vertical' : '');
+                        resizeHandle.style.right = '-4px';
+                        resizeHandle.style.top = element.type === 'vertical-line' ? '50%' : '50%';
+                        resizeHandle.style.transform = element.type === 'vertical-line' ? 'translateY(-50%)' : 'translateY(-50%)';
+                        el.appendChild(resizeHandle);
+                    }
+
+                    // Resize handles для рамок (4 угла)
+                    if (element.type === 'frame') {
+                        const corners = ['corner-tl', 'corner-tr', 'corner-bl', 'corner-br'];
+                        corners.forEach(corner => {
+                            const resizeHandle = document.createElement('div');
+                            resizeHandle.className = 'resize-handle-frame ' + corner;
+                            el.appendChild(resizeHandle);
+                        });
+                    }
+
+                    el.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        selectGraphicElement(this, element);
+                    });
+
+                    lp.appendChild(el);
+                }
+            });
+
+            // Затем отображаем текстовые поля
+            textFields.forEach(field => {
+                const el = document.createElement('div');
+                el.className = 'text-field';
+                el.dataset.fieldId = field.id;
+                el.style.left      = (field.x * scaledMM) + 'px';
+                el.style.top       = (field.y * scaledMM) + 'px';
+                el.style.fontSize  = (field.fontSize * scale) + 'px'; // масштабируем размер шрифта
+                el.style.fontFamily = field.font || 'Arial';
+                el.style.lineHeight = '1';
+
+                // Применяем стили текста
+                if (field.style === 'bold') {
+                    el.style.fontWeight = 'bold';
+                } else if (field.style === 'italic') {
+                    el.style.fontStyle = 'italic';
+                } else if (field.style === 'outline') {
+                    // Контурный текст - используем text-stroke с настраиваемой толщиной
+                    const thickness = field.outlineThickness || 2;
+                    el.style.color = 'transparent';
+                    el.style.webkitTextStroke = thickness + 'px #000';
+                    el.style.textStroke = thickness + 'px #000';
+                    el.style.textShadow = 'none';
+                } else {
+                    el.style.fontWeight = 'normal';
+                    el.style.fontStyle = 'normal';
+                    el.style.color = '#000';
+                    el.style.textShadow = 'none';
+                }
+
+                // Поворот вокруг точки привязки (левый верхний угол = начало ZPL ^FO)
+                const rot = field.rotation || 0;
+                if (rot !== 0) {
+                    el.style.transformOrigin = '0 0';
+                    el.style.transform = `rotate(${rot}deg)`;
+                }
+
+                // Текст — один текстовый узел (без лишних дочерних div-ов внутри)
+                el.appendChild(document.createTextNode(field.text));
+
+                if (selectedField && selectedField.id === field.id) el.classList.add('selected');
+
+                // Номер поля (компенсируем поворот чтобы он всегда читался горизонтально)
+                const num = document.createElement('div');
+                num.className = 'field-number';
+                num.textContent = field.number;
+                num.style.transform = `rotate(${-rot}deg)`;
+                el.appendChild(num);
+
+                // Подпись угла если повёрнут
+                if (rot !== 0) {
+                    const badge = document.createElement('div');
+                    badge.className = 'rotation-badge';
+                    badge.textContent = rot + '°';
+                    badge.style.transform = `translateX(-50%) rotate(${-rot}deg)`;
+                    el.appendChild(badge);
+                }
+
+                // Resize handle
+                const resizeHandle = document.createElement('div');
+                resizeHandle.className = 'resize-handle';
+                el.appendChild(resizeHandle);
+
+                el.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    selectField(this);
+                });
+
+                el.addEventListener('dblclick', function(e) {
+                    e.stopPropagation();
+                    enableInlineEdit(this, field);
+                });
+
+                lp.appendChild(el);
+            });
+
+            updateCtrlMode();
+        }
+
+        function updateFieldList() {
+            const fl = document.getElementById('fieldList');
+            const hasFields = textFields.length > 0;
+            const hasElements = graphicElements.length > 0;
+            
+            if (!hasFields && !hasElements) {
+                fl.innerHTML = `<div style="padding:20px;text-align:center;color:#6c757d">${t('noElements')}</div>`;
+                return;
+            }
+            
+            fl.innerHTML = '';
+            
+            // Добавляем текстовые поля
+            textFields.forEach(field => {
+                const item = document.createElement('div');
+                item.className = 'field-item' + (selectedField && selectedField.id === field.id ? ' selected' : '');
+                const rotLabel = field.rotation ? ` ${field.rotation}°` : '';
+                item.innerHTML = `
+                    <div>
+                        <div class="field-name">🔢${field.number}: ${field.text}${rotLabel}</div>
+                        <div class="field-preview">${field.fontSize}px  X:${field.x.toFixed(1)}  Y:${field.y.toFixed(1)}</div>
+                    </div>
+                    <div style="display:flex;gap:5px">
+                        <button onclick="selectFieldById(${field.id})" style="padding:2px 6px;border:1px solid #dee2e6;background:white;border-radius:2px;cursor:pointer">✏️</button>
+                        <button onclick="deleteFieldById(${field.id})" style="padding:2px 6px;border:1px solid #dee2e6;background:white;border-radius:2px;cursor:pointer">🗑️</button>
+                    </div>`;
+                item.addEventListener('click', function(e) {
+                    if (e.target.closest('button')) return;
+                    selectFieldById(field.id);
+                });
+                fl.appendChild(item);
+            });
+            
+            // Добавляем графические элементы
+            graphicElements.forEach(element => {
+                const item = document.createElement('div');
+                item.className = 'field-item' + (selectedElement && selectedElement.id === element.id ? ' selected' : '');
+                let elementIcon = '';
+                let elementName = '';
+                
+                switch(element.type) {
+                    case 'horizontal-line':
+                        elementIcon = '➖';
+                        elementName = 'Гориз. линия';
+                        break;
+                    case 'vertical-line':
+                        elementIcon = '|';
+                        elementName = 'Верт. линия';
+                        break;
+                    case 'frame':
+                        elementIcon = '⬜';
+                        elementName = 'Рамка';
+                        break;
+                    case 'underline':
+                        elementIcon = '_';
+                        elementName = 'Подчеркивание';
+                        break;
+                }
+                
+                item.innerHTML = `
+                    <div>
+                        <div class="field-name">${elementIcon}#${element.number}: ${elementName}</div>
+                        <div class="field-preview">X:${element.x.toFixed(1)}  Y:${element.y.toFixed(1)}  W:${element.width.toFixed(1)}  H:${element.height.toFixed(1)}</div>
+                    </div>
+                    <div style="display:flex;gap:5px">
+                        <button onclick="selectElementById(${element.id})" style="padding:2px 6px;border:1px solid #dee2e6;background:white;border-radius:2px;cursor:pointer">✏️</button>
+                        <button onclick="deleteElementById(${element.id})" style="padding:2px 6px;border:1px solid #dee2e6;background:white;border-radius:2px;cursor:pointer">🗑️</button>
+                    </div>`;
+                item.addEventListener('click', function(e) {
+                    if (e.target.closest('button')) return;
+                    selectElementById(element.id);
+                });
+                fl.appendChild(item);
+            });
+        }
+
+        function updateElementList() {
+            updateFieldList(); // Просто вызываем обновление общего списка
+        }
+
+        // Функции для работы с графическими элементами
+        function selectGraphicElement(element, elementData) {
+            // Снимаем выделение с текстовых полей
+            document.querySelectorAll('.text-field').forEach(el => el.classList.remove('selected'));
+            selectedField = null;
+            clearFieldInputs();
+            
+            // Выделяем графический элемент
+            document.querySelectorAll('.line-element, .frame-element, .underline-element').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedElement = elementData;
+            
+            updateFieldList();
+        }
+
+        function selectElementById(elementId) {
+            const element = graphicElements.find(el => el.id === elementId);
+            if (element) {
+                const elementEl = document.querySelector(`[data-element-id="${elementId}"]`);
+                if (elementEl) {
+                    selectGraphicElement(elementEl, element);
+                }
+            }
+        }
+
+        function deleteElementById(elementId) {
+            graphicElements = graphicElements.filter(el => el.id !== elementId);
+            if (selectedElement && selectedElement.id === elementId) { 
+                selectedElement = null; 
+            }
+            updateLabelPreview();
+            updateFieldList();
+            showNotification('Графический элемент удален');
+        }
+
+        // ─── ZPL генерация ────────────────────────────────────────────────────
+        //
+        // Правильное использование поворота в ZPL:
+        // ^A0 <orientation>,<height>,<width>
+        //   orientation: N=0°, R=90°, I=180°, B=270°
+        // ^FO x,y  — координаты точки начала (в точках, 8 точек на мм)
+        //
+        // ВАЖНО: при повороте R (90°) текст идёт сверху вниз,
+        // при B (270°) — снизу вверх.
+        // ─────────────────────────────────────────────────────────────────────
+
+        const ZPL_ROTATION = { 0: 'N', 90: 'R', 180: 'I', 270: 'B' };
+
+        function generateZPL() {
+            const width  = parseInt(document.getElementById('labelWidth').value);
+            const height = parseInt(document.getElementById('labelHeight').value);
+            const copies = parseInt(document.getElementById('copies').value);
+            const dots   = 8; // 203dpi = 8 dots/mm
+
+            let zpl = '^XA\n';
+            zpl += '^PON\n';
+            zpl += '^MNW\n';
+            zpl += '^PW' + (width * dots) + '\n';
+            zpl += '^LL' + (height * dots) + '\n';
+            zpl += '^MD15\n';
+
+            // Добавляем графические элементы (линии, рамки)
+            graphicElements.forEach(function(element) {
+                const x = Math.round(element.x * dots);
+                const y = Math.round(element.y * dots);
+                
+                switch(element.type) {
+                    case 'horizontal-line':
+                    case 'underline':
+                        const lineWidth = Math.round(element.width * dots);
+                        const lineThickness = Math.max(1, Math.round(element.thickness));
+                        zpl += '^FO' + x + ',' + y + '^GB' + lineWidth + ',' + lineThickness + ',0^FS\n';
+                        break;
+                        
+                    case 'vertical-line':
+                        const lineHeight = Math.round(element.height * dots);
+                        const lineThick = Math.max(1, Math.round(element.thickness));
+                        zpl += '^FO' + x + ',' + y + '^GB' + lineThick + ',' + lineHeight + ',0^FS\n';
+                        break;
+                        
+                    case 'frame':
+                        const frameWidth = Math.round(element.width * dots);
+                        const frameHeight = Math.round(element.height * dots);
+                        const borderThick = Math.max(1, Math.round(element.borderWidth));
+                        // Рамка - это 4 линии: верх, низ, лево, право
+                        // Верхняя линия
+                        zpl += '^FO' + x + ',' + y + '^GB' + frameWidth + ',' + borderThick + ',0^FS\n';
+                        // Нижняя линия
+                        zpl += '^FO' + x + ',' + (y + frameHeight - borderThick) + '^GB' + frameWidth + ',' + borderThick + ',0^FS\n';
+                        // Левая линия
+                        zpl += '^FO' + x + ',' + y + '^GB' + borderThick + ',' + frameHeight + ',0^FS\n';
+                        // Правая линия
+                        zpl += '^FO' + (x + frameWidth - borderThick) + ',' + y + '^GB' + borderThick + ',' + frameHeight + ',0^FS\n';
+                        break;
+                }
+            });
+
+            // Добавляем текстовые поля
+            textFields.forEach(function(field) {
+                const x      = Math.round(field.x * dots);
+                const y      = Math.round(field.y * dots);
+                const rot    = field.rotation || 0;
+                const zplRot = ZPL_ROTATION[rot] || 'N';
+                const h      = Math.round(field.fontSize * 1.3);
+                const w      = Math.round(field.fontSize * 0.8);
+                
+                // Выбираем шрифт ZPL в зависимости от выбранного шрифта
+                let zplFont = '0'; // по умолчанию Arial
+                switch(field.font) {
+                    case 'Times New Roman':
+                        zplFont = 'T'; // Times Roman
+                        break;
+                    case 'Courier New':
+                        zplFont = 'C'; // Courier
+                        break;
+                    case 'Arial':
+                    default:
+                        zplFont = '0'; // Arial/стандартный
+                        break;
+                }
+                
+                // Для контурного текста используем специальную команду
+                if (field.style === 'outline') {
+                    // В ZPL контурный текст делаем через смещенные тексты с настраиваемой толщиной
+                    const thickness = Math.round(field.outlineThickness || 2);
+                    const offsets = [
+                        '^FO' + (x-thickness) + ',' + (y-thickness) + '^A' + zplFont + zplRot + ',' + h + ',' + w + '^FD' + escapeZPL(field.text) + '^FS',
+                        '^FO' + (x+thickness) + ',' + (y-thickness) + '^A' + zplFont + zplRot + ',' + h + ',' + w + '^FD' + escapeZPL(field.text) + '^FS',
+                        '^FO' + (x-thickness) + ',' + (y+thickness) + '^A' + zplFont + zplRot + ',' + h + ',' + w + '^FD' + escapeZPL(field.text) + '^FS',
+                        '^FO' + (x+thickness) + ',' + (y+thickness) + '^A' + zplFont + zplRot + ',' + h + ',' + w + '^FD' + escapeZPL(field.text) + '^FS',
+                        '^FO' + (x-thickness) + ',' + (y+0) + '^A' + zplFont + zplRot + ',' + h + ',' + w + '^FD' + escapeZPL(field.text) + '^FS',
+                        '^FO' + (x+thickness) + ',' + (y+0) + '^A' + zplFont + zplRot + ',' + h + ',' + w + '^FD' + escapeZPL(field.text) + '^FS',
+                        '^FO' + (x+0) + ',' + (y-thickness) + '^A' + zplFont + zplRot + ',' + h + ',' + w + '^FD' + escapeZPL(field.text) + '^FS',
+                        '^FO' + (x+0) + ',' + (y+thickness) + '^A' + zplFont + zplRot + ',' + h + ',' + w + '^FD' + escapeZPL(field.text) + '^FS'
+                    ];
+                    zpl += offsets.join('\n') + '\n';
+                } else {
+                    // Обычный текст с учетом стиля
+                    if (field.style === 'bold') {
+                        // Жирный текст - используем шрифт с жирным начертанием
+                        zpl += '^FO' + x + ',' + y + '^A' + zplFont + zplRot + ',' + h + ',' + w + '^B^FD' + escapeZPL(field.text) + '^FS\n';
+                    } else if (field.style === 'italic') {
+                        // Курсив - используем шрифт с наклоном
+                        zpl += '^FO' + x + ',' + y + '^A' + zplFont + zplRot + ',' + h + ',' + w + '^I^FD' + escapeZPL(field.text) + '^FS\n';
+                    } else {
+                        // Обычный текст
+                        zpl += '^FO' + x + ',' + y + '^A' + zplFont + zplRot + ',' + h + ',' + w + '^FD' + escapeZPL(field.text) + '^FS\n';
+                    }
+                }
+            });
+
+            zpl += '^PQ' + copies + '\n';
+            zpl += '^XZ\n';
+
+            document.getElementById('zplOutput').textContent = zpl;
+            showNotification('ZPL код сгенерирован');
+            return zpl;
+        }
+
+        function escapeZPL(text) {
+            // В ZPL специальные символы: ^ ~ \
+            return text.replace(/[\\^~]/g, ch => '\\' + ch.charCodeAt(0).toString(16).toUpperCase());
+        }
+
+        // Zebra BrowserPrint — официальное приложение Zebra, слушает на localhost:9100
+        // Скачать: https://www.zebra.com/us/en/support-downloads/printer-software/by-request-software/browser-print.html
+        const BROWSERPRINT_URL = 'http://localhost:9100';
+
+        async function printLabel() {
+            if (textFields.length === 0 && graphicElements.length === 0) { 
+                showNotification('Добавьте текстовые поля или графические элементы', 'error'); 
+                return; 
+            }
+            const zpl = generateZPL();
+
+            // Пробуем Zebra BrowserPrint (localhost:9100)
+            try {
+                // 1. Получаем список принтеров
+                const devResp = await fetch(BROWSERPRINT_URL + '/available', {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (!devResp.ok) throw new Error('BrowserPrint недоступен');
+                const devData = await devResp.json();
+
+                // Берём первый принтер или ищем по имени
+                const printerName = document.getElementById('printerName').value.trim();
+                let printer = null;
+                if (devData.printer && devData.printer.length > 0) {
+                    printer = devData.printer.find(p => p.name && p.name.includes('ZD421'))
+                           || devData.printer[0];
+                }
+                if (!printer) throw new Error('Принтер не найден в BrowserPrint');
+
+                // 2. Отправляем ZPL на принтер
+                const printResp = await fetch(BROWSERPRINT_URL + '/write', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ device: printer, data: zpl })
+                });
+                if (!printResp.ok) throw new Error('Ошибка отправки на принтер');
+
+                showNotification('✅ Отправлено на принтер: ' + (printer.name || printer.uid));
+
+            } catch (err) {
+                // BrowserPrint не установлен или не запущен — fallback на скачивание файла
+                console.warn('BrowserPrint недоступен:', err.message);
+                showNotification('⚠️ BrowserPrint не найден — скачиваю ZPL файл. Установите Zebra BrowserPrint для прямой печати.', 'warning');
+                downloadZPL();
+            }
+        }
+
+        function downloadZPL() {
+            const zpl = document.getElementById('zplOutput').textContent;
+            if (!zpl || zpl === 'ZPL код появится здесь...') { showNotification('Сначала создайте ZPL', 'error'); return; }
+            const blob = new Blob([zpl], { type: 'text/plain' });
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement('a');
+            a.href = url; a.download = 'label.zpl';
+            document.body.appendChild(a); a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showNotification('ZPL файл скачан');
+        }
+
+        function saveTemplate() {
+            const tpl = {
+                width: parseInt(document.getElementById('labelWidth').value),
+                height: parseInt(document.getElementById('labelHeight').value),
+                orientation: currentOrientation,
+                fields: textFields
+            };
+            const blob = new Blob([JSON.stringify(tpl, null, 2)], { type: 'application/json' });
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement('a');
+            a.href = url; a.download = 'label_template.json';
+            document.body.appendChild(a); a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showNotification('Шаблон сохранен');
+        }
+
+        function loadTemplate() {
+            const input = document.createElement('input');
+            input.type = 'file'; input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    try {
+                        const tpl = JSON.parse(ev.target.result);
+                        document.getElementById('labelWidth').value  = tpl.width;
+                        document.getElementById('labelHeight').value = tpl.height;
+                        currentOrientation = tpl.orientation || 'normal';
+                        document.querySelectorAll('.orientation-btn').forEach(btn =>
+                            btn.classList.toggle('active', btn.dataset.orientation === currentOrientation));
+                        textFields = (tpl.fields || []).map(f => ({ ...f, rotation: f.rotation || 0 }));
+                        selectedField = null;
+                        updateLabelSize(); updateLabelPreview(); updateFieldList(); clearFieldInputs();
+                        showNotification('templateLoaded');
+                    } catch { showNotification('Ошибка загрузки шаблона', 'error'); }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function showNotification(msgKey, type = 'success') {
+            const msg = t(msgKey);
+            const n = document.getElementById('notification');
+            n.textContent = msg;
+            n.className = 'notification show ' + type;
+            setTimeout(() => n.classList.remove('show'), 3000);
+        }
+
+        function showCtrlHint() { document.getElementById('ctrlHint').classList.add('show'); }
+        function hideCtrlHint() { document.getElementById('ctrlHint').classList.remove('show'); }
+
+        function updateCtrlMode() {
+            document.querySelectorAll('.text-field').forEach(el => {
+                el.classList.toggle('ctrl-mode', isCtrlPressed && selectedField && el.dataset.fieldId == selectedField.id);
+            });
+        }
+
+        function rotateField90Degrees() {
+            if (!selectedField) return;
+            selectedField.rotation = ((selectedField.rotation || 0) + 90) % 360;
+            document.getElementById('fieldRotation').value = selectedField.rotation;
+            updateLabelPreview();
+            showNotification(`Поле повёрнуто на ${selectedField.rotation}°`);
+        }
+
+        function enableInlineEdit(element, field) {
+            if (element.classList.contains('editing')) return;
+            element.classList.add('editing');
+            const original = field.text;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'text-field-input';
+            input.value = field.text;
+            // Оставляем только input, убираем текстовые узлы
+            element.childNodes.forEach(n => { if (n.nodeType === 3) n.remove(); });
+            element.insertBefore(input, element.firstChild);
+            input.focus(); input.select();
+
+            const save = () => {
+                const v = input.value.trim();
+                if (v) { field.text = v; }
+                element.classList.remove('editing');
+                updateLabelPreview(); updateFieldList();
+                if (v !== original) showNotification('Поле обновлено');
+            };
+            input.addEventListener('keydown', e => {
+                if (e.key === 'Enter') { e.preventDefault(); save(); }
+                if (e.key === 'Escape') { field.text = original; element.classList.remove('editing'); updateLabelPreview(); }
+            });
+            input.addEventListener('blur', save);
+        }
+
+        function pasteFromExcel() {
+            navigator.clipboard.readText()
+                .then(text => { if (text.trim()) processExcelData(text.trim()); else showNotification('Буфер пуст', 'warning'); })
+                .catch(() => {
+                    const t = prompt('Вставьте данные из Excel:');
+                    if (t && t.trim()) processExcelData(t.trim());
+                });
+        }
+
+        function processExcelData(data) {
+            const arr = data.includes('\t')
+                ? data.split('\t').map(s => s.trim()).filter(Boolean)
+                : data.split('\n').map(s => s.trim()).filter(Boolean);
+            if (!arr.length) { showNotification('Нет данных', 'warning'); return; }
+            const sorted = [...textFields].sort((a, b) => a.number - b.number);
+            let updated = 0;
+            sorted.forEach((f, i) => { if (i < arr.length) { f.text = arr[i]; updated++; } });
+            updateLabelPreview(); updateFieldList();
+            showNotification(`✅ Обновлено ${updated} полей`);
+        }
+
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.shiftKey && e.key === 'V') { e.preventDefault(); pasteFromExcel(); }
+                if (e.ctrlKey && e.key === 'n') { e.preventDefault(); clearAllFields(); }
+                if (e.ctrlKey && e.key === 'p') { e.preventDefault(); printLabel(); }
+                if (e.ctrlKey && e.key === 's') { e.preventDefault(); saveTemplate(); }
+                if (e.ctrlKey && e.key === 'o') { e.preventDefault(); loadTemplate(); }
+            });
+        }
+    </script>
+</body>
+</html>
