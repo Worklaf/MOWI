@@ -1541,6 +1541,9 @@
     <button id="cardsBtn"   class="btn-big btn-green" style="position: relative; padding-left: 60px !important;" onclick="window.location.href='https://worklaf.github.io/MOWI/QR_Cards.html'">
       KARTY QR
     </button>
+    <button id="labelBtn" class="btn-big btn-blue" style="position: relative; padding-left: 60px !important;" onclick="window.location.href='ZEBRA/label_editor.html'" data-translate="labelBtn">
+      ZEBRA
+    </button>
     <style>
       #cardsBtn::before {
         content: '⬡';
@@ -1552,6 +1555,23 @@
         height: 30px;
         background: radial-gradient(circle at 30% 0, #16a34a, transparent 55%),
                     radial-gradient(circle at 70% 100%, #15803d, transparent 55%),
+                    #020617;
+        border-radius: 14px;
+        border: 2px solid rgba(255,255,255,0.5);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+        display: flex;
+      }
+      
+      #labelBtn::before {
+        content: '🏷️';
+        position: absolute;
+        left: var(--logo-position);
+        top: 50%;
+        transform: translateY(-50%);
+        width: 30px;
+        height: 30px;
+        background: radial-gradient(circle at 30% 0, #2563eb, transparent 55%),
+                    radial-gradient(circle at 70% 100%, #1d4ed8, transparent 55%),
                     #020617;
         border-radius: 14px;
         border: 2px solid rgba(255,255,255,0.5);
@@ -2943,7 +2963,7 @@ const translations = {
     pl: {
         startTitle:'MAX QR READER', startSubtitle:'Wybierz źródło obrazu',
         captureWindowBtn:'PRZECHWYĆ OKNO', openFileBtn:'OTWÓRZ PLIK',
-        hotkeyBtn:'HOTKEY PHRASES', cardsBtn:'KARTY QR', resetBtn:'🔄 RESET',
+        hotkeyBtn:'HOTKEY PHRASES', cardsBtn:'KARTY QR', labelBtn:'🏷️ LABEL', resetBtn:'🔄 RESET',
         statusReady:'Zaznacz obszar', statusProcessing:'⚡ Przetwarzanie...',
         statusDone:'Gotowe!', statusFail:'Nic nie znaleziono.',
         statusSingleReady:'SINGLE: Zaznacz obszar',
@@ -3010,7 +3030,7 @@ const translations = {
     uk: {
         startTitle:'MAX QR READER', startSubtitle:'Оберіть джерело зображення',
         captureWindowBtn:'ЗАХОПИТИ ВІКНО', openFileBtn:'ВІДКРИТИ ФАЙЛ',
-        hotkeyBtn:'ФРАЗИ ГОРЯЧИХ КЛАВІШІВ', cardsBtn:'QR КАРТКИ', resetBtn:'🔄 СКИНУТИ',
+        hotkeyBtn:'ФРАЗИ ГОРЯЧИХ КЛАВІШІВ', cardsBtn:'QR КАРТКИ', labelBtn:'🏷️ ЕТИКЕТКА', resetBtn:'🔄 СКИНУТИ',
         statusReady:'Виділіть область', statusProcessing:'⚡ Обробка...',
         statusDone:'Готово!', statusFail:'Нічого не знайдено.',
         statusSingleReady:'SINGLE: Виділіть область',
@@ -3077,7 +3097,7 @@ const translations = {
     en: {
         startTitle:'MAX QR READER', startSubtitle:'Choose image source',
         captureWindowBtn:'CAPTURE WINDOW', openFileBtn:'OPEN FILE',
-        hotkeyBtn:'HOTKEY PHRASES', cardsBtn:'QR CARDS', resetBtn:'🔄 RESET',
+        hotkeyBtn:'HOTKEY PHRASES', cardsBtn:'QR CARDS', labelBtn:'🏷️ LABEL', resetBtn:'🔄 RESET',
         statusReady:'Select area', statusProcessing:'⚡ Processing...',
         statusDone:'Done!', statusFail:'Nothing found.',
         statusSingleReady:'SINGLE: Select area',
