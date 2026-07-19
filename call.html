@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Мой Чат-Телефон</title>
-    <!-- Проверенная рабочая ссылка, которая открывается у вас -->
+    <!-- Проверенная вами рабочая ссылка -->
     <script src="https://cdn.jsdelivr.net/npm/voximplant-websdk@latest/voximplant.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; background: #f4f7f6; display: flex; justify-content: center; }
@@ -27,9 +27,6 @@
     <button id="hangupBtn" onclick="hangupCall()" style="background:#cc3333; display:none;">Положить трубку</button>
 </div>
 
-<!-- Блок node, который требует Voximplant -->
-<div id="voximplant-container"></div>
-
 <script>
     let vox = null;
     let currentCall = null;
@@ -48,10 +45,10 @@
         document.getElementById('status').innerText = "Подключение к сети...";
         vox = VoxImplant.getInstance();
 
-        // Передаем правильный node контейнер
+        // Передаем документ целиком вместо строки, чтобы избежать ошибок с поиском элементов
         vox.init({ 
             micRequired: true,
-            node: "voximplant-container"
+            node: document.body
         })
         .then(() => {
             document.getElementById('status').innerText = "Авторизация...";
