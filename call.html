@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Мой Чат-Телефон</title>
-    <!-- Используем стабильную версию SDK -->
+    <!-- Проверенная рабочая ссылка, которая открывается у вас -->
     <script src="https://cdn.jsdelivr.net/npm/voximplant-websdk@latest/voximplant.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; background: #f4f7f6; display: flex; justify-content: center; }
@@ -20,32 +20,35 @@
 
 <div class="phone-box">
     <h3>Личный Телефон</h3>
-    <div id="status">Загрузка...</div>
+    <div id="status">Загрузка модулей...</div>
 
     <input type="tel" id="phoneNumber" placeholder="+79991234567" value="+7">
     <button id="callBtn" onclick="startCall()" disabled>Позвонить</button>
     <button id="hangupBtn" onclick="hangupCall()" style="background:#cc3333; display:none;">Положить трубку</button>
 </div>
 
-<!-- Необходимый контейнер для аудио-элементов Voximplant -->
+<!-- Блок node, который требует Voximplant -->
 <div id="voximplant-container"></div>
 
 <script>
-    window.addEventListener('load', function() {
+    let vox = null;
+    let currentCall = null;
+
+    const accountName = "worklaf.n8"; 
+    const applicationName = "mychat";
+    const username = "Liudmyla";
+    const password = "aLsdP)8c"; 
+
+    window.onload = function() {
         if (typeof VoxImplant === 'undefined') {
-            document.getElementById('status').innerText = "Ошибка: Библиотека не загрузилась";
+            document.getElementById('status').innerText = "Ошибка: Скрипт телефонии не загрузился.";
             return;
         }
 
-        const vox = VoxImplant.getInstance();
-        const accountName = "worklaf.n8"; 
-        const applicationName = "mychat";
-        const username = "Liudmyla";
-        const password = "aLsdP)8c"; 
+        document.getElementById('status').innerText = "Подключение к сети...";
+        vox = VoxImplant.getInstance();
 
-        document.getElementById('status').innerText = "Подключение...";
-
-        // Передаем обязательный параметр "node", чтобы исправить ошибку
+        // Передаем правильный node контейнер
         vox.init({ 
             micRequired: true,
             node: "voximplant-container"
@@ -64,37 +67,34 @@
         .catch((err) => {
             document.getElementById('status').innerText = "Ошибка: " + err.message;
         });
-
-        window.voxInstance = vox;
-    });
+    };
 
     function startCall() {
-        if (!window.voxInstance) return;
+        if (!vox) return;
         const number = document.getElementById('phoneNumber').value;
-        document.getElementById('status').innerText = "Набираю...";
-        
-        const call = window.voxInstance.call({ number: number, video: false });
-        window.currentCall = call;
+        document.getElementById('status').innerText = "Набираю " + number + "...";
 
-        call.on(VoxImplant.CallEvents.Connected, () => {
-            document.getElementById('status').innerText = "Разговор...";
+        currentCall = vox.call({ number: number, video: false });
+
+        currentCall.on(VoxImplant.CallEvents.Connected, () => {
+            document.getElementById('status').innerText = "В эфире (Разговор)";
             document.getElementById('callBtn').style.display = "none";
             document.getElementById('hangupBtn').style.display = "block";
         });
 
-        call.on(VoxImplant.CallEvents.Failed, (e) => {
-            document.getElementById('status').innerText = "Ошибка: " + e.reason;
+        currentCall.on(VoxImplant.CallEvents.Failed, (e) => {
+            document.getElementById('status').innerText = "Сброс: " + e.reason;
             resetButtons();
         });
 
-        call.on(VoxImplant.CallEvents.Disconnected, () => {
-            document.getElementById('status').innerText = "Завершено";
+        currentCall.on(VoxImplant.CallEvents.Disconnected, () => {
+            document.getElementById('status').innerText = "Звонок завершен";
             resetButtons();
         });
     }
 
     function hangupCall() {
-        if (window.currentCall) window.currentCall.hangup();
+        if (currentCall) currentCall.hangup();
     }
 
     function resetButtons() {
