@@ -22,7 +22,6 @@
     <h3>Личный Телефон</h3>
     <div id="status">Нажмите кнопку для подключения</div>
 
-    <!-- Кнопка гарантирует, что элементы страницы уже созданы в памяти -->
     <button id="connectBtn" onclick="startTelephony()">Войти в сеть</button>
 
     <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
@@ -32,7 +31,7 @@
     <button id="hangupBtn" onclick="hangupCall()" style="background:#cc3333; display:none;">Положить трубку</button>
 </div>
 
-<!-- Контейнер создан в самом верху body, так что он точно существует -->
+<!-- Контейнер для аудио-элементов -->
 <div id="vox-audio-node"></div>
 
 <script>
@@ -55,10 +54,13 @@
         
         vox = VoxImplant.getInstance();
 
-        // Инициализация по клику — контейнер 'vox-audio-node' уже железно существует
+        // НАХОДИМ HTML-ЭЛЕМЕНТ НАПРЯМУЮ:
+        const audioNode = document.getElementById('vox-audio-node');
+
+        // Передаем сам объект элемента, как требует новая версия SDK
         vox.init({ 
             micRequired: true,
-            node: "vox-audio-node"
+            node: audioNode
         })
         .then(() => {
             document.getElementById('status').innerText = "Авторизация...";
@@ -70,7 +72,7 @@
         .then(() => {
             document.getElementById('status').innerText = "Готов к звонку";
             document.getElementById('callBtn').disabled = false;
-            document.getElementById('connectBtn').style.display = "none"; // Прячем кнопку входа
+            document.getElementById('connectBtn').style.display = "none";
         })
         .catch((err) => {
             document.getElementById('status').innerText = "Ошибка: " + err.message;
