@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Мой Чат-Телефон</title>
+    <script src="https://unpkg.com/voximplant-websdk@latest/dist/voximplant.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f4f7f6; display: flex; justify-content: center; }
+        .phone-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 300px; }
+        input, button { width: 100%; padding: 12px; margin: 8px 0; box-sizing: border-box; border-radius: 4px; font-size: 16px; }
+        input { border: 1px solid #ccc; }
+        button { background: #248855; color: white; cursor: pointer; font-weight: bold; border: none; }
+        button:hover { background: #1e7046; }
+        button:disabled { background: #cccccc; cursor: not-allowed; }
+        #status { font-size: 0.9em; color: #666; text-align: center; margin-bottom: 10px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="phone-box">
+    <h3>Личный Телефон</h3>
+    <div id="status">Подключение к сети...</div>
+    
+    <input type="tel" id="phoneNumber" placeholder="+79991234567" value="+7">
+    <button id="callBtn" onclick="startCall()" disabled>Позвонить</button>
+    <button id="hangupBtn" onclick="hangupCall()" style="background:#cc3333; display:none;">Положить трубку</button>
+</div>
+
+<script>
+    const vox = VoxImplant.getInstance();
+    let currentCall = null;
+
+    // Данные вашего аккаунта (уже подставил с ваших скриншотов)
+    const accountName = "worklaf.n8"; 
+    const applicationName = "mychat";
+    const username = "Liudmyla";
+    const password = "aLsdP)8c"; // <-- Впишите сюда пароль, который создали!
+
+    vox.init({ micRequired: true })
+        .then(() => {
+            document.getElementById('status').innerText = "Авторизация...";
+            return vox.connect();
+        })
+        .then(() => {
+            return vox.login(`${username}@${applicationName}.${accountName}.voximplant.com`, password);
+        })
+        .then(() => {
+            document.getElementById('status').innerText = "Готов к звонку";
+            document.getElementById('callBtn').disabled = false;
+        })
+        .catch((err) => {
+            document.getElementById('status').innerText = "Ошибка: " + err.message;
+        });
+
+    function startCall() {
+        const number = document.getElementById('phoneNumber').value;
+        document.getElementById('status').innerText = "Набираю " + number + "...";
+        
+        currentCall = vox.call({ number: number, video: false });
+
+        currentCall.on(VoxImplant.CallEvents.Connected, () => {
+            document.getElementById('status').innerText = "В эфире (Разговор)";
+            document.getElementById('callBtn').style.display = "none";
+            document.getElementById('hangupBtn').style.display = "block";
+        });
+
+        currentCall.on(VoxImplant.CallEvents.Failed, (e) => {
+            document.getElementById('status').innerText = "Сброс: " + e.reason;
+            resetButtons();
+        });
+
+        currentCall.on(VoxImplant.CallEvents.Disconnected, () => {
+            document.getElementById('status').innerText = "Звонок завершен";
+            resetButtons();
+        });
+    }
+
+    function hangupCall() {
+        if (currentCall) currentCall.hangup();
+    }
+
+    function resetButtons() {
+        document.getElementById('callBtn').style.display = "block";
+        document.getElementById('hangupBtn').style.display = "none";
+    }
+</script>
+
+</body>
+</html>
