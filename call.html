@@ -3,9 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Мой Чат-Телефон</title>
-    <!-- Подключаем официальную библиотеку с правами crossorigin, чтобы браузеры её не блокировали -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/voximplant-websdk/4.7.1/voximplant.min.js" crossorigin="anonymous"></script>
-
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; background: #f4f7f6; display: flex; justify-content: center; }
         .phone-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 300px; }
@@ -21,7 +18,7 @@
 
 <div class="phone-box">
     <h3>Личный Телефон</h3>
-    <div id="status">Запуск телефонии...</div>
+    <div id="status">Загрузка модулей связи...</div>
 
     <input type="tel" id="phoneNumber" placeholder="+79991234567" value="+7">
     <button id="callBtn" onclick="startCall()" disabled>Позвонить</button>
@@ -32,26 +29,31 @@
     let vox = null;
     let currentCall = null;
 
-    // Настройки аккаунта
     const accountName = "worklaf.n8"; 
     const applicationName = "mychat";
     const username = "Liudmyla";
-    
-    // ВАШ ПАРОЛЬ АВТОМАТИЧЕСКИ ВШИТ СЮДА:
     const password = "aLsdP)8c"; 
 
-    // Функция автоматического старта при загрузке страницы
+    // Хитрый способ загрузки библиотеки, который обходит простые блокировщики
+    function loadVoximplantSDK() {
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            // Используем официальную работающую прямую ссылку
+            script.src = "https://cdn.voximplant.com/edge/voximplant-websdk-releases/voximplant.min.js";
+            script.crossOrigin = "anonymous";
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error("Браузер заблокировал сетевой доступ к Voximplant"));
+            document.head.appendChild(script);
+        });
+    }
+
     window.onload = function() {
-        if (typeof VoxImplant === 'undefined') {
-            document.getElementById('status').innerText = "Ошибка: Блокировщик в браузере режет сеть.";
-            return;
-        }
-
-        document.getElementById('status').innerText = "Подключение к сети...";
-        
-        vox = VoxImplant.getInstance();
-
-        vox.init({ micRequired: true })
+        loadVoximplantSDK()
+            .then(() => {
+                document.getElementById('status').innerText = "Подключение к сети...";
+                vox = VoxImplant.getInstance();
+                return vox.init({ micRequired: true });
+            })
             .then(() => {
                 document.getElementById('status').innerText = "Авторизация...";
                 return vox.connect();
@@ -64,7 +66,7 @@
                 document.getElementById('callBtn').disabled = false;
             })
             .catch((err) => {
-                document.getElementById('status').innerText = "Ошибка сети: " + err.message;
+                document.getElementById('status').innerText = "Ошибка: " + err.message;
             });
     };
 
