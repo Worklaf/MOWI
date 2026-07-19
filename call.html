@@ -19,26 +19,32 @@
 
 <div class="phone-box">
     <h3>Личный Телефон</h3>
-    <div id="status">Подключение к сети...</div>
-    
+    <div id="status">Запуск системы...</div>
+
     <input type="tel" id="phoneNumber" placeholder="+79991234567" value="+7">
     <button id="callBtn" onclick="startCall()" disabled>Позвонить</button>
     <button id="hangupBtn" onclick="hangupCall()" style="background:#cc3333; display:none;">Положить трубку</button>
 </div>
 
 <script>
+    // Проверка кэша браузера
+    alert("Код успешно обновился и запущен!");
+
     const vox = VoxImplant.getInstance();
     let currentCall = null;
 
-    // Данные вашего аккаунта (уже подставил с ваших скриншотов)
     const accountName = "worklaf.n8"; 
     const applicationName = "mychat";
     const username = "Liudmyla";
-    const password = prompt("Введите ваш пароль от Voximplant:");
+    
+    // Запрашиваем пароль во всплывающем окне
+    const password = prompt("Введите ваш пароль от Voximplant пользователя Liudmyla:");
+
+    document.getElementById('status').innerText = "Подключение к сети...";
 
     vox.init({ micRequired: true })
         .then(() => {
-            document.getElementById('status').innerText = "Авторизация...";
+            document.getElementById('status').innerText = "Авторизация в Voximplant...";
             return vox.connect();
         })
         .then(() => {
@@ -50,12 +56,13 @@
         })
         .catch((err) => {
             document.getElementById('status').innerText = "Ошибка: " + err.message;
+            alert("Произошла ошибка: " + err.message);
         });
 
     function startCall() {
         const number = document.getElementById('phoneNumber').value;
         document.getElementById('status').innerText = "Набираю " + number + "...";
-        
+
         currentCall = vox.call({ number: number, video: false });
 
         currentCall.on(VoxImplant.CallEvents.Connected, () => {
