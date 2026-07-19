@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Мой Чат-Телефон</title>
-    <!-- Проверенная вами рабочая ссылка -->
+    <!-- Проверенная рабочая ссылка -->
     <script src="https://cdn.jsdelivr.net/npm/voximplant-websdk@latest/voximplant.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; background: #f4f7f6; display: flex; justify-content: center; }
@@ -20,12 +20,20 @@
 
 <div class="phone-box">
     <h3>Личный Телефон</h3>
-    <div id="status">Загрузка модулей...</div>
+    <div id="status">Нажмите кнопку для подключения</div>
+
+    <!-- Кнопка гарантирует, что элементы страницы уже созданы в памяти -->
+    <button id="connectBtn" onclick="startTelephony()">Войти в сеть</button>
+
+    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
 
     <input type="tel" id="phoneNumber" placeholder="+79991234567" value="+7">
     <button id="callBtn" onclick="startCall()" disabled>Позвонить</button>
     <button id="hangupBtn" onclick="hangupCall()" style="background:#cc3333; display:none;">Положить трубку</button>
 </div>
+
+<!-- Контейнер создан в самом верху body, так что он точно существует -->
+<div id="vox-audio-node"></div>
 
 <script>
     let vox = null;
@@ -36,19 +44,21 @@
     const username = "Liudmyla";
     const password = "aLsdP)8c"; 
 
-    window.onload = function() {
+    function startTelephony() {
         if (typeof VoxImplant === 'undefined') {
             document.getElementById('status').innerText = "Ошибка: Скрипт телефонии не загрузился.";
             return;
         }
 
         document.getElementById('status').innerText = "Подключение к сети...";
+        document.getElementById('connectBtn').disabled = true;
+        
         vox = VoxImplant.getInstance();
 
-        // Передаем документ целиком вместо строки, чтобы избежать ошибок с поиском элементов
+        // Инициализация по клику — контейнер 'vox-audio-node' уже железно существует
         vox.init({ 
             micRequired: true,
-            node: document.body
+            node: "vox-audio-node"
         })
         .then(() => {
             document.getElementById('status').innerText = "Авторизация...";
@@ -60,11 +70,13 @@
         .then(() => {
             document.getElementById('status').innerText = "Готов к звонку";
             document.getElementById('callBtn').disabled = false;
+            document.getElementById('connectBtn').style.display = "none"; // Прячем кнопку входа
         })
         .catch((err) => {
             document.getElementById('status').innerText = "Ошибка: " + err.message;
+            document.getElementById('connectBtn').disabled = false;
         });
-    };
+    }
 
     function startCall() {
         if (!vox) return;
