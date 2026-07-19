@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Мой Чат-Телефон</title>
+    <!-- ТОЧНАЯ И РАБОЧАЯ ССЫЛКА НА JSDELIVR -->
+    <script src="https://cdn.jsdelivr.net/npm/voximplant-websdk@latest/voximplant.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; background: #f4f7f6; display: flex; justify-content: center; }
         .phone-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 300px; }
@@ -18,7 +20,7 @@
 
 <div class="phone-box">
     <h3>Личный Телефон</h3>
-    <div id="status">Загрузка модулей связи...</div>
+    <div id="status">Загрузка...</div>
 
     <input type="tel" id="phoneNumber" placeholder="+79991234567" value="+7">
     <button id="callBtn" onclick="startCall()" disabled>Позвонить</button>
@@ -26,41 +28,23 @@
 </div>
 
 <script>
-    let vox = null;
-    let currentCall = null;
+    window.addEventListener('load', function() {
+        if (typeof VoxImplant === 'undefined') {
+            document.getElementById('status').innerText = "Ошибка: Библиотека не загрузилась";
+            return;
+        }
 
-    const accountName = "worklaf.n8"; 
-    const applicationName = "mychat";
-    const username = "Liudmyla";
-    const password = "aLsdP)8c"; 
+        const vox = VoxImplant.getInstance();
+        const accountName = "worklaf.n8"; 
+        const applicationName = "mychat";
+        const username = "Liudmyla";
+        const password = "aLsdP)8c"; 
 
-    // Хитрый способ загрузки библиотеки, который обходит простые блокировщики
-    function loadVoximplantSDK() {
-        return new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            // Используем официальную работающую прямую ссылку
-            script.src = "https://cdn.voximplant.com/edge/voximplant-websdk-releases/voximplant.min.js";
-            script.crossOrigin = "anonymous";
-            script.onload = () => resolve();
-            script.onerror = () => reject(new Error("Браузер заблокировал сетевой доступ к Voximplant"));
-            document.head.appendChild(script);
-        });
-    }
+        document.getElementById('status').innerText = "Подключение...";
 
-    window.onload = function() {
-        loadVoximplantSDK()
-            .then(() => {
-                document.getElementById('status').innerText = "Подключение к сети...";
-                vox = VoxImplant.getInstance();
-                return vox.init({ micRequired: true });
-            })
-            .then(() => {
-                document.getElementById('status').innerText = "Авторизация...";
-                return vox.connect();
-            })
-            .then(() => {
-                return vox.login(`${username}@${applicationName}.${accountName}.voximplant.com`, password);
-            })
+        vox.init({ micRequired: true })
+            .then(() => vox.connect())
+            .then(() => vox.login(`${username}@${applicationName}.${accountName}.voximplant.com`, password))
             .then(() => {
                 document.getElementById('status').innerText = "Готов к звонку";
                 document.getElementById('callBtn').disabled = false;
@@ -68,34 +52,37 @@
             .catch((err) => {
                 document.getElementById('status').innerText = "Ошибка: " + err.message;
             });
-    };
+
+        window.voxInstance = vox;
+    });
 
     function startCall() {
-        if (!vox) return;
+        if (!window.voxInstance) return;
         const number = document.getElementById('phoneNumber').value;
-        document.getElementById('status').innerText = "Набираю " + number + "...";
+        document.getElementById('status').innerText = "Набираю...";
+        
+        const call = window.voxInstance.call({ number: number, video: false });
+        window.currentCall = call;
 
-        currentCall = vox.call({ number: number, video: false });
-
-        currentCall.on(VoxImplant.CallEvents.Connected, () => {
-            document.getElementById('status').innerText = "В эфире (Разговор)";
+        call.on(VoxImplant.CallEvents.Connected, () => {
+            document.getElementById('status').innerText = "Разговор...";
             document.getElementById('callBtn').style.display = "none";
             document.getElementById('hangupBtn').style.display = "block";
         });
 
-        currentCall.on(VoxImplant.CallEvents.Failed, (e) => {
-            document.getElementById('status').innerText = "Сброс: " + e.reason;
+        call.on(VoxImplant.CallEvents.Failed, (e) => {
+            document.getElementById('status').innerText = "Ошибка: " + e.reason;
             resetButtons();
         });
 
-        currentCall.on(VoxImplant.CallEvents.Disconnected, () => {
-            document.getElementById('status').innerText = "Звонок завершен";
+        call.on(VoxImplant.CallEvents.Disconnected, () => {
+            document.getElementById('status').innerText = "Завершено";
             resetButtons();
         });
     }
 
     function hangupCall() {
-        if (currentCall) currentCall.hangup();
+        if (window.currentCall) window.currentCall.hangup();
     }
 
     function resetButtons() {
