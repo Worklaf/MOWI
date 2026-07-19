@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Мой Чат-Телефон</title>
-    <!-- ПОМЕНЯЛИ ССЫЛКУ НА НАДЕЖНЫЙ ОФИЦИАЛЬНЫЙ CDN VOXIMPLANT -->
-    <script src="https://cdn.voximplant.com/edge/voximplant-websdk-releases/voximplant.min.js"></script>
+    <!-- Подключаем официальную библиотеку с правами crossorigin, чтобы браузеры её не блокировали -->
+    <script src="https://cdn.voximplant.com/edge/voximplant-websdk-releases/voximplant.min.js" crossorigin="anonymous"></script>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; background: #f4f7f6; display: flex; justify-content: center; }
         .phone-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 300px; }
@@ -20,12 +20,7 @@
 
 <div class="phone-box">
     <h3>Личный Телефон</h3>
-    <div id="status">Введите пароль пользователя Liudmyla:</div>
-    
-    <input type="password" id="voxPassword" placeholder="Пароль от Liudmyla">
-    <button id="connectBtn" onclick="connectToVoximplant()">Подключиться к сети</button>
-
-    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+    <div id="status">Запуск телефонии...</div>
 
     <input type="tel" id="phoneNumber" placeholder="+79991234567" value="+7">
     <button id="callBtn" onclick="startCall()" disabled>Позвонить</button>
@@ -36,49 +31,41 @@
     let vox = null;
     let currentCall = null;
 
+    // Настройки аккаунта
     const accountName = "worklaf.n8"; 
     const applicationName = "mychat";
     const username = "Liudmyla";
+    
+    // ВАШ ПАРОЛЬ АВТОМАТИЧЕСКИ ВШИТ СЮДА:
+    const password = "aLsdP)8c"; 
 
-    function connectToVoximplant() {
-        const password = document.getElementById('voxPassword').value;
-        if (!password) {
-            alert("Пожалуйста, введите пароль!");
-            return;
-        }
-
-        // Защита от падения, если библиотека не загрузилась
+    // Функция автоматического старта при загрузке страницы
+    window.onload = function() {
         if (typeof VoxImplant === 'undefined') {
-            alert("Критическая ошибка: Браузер заблокировал загрузку библиотеки Voximplant. Попробуйте отключить встроенный блокировщик рекламы/щит в браузере.");
-            document.getElementById('status').innerText = "Ошибка загрузки библиотеки SDK";
+            document.getElementById('status').innerText = "Ошибка: Блокировщик в браузере режет сеть.";
             return;
         }
 
         document.getElementById('status').innerText = "Подключение к сети...";
-        document.getElementById('connectBtn').disabled = true;
-
-        // Инициализируем только при нажатии
+        
         vox = VoxImplant.getInstance();
 
         vox.init({ micRequired: true })
             .then(() => {
-                document.getElementById('status').innerText = "Авторизация в Voximplant...";
+                document.getElementById('status').innerText = "Авторизация...";
                 return vox.connect();
             })
             .then(() => {
                 return vox.login(`${username}@${applicationName}.${accountName}.voximplant.com`, password);
             })
             .then(() => {
-                document.getElementById('status').innerText = "Готов к звонку! Набирайте номер.";
+                document.getElementById('status').innerText = "Готов к звонку";
                 document.getElementById('callBtn').disabled = false;
-                document.getElementById('voxPassword').style.display = "none";
-                document.getElementById('connectBtn').style.display = "none";
             })
             .catch((err) => {
-                document.getElementById('status').innerText = "Ошибка: " + err.message;
-                document.getElementById('connectBtn').disabled = false;
+                document.getElementById('status').innerText = "Ошибка сети: " + err.message;
             });
-    }
+    };
 
     function startCall() {
         if (!vox) return;
