@@ -19,7 +19,13 @@
 
 <div class="phone-box">
     <h3>Личный Телефон</h3>
-    <div id="status">Запуск системы...</div>
+    <div id="status">Введите пароль пользователя Liudmyla для подключения:</div>
+    
+    <!-- Поле для ввода пароля прямо на странице -->
+    <input type="password" id="voxPassword" placeholder="Пароль от Liudmyla">
+    <button id="connectBtn" onclick="connectToVoximplant()">Подключиться к сети</button>
+
+    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
 
     <input type="tel" id="phoneNumber" placeholder="+79991234567" value="+7">
     <button id="callBtn" onclick="startCall()" disabled>Позвонить</button>
@@ -27,37 +33,42 @@
 </div>
 
 <script>
-    // Проверка кэша браузера
-    alert("Код успешно обновился и запущен!");
-
     const vox = VoxImplant.getInstance();
     let currentCall = null;
 
     const accountName = "worklaf.n8"; 
     const applicationName = "mychat";
     const username = "Liudmyla";
-    
-    // Запрашиваем пароль во всплывающем окне
-    const password = prompt("Введите ваш пароль от Voximplant пользователя Liudmyla:");
 
-    document.getElementById('status').innerText = "Подключение к сети...";
+    function connectToVoximplant() {
+        const password = document.getElementById('voxPassword').value;
+        if (!password) {
+            alert("Пожалуйста, введите пароль!");
+            return;
+        }
 
-    vox.init({ micRequired: true })
-        .then(() => {
-            document.getElementById('status').innerText = "Авторизация в Voximplant...";
-            return vox.connect();
-        })
-        .then(() => {
-            return vox.login(`${username}@${applicationName}.${accountName}.voximplant.com`, password);
-        })
-        .then(() => {
-            document.getElementById('status').innerText = "Готов к звонку";
-            document.getElementById('callBtn').disabled = false;
-        })
-        .catch((err) => {
-            document.getElementById('status').innerText = "Ошибка: " + err.message;
-            alert("Произошла ошибка: " + err.message);
-        });
+        document.getElementById('status').innerText = "Подключение к сети...";
+        document.getElementById('connectBtn').disabled = true;
+
+        vox.init({ micRequired: true })
+            .then(() => {
+                document.getElementById('status').innerText = "Авторизация в Voximplant...";
+                return vox.connect();
+            })
+            .then(() => {
+                return vox.login(`${username}@${applicationName}.${accountName}.voximplant.com`, password);
+            })
+            .then(() => {
+                document.getElementById('status').innerText = "Готов к звонку! Можете набирать номер.";
+                document.getElementById('callBtn').disabled = false;
+                document.getElementById('voxPassword').style.display = "none";
+                document.getElementById('connectBtn').style.display = "none";
+            })
+            .catch((err) => {
+                document.getElementById('status').innerText = "Ошибка: " + err.message;
+                document.getElementById('connectBtn').disabled = false;
+            });
+    }
 
     function startCall() {
         const number = document.getElementById('phoneNumber').value;
