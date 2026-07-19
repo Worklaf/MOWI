@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Мой Чат-Телефон</title>
-    <script src="https://unpkg.com/voximplant-websdk@latest/dist/voximplant.min.js"></script>
+    <!-- ПОМЕНЯЛИ ССЫЛКУ НА НАДЕЖНЫЙ ОФИЦИАЛЬНЫЙ CDN VOXIMPLANT -->
+    <script src="https://cdn.voximplant.com/edge/voximplant-websdk-releases/voximplant.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; background: #f4f7f6; display: flex; justify-content: center; }
         .phone-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 300px; }
@@ -19,9 +20,8 @@
 
 <div class="phone-box">
     <h3>Личный Телефон</h3>
-    <div id="status">Введите пароль пользователя Liudmyla для подключения:</div>
+    <div id="status">Введите пароль пользователя Liudmyla:</div>
     
-    <!-- Поле для ввода пароля прямо на странице -->
     <input type="password" id="voxPassword" placeholder="Пароль от Liudmyla">
     <button id="connectBtn" onclick="connectToVoximplant()">Подключиться к сети</button>
 
@@ -33,7 +33,7 @@
 </div>
 
 <script>
-    const vox = VoxImplant.getInstance();
+    let vox = null;
     let currentCall = null;
 
     const accountName = "worklaf.n8"; 
@@ -47,8 +47,18 @@
             return;
         }
 
+        // Защита от падения, если библиотека не загрузилась
+        if (typeof VoxImplant === 'undefined') {
+            alert("Критическая ошибка: Браузер заблокировал загрузку библиотеки Voximplant. Попробуйте отключить встроенный блокировщик рекламы/щит в браузере.");
+            document.getElementById('status').innerText = "Ошибка загрузки библиотеки SDK";
+            return;
+        }
+
         document.getElementById('status').innerText = "Подключение к сети...";
         document.getElementById('connectBtn').disabled = true;
+
+        // Инициализируем только при нажатии
+        vox = VoxImplant.getInstance();
 
         vox.init({ micRequired: true })
             .then(() => {
@@ -59,7 +69,7 @@
                 return vox.login(`${username}@${applicationName}.${accountName}.voximplant.com`, password);
             })
             .then(() => {
-                document.getElementById('status').innerText = "Готов к звонку! Можете набирать номер.";
+                document.getElementById('status').innerText = "Готов к звонку! Набирайте номер.";
                 document.getElementById('callBtn').disabled = false;
                 document.getElementById('voxPassword').style.display = "none";
                 document.getElementById('connectBtn').style.display = "none";
@@ -71,6 +81,7 @@
     }
 
     function startCall() {
+        if (!vox) return;
         const number = document.getElementById('phoneNumber').value;
         document.getElementById('status').innerText = "Набираю " + number + "...";
 
