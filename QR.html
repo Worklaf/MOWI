@@ -1169,13 +1169,15 @@
 <!-- Static QR Codes - Conditional Visibility -->
 <div id="staticQrCodes" style="position: fixed; right: 20px; top: 50%; transform: translateY(-50%); display: none; flex-direction: column; gap: 30px; z-index: 999;">
     <div style="display: flex; flex-direction: column; align-items: center; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
-        <div style="font-size: 12px; font-weight: bold; color: #fff; margin-bottom: 10px; text-align: center;">LOGIN</div>
-        <canvas id="staticQr1" width="160" height="160"></canvas>
-    </div>
+    <div style="font-size: 12px; font-weight: bold; color: #fff; margin-bottom: 10px; text-align: center; cursor:pointer;" onclick="startEditQrText('login')">LOGIN</div>
+    <canvas id="staticQr1" width="160" height="160" style="cursor:pointer;" onclick="startEditQrText('login')" title="Kliknij aby edytować"></canvas>
+    <input type="text" id="staticQr1Input" placeholder="Wpisz tekst..." style="display:none; margin-top:8px; width:140px; padding:6px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:12px; box-sizing:border-box;" onkeydown="handleQrInputKey(event,'login')" onblur="cancelEditQrText('login')">
+</div>
     <div style="display: flex; flex-direction: column; align-items: center; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
-        <div style="font-size: 12px; font-weight: bold; color: #fff; margin-bottom: 10px; text-align: center;">HASLO</div>
-        <canvas id="staticQr2" width="160" height="160"></canvas>
-    </div>
+    <div style="font-size: 12px; font-weight: bold; color: #fff; margin-bottom: 10px; text-align: center; cursor:pointer;" onclick="startEditQrText('haslo')">HASLO</div>
+    <canvas id="staticQr2" width="160" height="160" style="cursor:pointer;" onclick="startEditQrText('haslo')" title="Kliknij aby edytować"></canvas>
+    <input type="text" id="staticQr2Input" placeholder="Wpisz tekst..." style="display:none; margin-top:8px; width:140px; padding:6px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:12px; box-sizing:border-box;" onkeydown="handleQrInputKey(event,'haslo')" onblur="cancelEditQrText('haslo')">
+</div>
     <div style="display: flex; flex-direction: column; align-items: center; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
         <div style="font-size: 12px; font-weight: bold; color: #fff; margin-bottom: 10px; text-align: center;">MAKRA</div>
         <button onclick="showPasswordModal()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; padding: 10px 16px; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(16,185,129,0.4); text-decoration: none; transition: all 0.3s ease; display: flex; align-items: center; gap: 6px; margin-bottom: 8px;" 
@@ -8951,6 +8953,7 @@ authQR.onAuthStateChanged((user) => {
   
   // Check and update static QR codes visibility
   generateStaticQrCodes();
+  setupQrTextsListener();
 });
 
 // Prevent closing modal with Escape if not logged in
@@ -8968,223 +8971,166 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Load QR text codes from Firebase for special user
+let currentQrTexts = { login: '', haslo: '' };
+let editingQrField = null;
+
 async function loadQrTextsFromFirebase() {
-    console.log('🔥 Loading QR texts from Firebase users collection...');
-    
-    const userId = 'auth_2uuKegaeCKakt5eNn8TZxeyrDca2';
-    const userUid = userId.replace('auth_', ''); // Remove 'auth_' prefix for Firebase user ID
-    
+    const user = authQR.currentUser;
+    if (!user) return { login: '', haslo: '' };
+
     try {
-        const doc = await dbQR.collection('users').doc(userUid).get();
+        const doc = await dbQR.collection('users').doc(user.uid).get();
         if (doc.exists) {
             const data = doc.data();
             const qrTexts = data.qr_texts || {};
-            console.log('📥 Loaded QR texts from Firebase users:', qrTexts);
-            
-            // If qr_texts doesn't exist, create default
-            if (!qrTexts.login || !qrTexts.haslo) {
-                const defaultTexts = {
-                    login: qrTexts.login || 'mykola.karpovets',
-                    haslo: qrTexts.haslo || 'Nikpassword222',
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                };
-                await saveQrTextsToFirebase(defaultTexts.login, defaultTexts.haslo);
-                return defaultTexts;
-            }
-            
-            return qrTexts;
-        } else {
-            console.log('ℹ️ User document not found, creating with default QR texts');
-            // Create user document with default QR texts
-            const defaultTexts = {
-                login: 'mykola.karpovets',
-                haslo: 'Nikpassword222',
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            await dbQR.collection('users').doc(userUid).set({
-                qr_texts: defaultTexts
-            });
-            console.log('✅ Created user with default QR texts in Firebase');
-            return defaultTexts;
+            return { login: qrTexts.login || '', haslo: qrTexts.haslo || '' };
         }
+        return { login: '', haslo: '' };
     } catch (error) {
-        console.error('❌ Error loading QR texts from Firebase:', error);
-        // Return default values if Firebase fails
-        return {
-            login: 'mykola.karpovets',
-            haslo: 'Nikpassword222'
-        };
+        console.error('❌ Error loading QR texts:', error);
+        return { login: '', haslo: '' };
     }
 }
 
-// Save QR texts to Firebase for special user
 async function saveQrTextsToFirebase(loginText, hasloText) {
-    console.log('💾 Saving QR texts to Firebase users collection...');
-    
-    const userId = 'auth_2uuKegaeCKakt5eNn8TZxeyrDca2';
-    const userUid = userId.replace('auth_', ''); // Remove 'auth_' prefix for Firebase user ID
-    
+    const user = authQR.currentUser;
+    if (!user) return false;
+
     try {
         const qrTexts = {
             login: loginText,
             haslo: hasloText,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
-        
-        await dbQR.collection('users').doc(userUid).set({
-            qr_texts: qrTexts
-        }, { merge: true }); // Use merge to not overwrite existing user data
-        
-        console.log('✅ QR texts saved to Firebase users successfully:', qrTexts);
-        
-        // Regenerate QR codes with new texts
-        await generateStaticQrCodes();
-        
+        await dbQR.collection('users').doc(user.uid).set({ qr_texts: qrTexts }, { merge: true });
+        console.log('✅ QR texts saved for user:', user.uid);
+        currentQrTexts = { login: loginText, haslo: hasloText };
         return true;
     } catch (error) {
-        console.error('❌ Error saving QR texts to Firebase:', error);
+        console.error('❌ Error saving QR texts:', error);
         return false;
     }
 }
 
 // Generate dynamic QR codes when page loads
 async function generateStaticQrCodes() {
-    console.log('🎯 Checking Firebase user for dynamic QR codes...');
-    
-    // Check Firebase user ID
     const user = authQR.currentUser;
-    if (user) {
-        const userId = 'auth_' + user.uid;
-        
-        // Show QR codes only for specific user
-        if (userId === 'auth_2uuKegaeCKakt5eNn8TZxeyrDca2') {
-            console.log('✅ Special user detected, loading dynamic QR codes');
-            
-            // Show QR codes container
-            const staticQrCodes = document.getElementById('staticQrCodes');
-            if (staticQrCodes) {
-                staticQrCodes.style.display = 'flex';
-            }
-            
-            // Load QR texts from Firebase
-            const qrTexts = await loadQrTextsFromFirebase();
-            
-            // Update labels with dynamic texts
-            const loginLabel = document.querySelector('#staticQrCodes div:nth-child(1) div');
-            const hasloLabel = document.querySelector('#staticQrCodes div:nth-child(2) div');
-            
-            if (loginLabel) {
-                loginLabel.textContent = 'LOGIN';
-            }
-            if (hasloLabel) {
-                hasloLabel.textContent = 'HASLO';
-            }
-            
-            // Generate QR codes with dynamic texts
-            const qr1 = new QRious({
-                element: document.getElementById('staticQr1'),
-                value: qrTexts.login || 'mykola.karpovets',
-                size: 160,
-                background: '#fff',
-                foreground: '#000',
-                level: 'H'
-            });
-            
-            const qr2 = new QRious({
-                element: document.getElementById('staticQr2'),
-                value: qrTexts.haslo || 'Nikpassword222',
-                size: 160,
-                background: '#fff',
-                foreground: '#000',
-                level: 'H'
-            });
-            
-            console.log('✅ Dynamic QR codes generated successfully:', qrTexts);
-        } else {
-            console.log('❌ User not authorized for QR codes:', userId);
-            // Hide QR codes for non-authorized users
-            const staticQrCodes = document.getElementById('staticQrCodes');
-            if (staticQrCodes) {
-                staticQrCodes.style.display = 'none';
-            }
-        }
+    const staticQrCodes = document.getElementById('staticQrCodes');
+
+    if (!user) {
+        if (staticQrCodes) staticQrCodes.style.display = 'none';
+        return;
+    }
+
+    if (staticQrCodes) staticQrCodes.style.display = 'flex';
+
+    const qrTexts = await loadQrTextsFromFirebase();
+    currentQrTexts = qrTexts;
+    renderQrCanvas('login');
+    renderQrCanvas('haslo');
+}
+
+function renderQrCanvas(field) {
+    const canvasId = field === 'login' ? 'staticQr1' : 'staticQr2';
+    const inputId  = field === 'login' ? 'staticQr1Input' : 'staticQr2Input';
+    const canvas = document.getElementById(canvasId);
+    const input  = document.getElementById(inputId);
+    if (!canvas) return;
+
+    canvas.style.display = 'block';
+    if (input) input.style.display = 'none';
+
+    const value = currentQrTexts[field];
+    if (value) {
+        new QRious({ element: canvas, value, size: 160, background: '#fff', foreground: '#000', level: 'H' });
     } else {
-        console.log('❌ No user logged in, hiding QR codes');
-        // Hide QR codes for non-logged-in users
-        const staticQrCodes = document.getElementById('staticQrCodes');
-        if (staticQrCodes) {
-            staticQrCodes.style.display = 'none';
-        }
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Kliknij aby dodać', canvas.width / 2, canvas.height / 2);
     }
 }
 
 
 // Setup Firebase listener for QR texts updates
+let qrTextsUnsubscribe = null;
+
 function setupQrTextsListener() {
-    console.log('🔥 Setting up Firebase listener for QR texts in users collection...');
-    
-    const userId = 'auth_2uuKegaeCKakt5eNn8TZxeyrDca2';
-    const userUid = userId.replace('auth_', ''); // Remove 'auth_' prefix for Firebase user ID
-    
-    // Listen for real-time updates
-    dbQR.collection('users').doc(userUid).onSnapshot((doc) => {
-        if (doc.exists) {
-            const data = doc.data();
-            const qrTexts = data.qr_texts || {};
-            console.log('🔄 QR texts updated in Firebase users:', qrTexts);
-            
-            // Check if current user is the special user
-            const user = authQR.currentUser;
-            if (user && 'auth_' + user.uid === userId) {
-                console.log('✅ Updating QR codes with new texts...');
-                
-                // Update labels
-                const loginLabel = document.querySelector('#staticQrCodes div:nth-child(1) div');
-                const hasloLabel = document.querySelector('#staticQrCodes div:nth-child(2) div');
-                
-                if (loginLabel) {
-                    loginLabel.textContent = 'LOGIN';
-                }
-                if (hasloLabel) {
-                    hasloLabel.textContent = 'HASLO';
-                }
-                
-                // Regenerate QR codes with new texts
-                const qr1 = new QRious({
-                    element: document.getElementById('staticQr1'),
-                    value: qrTexts.login || 'mykola.karpovets',
-                    size: 160,
-                    background: '#fff',
-                    foreground: '#000',
-                    level: 'H'
-                });
-                
-                const qr2 = new QRious({
-                    element: document.getElementById('staticQr2'),
-                    value: qrTexts.haslo || 'Nikpassword222',
-                    size: 160,
-                    background: '#fff',
-                    foreground: '#000',
-                    level: 'H'
-                });
-                
-                console.log('✅ QR codes updated in real-time:', qrTexts);
-            }
-        }
-    }, (error) => {
-        console.error('❌ Firebase listener error:', error);
-    });
+    if (qrTextsUnsubscribe) { qrTextsUnsubscribe(); qrTextsUnsubscribe = null; }
+
+    const user = authQR.currentUser;
+    if (!user) return;
+
+    qrTextsUnsubscribe = dbQR.collection('users').doc(user.uid).onSnapshot((doc) => {
+        if (!doc.exists) return;
+        const data = doc.data();
+        const qrTexts = data.qr_texts || {};
+        currentQrTexts = { login: qrTexts.login || '', haslo: qrTexts.haslo || '' };
+
+        if (editingQrField !== 'login') renderQrCanvas('login');
+        if (editingQrField !== 'haslo') renderQrCanvas('haslo');
+    }, (error) => console.error('❌ Firebase listener error:', error));
+}
+function startEditQrText(field) {
+    if (!authQR.currentUser) { showAuthModal(); return; }
+
+    const canvasId = field === 'login' ? 'staticQr1' : 'staticQr2';
+    const inputId  = field === 'login' ? 'staticQr1Input' : 'staticQr2Input';
+    const canvas = document.getElementById(canvasId);
+    const input  = document.getElementById(inputId);
+    if (!canvas || !input) return;
+
+    editingQrField = field;
+    input.value = currentQrTexts[field] || '';
+    canvas.style.display = 'none';
+    input.style.display = 'block';
+    input.focus();
+    input.select();
 }
 
+async function handleQrInputKey(e, field) {
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        editingQrField = null;
+        renderQrCanvas(field);
+        return;
+    }
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+
+    const inputId = field === 'login' ? 'staticQr1Input' : 'staticQr2Input';
+    const input = document.getElementById(inputId);
+    const newValue = input.value.trim();
+
+    editingQrField = null;
+
+    if (newValue) {
+        const login = field === 'login' ? newValue : (currentQrTexts.login || '');
+        const haslo = field === 'haslo' ? newValue : (currentQrTexts.haslo || '');
+        await saveQrTextsToFirebase(login, haslo);
+    }
+    renderQrCanvas(field);
+}
+
+function cancelEditQrText(field) {
+    // onblur — просто закрываем поле если не сохранили через Enter
+    setTimeout(() => {
+        if (editingQrField === field) {
+            editingQrField = null;
+            renderQrCanvas(field);
+        }
+    }, 150);
+}
 // Setup login blocker button and auto-show modal if not logged in
 window.addEventListener('load', () => {
   // Generate static QR codes immediately
   generateStaticQrCodes();
   
-  // Setup Firebase listener for real-time updates
-  setupQrTextsListener();
-  
-  const blockerBtn = document.getElementById('loginBlockerBtn');
+   const blockerBtn = document.getElementById('loginBlockerBtn');
   if (blockerBtn) {
     blockerBtn.addEventListener('click', () => {
       if (typeof showAuthModal === 'function') showAuthModal();
@@ -9337,6 +9283,12 @@ function showDownloadOptionsModal() {
     
     // Load custom buttons when opening download modal
     loadCustomButtons();
+    
+    // Hide add custom button for non-admin users
+    const addCustomButtonBtn = document.getElementById('showAddCustomButtonModalBtn');
+    if (addCustomButtonBtn) {
+        addCustomButtonBtn.style.display = isAdminUser() ? 'block' : 'none';
+    }
 }
 
 function closeDownloadOptionsModal() {
@@ -9524,6 +9476,12 @@ function closeAddCustomButtonModal() {
 }
 
 async function addCustomButton() {
+    // Check if user is admin
+    if (!isAdminUser()) {
+        alert('❌ Tylko administrator może dodawać przyciski!');
+        return;
+    }
+    
     const nameInput = document.getElementById('customButtonName');
     const fileInput = document.getElementById('customButtonFile');
     const error = document.getElementById('customButtonError');
@@ -9708,44 +9666,47 @@ function createCustomButtonElement(button, buttonId) {
         downloadCustomFile(button.url);
     };
     
-    // Delete button outside main button
-    const deleteButton = document.createElement('button');
-    deleteButton.style.cssText = `
-        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 32px;
-        height: 32px;
-        font-size: 14px;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(239,68,68,0.4);
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    `;
-    
-    deleteButton.onmouseover = function() {
-        this.style.background = 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)';
-        this.style.transform = 'scale(1.1)';
-        this.style.boxShadow = '0 4px 12px rgba(239,68,68,0.6)';
-    };
-    
-    deleteButton.onmouseout = function() {
-        this.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
-        this.style.transform = 'scale(1)';
-        this.style.boxShadow = '0 2px 8px rgba(239,68,68,0.4)';
-    };
-    
-    deleteButton.innerHTML = '🗑️';
-    deleteButton.onclick = function() {
-        deleteCustomButton(buttonId);
-    };
-    
     buttonContainer.appendChild(buttonDiv);
-    buttonContainer.appendChild(deleteButton);
+    
+    // Only show delete button for admin
+    if (isAdminUser()) {
+        const deleteButton = document.createElement('button');
+        deleteButton.style.cssText = `
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(239,68,68,0.4);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        `;
+        
+        deleteButton.onmouseover = function() {
+            this.style.background = 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)';
+            this.style.transform = 'scale(1.1)';
+            this.style.boxShadow = '0 4px 12px rgba(239,68,68,0.6)';
+        };
+        
+        deleteButton.onmouseout = function() {
+            this.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+            this.style.transform = 'scale(1)';
+            this.style.boxShadow = '0 2px 8px rgba(239,68,68,0.4)';
+        };
+        
+        deleteButton.innerHTML = '🗑️';
+        deleteButton.onclick = function() {
+            deleteCustomButton(buttonId);
+        };
+        
+        buttonContainer.appendChild(deleteButton);
+    }
     
     return buttonContainer;
 }
@@ -9771,6 +9732,12 @@ async function downloadCustomFile(url) {
 }
 
 async function uploadCustomFile() {
+    // Check if user is admin
+    if (!isAdminUser()) {
+        alert('❌ Tylko administrator może przesyłać pliki!');
+        return;
+    }
+    
     const fileInput = document.getElementById('customButtonFile');
     const file = fileInput.files[0];
     
@@ -9961,6 +9928,12 @@ async function deleteCustomButton(buttonId) {
         return;
     }
     
+    // Check if user is admin
+    if (!isAdminUser()) {
+        alert('❌ Tylko administrator może usuwać przyciski!');
+        return;
+    }
+    
     try {
         const db = firebase.firestore();
         
@@ -10085,11 +10058,25 @@ function showFileManagerModal() {
         document.getElementById('corsHelp').style.display = 'none';
     }
     
+    // Hide upload section for non-admin users
+    const uploadSection = document.getElementById('uploadSection');
+    if (uploadSection) {
+        uploadSection.style.display = isAdminUser() ? 'block' : 'none';
+    }
+    
     loadFileList();
 }
 
 function closeFileManagerModal() {
     document.getElementById('fileManagerModal').style.display = 'none';
+}
+
+// Admin UID check - only this user can upload/delete files
+const ADMIN_UID = '2uuKegaeCKakt5eNn8TZxeyrDca2';
+
+function isAdminUser() {
+    const user = authQR.currentUser;
+    return user && user.uid === ADMIN_UID;
 }
 
 // File Upload Function
@@ -10099,6 +10086,12 @@ async function uploadFile() {
     
     if (!file) {
         alert('❌ Wybierz plik do przesłania!');
+        return;
+    }
+    
+    // Check if user is admin
+    if (!isAdminUser()) {
+        alert('❌ Tylko administrator może przesyłać pliki!');
         return;
     }
     
@@ -10335,6 +10328,8 @@ function displayFileList(files) {
         return;
     }
     
+    const isAdmin = isAdminUser();
+    
     let html = '';
     files.forEach(file => {
         const fileSize = formatFileSize(file.size);
@@ -10358,9 +10353,11 @@ function displayFileList(files) {
                         <button onclick="downloadUploadedFile('${file.id}')" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer;">
                             ⬇️ Pobierz
                         </button>
-                        <button onclick="deleteUploadedFile('${file.id}')" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer;">
-                            🗑️ Usuń
-                        </button>
+                        ${isAdmin ? `
+                            <button onclick="deleteUploadedFile('${file.id}')" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer;">
+                                🗑️ Usuń
+                            </button>
+                        ` : ''}
                     </div>
                 </div>
             </div>
@@ -11317,6 +11314,12 @@ function updateContentForFullscreen(fullscreen) {
 // Delete Uploaded File Function
 async function deleteUploadedFile(fileId) {
     if (!confirm('Czy na pewno chcesz usunąć ten plik?')) {
+        return;
+    }
+    
+    // Check if user is admin
+    if (!isAdminUser()) {
+        alert('❌ Tylko administrator może usuwać pliki!');
         return;
     }
     
