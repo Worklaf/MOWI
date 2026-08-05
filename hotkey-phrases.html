@@ -661,7 +661,18 @@ const submitLabel = document.getElementById('submitLabel');
 const editIndexInput = document.getElementById('editIndex');
 const toast = document.getElementById('toast');
 const toastText = document.getElementById('toastText');
+function loadPhrasesLocal() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) { return []; }
+}
 
+function savePhrasesLocal() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(phrases));
+}
 function t() { return LANGS[currentLang]; }
 
 function applyLang() {
@@ -728,7 +739,7 @@ function loadPhrases() {
   } catch (e) { return []; }
 }
 
-function savePhrases() {
+function savePhrasesLocal() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(phrases));
 }
 
@@ -912,8 +923,10 @@ document.addEventListener('keydown', (e) => {
   copyText(match.text, modifier + ' + ' + key);
 });
 
-phrases = loadPhrases();
+phrases = loadPhrasesLocal(); // начальная загрузка из localStorage
 applyLang();
+// Затем попробуем загрузить из Firebase (если уже залогинен)
+loadPhrasesFromFirestore();
 
 /* ════════════════════════════════════════════════════════
    FIREBASE AUTH & SYNC - Shared with QR_Cards.html
@@ -1018,7 +1031,7 @@ function getAnonymousUserId() {
 function getUserId() {
   const user = auth.currentUser;
   if (user) return 'auth_' + user.uid;
-  return getAnonymousUserId();
+  return null; // <-- БЫЛО: return getAnonymousUserId();
 }
 
 // Username helpers
@@ -1038,54 +1051,70 @@ async function isUsernameAvailable(username) {
 
 // Firestore sync functions
 async function savePhrasesToFirestore() {
+  const userId = getUserId();
+  if (!userId) {
+    console.log('Not logged in — skipping Firestore sync');
+    return;
+  }
   if (isSyncing) return;
   isSyncing = true;
   try {
-    const userId = getUserId();
     const phrasesData = phrases.map((p, i) => ({ ...p, order: i }));
     await db.collection('hotkey_phrases').doc(userId).set({
       phrases: phrasesData,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
       deviceInfo: navigator.userAgent
     });
-    console.log('✅ Phrases synced to Firestore for:', userId);
+    console.log('Saved to Firestore for user:', userId);
   } catch (e) {
-    console.error('❌ Sync error:', e);
+    console.error('Sync error:', e);
   } finally {
     isSyncing = false;
   }
 }
 
 async function loadPhrasesFromFirestore() {
+  const userId = getUserId();
+  if (!userId) {
+    console.log('Not logged in — loading from localStorage only');
+    phrases = loadPhrasesLocal();
+    renderList();
+    return false;
+  }
   try {
-    const userId = getUserId();
     const doc = await db.collection('hotkey_phrases').doc(userId).get();
     if (doc.exists) {
       const data = doc.data();
       if (data.phrases && data.phrases.length > 0) {
         phrases = data.phrases.sort((a, b) => (a.order || 0) - (b.order || 0));
-        localStorage.setItem('hotkeyPhrases', JSON.stringify(phrases));
+        savePhrasesLocal(); // обновляем localStorage под этого пользователя
         renderList();
-        console.log('✅ Phrases loaded from Firestore:', phrases.length);
+        console.log('Loaded from Firestore:', phrases.length);
         return true;
       }
     }
+    // Если в Firestore пусто — берём из localStorage
+    phrases = loadPhrasesLocal();
+    renderList();
     return false;
   } catch (e) {
-    console.error('❌ Load error:', e);
+    console.error('Load error:', e);
+    phrases = loadPhrasesLocal();
+    renderList();
     return false;
   }
 }
 
 // Modified save/load functions with Firestore sync
 function savePhrases() {
-  localStorage.setItem('hotkeyPhrases', JSON.stringify(phrases));
-  savePhrasesToFirestore(); // Async sync to cloud
+  savePhrasesLocal(); // сохраняем в localStorage текущего пользователя
+  savePhrasesToFirestore(); // синхронизируем в Firebase
 }
 
 function loadPhrases() {
-  const saved = localStorage.getItem('hotkeyPhrases');
-  return saved ? JSON.parse(saved) : [];
+  // Сначала пробуем загрузить из Firebase (актуальные данные)
+  // Если не получилось — берём из localStorage
+  return loadPhrasesLocal();
 }
 
 // Auth UI functions
@@ -1147,7 +1176,8 @@ async function handleSignIn() {
   try {
     await auth.signInWithEmailAndPassword(email, password);
     showAuthSuccess('Signed in successfully!');
-    setTimeout(() => { hideAuthModal(); updateAuthUI(); loadPhrasesFromFirestore(); }, 1000);
+    setTimeout(() => { hideAuthModal(); updateAuthUI(); }, 1000);
+// loadPhrasesFromFirestore вызовется автоматически через onAuthStateChanged
   } catch (e) {
     showAuthError(e.message);
   }
@@ -1184,9 +1214,11 @@ async function handleSignUp() {
 
 function handleSignOut() {
   auth.signOut().then(() => {
-    updateAuthUI();
-    phrases = loadPhrases();
+    // Очищаем phrases при выходе, чтобы не показывать данные предыдущего пользователя
+    phrases = [];
+    localStorage.removeItem(STORAGE_KEY);
     renderList();
+    updateAuthUI();
   });
 }
 
@@ -1329,28 +1361,26 @@ async function handleForgotPassword() {
 
 // Auth state listener - key for cross-page sync
 auth.onAuthStateChanged((user) => {
-  // Mark auth state as determined
   authStateDetermined = true;
-  
   console.log('Auth state:', user ? 'signed in' : 'signed out');
   currentUserId = getUserId();
   const blocker = document.getElementById('loginBlocker');
   
   if (user) {
-    // Hide blocker when logged in
     if (blocker) blocker.style.display = 'none';
+    loadPhrasesFromFirestore(); // загружаем данные конкретного пользователя
   } else {
-    // Show blocker ONLY when auth state is determined and user is definitely not logged in
     if (blocker && authStateDetermined) {
       blocker.style.display = 'flex';
-      console.log('User not logged in - showing login blocker');
     }
+    // Очищаем данные при разлогине
+    phrases = [];
+    localStorage.removeItem(STORAGE_KEY);
+    renderList();
   }
   
   updateAuthUI();
-  loadPhrasesFromFirestore();
 });
-
 // Prevent closing modal with Escape if not logged in
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
